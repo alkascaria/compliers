@@ -6,11 +6,18 @@ public class ExprNumber extends Expr {
 	public ExprNumber(int value) {
 		super();
 		this.value = value;
+
 	}
 
-	public ExprNumber(String value) {
+	public ExprNumber(String value)
+	{
 	    this.value = Integer.parseInt(value);
-  }
+	}
+
+	public String accept(ExprVisitor exprVisitor)
+	{
+		return exprVisitor.visitNumber(this);
+	}
 
 	public int getValue() {
 		return value;

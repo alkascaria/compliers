@@ -5,9 +5,10 @@ package calculator.ast;
  */
 public interface ExprVisitor
 {
-    void visitAdd(Expr left, Expr right);
-    void visitSub(Expr left, Expr right);
-    void visitMult(Expr left, Expr right);
-    void visitDiv(Expr left, Expr right);
+    public String visitAdd(ExprAdd exprAdd);
+    public String visitDiv(ExprDiv exprDiv);
+    public String visitSub(ExprSub exprSub);
+    public String visitMult(ExprMult exprMult);
 
+    public String visitNumber(ExprNumber number);
 }

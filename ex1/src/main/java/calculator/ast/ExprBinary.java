@@ -3,14 +3,15 @@ package calculator.ast;
 public abstract class ExprBinary extends Expr {
     private Expr left;
     private Expr right;
-    //0 = positive
-    //1 = negative
-    private int isNegative;
+    //positive = 0.
+    //negative = 1
+    private int sign;
 
-    public ExprBinary(Expr left, Expr right, int negated)
+    public ExprBinary(Expr left, Expr right, int sign)
     {
         this.left = left;
         this.right = right;
+        this.sign = sign;
     }
 
     public Expr getLeft() {
@@ -20,5 +21,9 @@ public abstract class ExprBinary extends Expr {
     public Expr getRight() {
         return right;
     }
-    
+
+    public int getSign()
+    {
+        return sign;
+    }
 }

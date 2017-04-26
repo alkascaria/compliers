@@ -126,17 +126,19 @@ expr ::=
        {: RESULT = new ExprMult(l, r, 0); :}
     //TIMES negated
     | MINUS LPAREN expr:l TIMES expr:r RPAREN
-             {: RESULT = new ExprMult(l, r, 1); :}
+         {: RESULT = new ExprMult(l, r, 1); :}
     //TIMES no brackets
     | expr:l TIMES expr:r
-       {: RESULT = new ExprMult(l, r, 0); :}
+       {: RESULT = new ExprMult(l, r, 0);
+       :}
 
     //DIV with brackets
     | LPAREN expr:l DIV expr:r RPAREN
        {: RESULT = new ExprDiv(l, r, 0); :}
     //DIV negated
     | MINUS LPAREN expr:l DIV expr:r RPAREN
-           {: RESULT = new ExprDiv(l, r, 1); :}
+       {:
+       RESULT = new ExprDiv(l, r, 1); :}
      //DIV no brackets
          | expr:l DIV expr:r
             {: RESULT = new ExprDiv(l, r, 0); :}
@@ -161,10 +163,10 @@ expr ::=
     | expr:l MINUS expr:r
          {: RESULT = new ExprSub(l, r, 0); :}
 
-
      //negated number
     | MINUS NUMBER:n
         {: RESULT = new ExprNumber("-" + n); :}
-  |  NUMBER:n
+     //non-negated number
+    |  NUMBER:n
     {: RESULT = new ExprNumber(n); :}
   ;

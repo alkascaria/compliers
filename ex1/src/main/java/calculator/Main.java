@@ -1,6 +1,8 @@
 package calculator;
 
 import calculator.ast.Expr;
+import calculator.ast.ExprPrinter;
+import calculator.ast.ExprVisitor;
 import exprs.ExprParser;
 import exprs.ExprParser.ParserError;
 import exprs.Lexer;
@@ -21,8 +23,8 @@ public class Main {
                 String input = s.nextLine();
                 Expr expr = parseString(input);
                 if (expr != null) {
-                    System.out.println(expr + " = " + evaluate(expr));
-                    // System.out.println(prettyPrint(expr));
+                    //System.out.println(expr + " = " + evaluate(expr));
+                     System.out.println(prettyPrint(expr));
                 }
             } catch (ParserError e) {
                 System.out.println(e.toString());
@@ -40,12 +42,10 @@ public class Main {
         ComplexSymbolFactory sf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(sf, in);
         ExprParser parser = new ExprParser(lexer, sf);
-        
-       
-
        // parser.onError((ParserError e) -> {
          //   throw e;
         //});
+
 
         Symbol result = parser.parse();
 
@@ -53,12 +53,14 @@ public class Main {
     }
 
     public static String prettyPrint(Expr e) {
-      // TODO
-      return "";
+        ExprPrinter exprPrinter = new ExprPrinter();
+
+      return e.accept(exprPrinter);
     }
 
     public static int run(String s) {
         try {
+            System.out.println(s);
             return evaluate(parseString(s));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -66,7 +68,7 @@ public class Main {
     }
 
     private static int evaluate(Expr e) {
-        // TODO
+
         return 0;
     }
 }

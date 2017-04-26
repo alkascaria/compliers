@@ -8,4 +8,10 @@ public class ExprSub extends ExprBinary
     public ExprSub(Expr left, Expr right, int negated) {
         super(left, right, negated);
     }
+
+    public String accept(ExprVisitor exprVisitor)
+    {
+        return exprVisitor.visitSub(this);
+    }
+
 }

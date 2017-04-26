@@ -5,14 +5,20 @@ package calculator.ast;
  */
 public class ExprAdd extends ExprBinary
 {
-    public ExprAdd(Expr left, Expr right, int negated)
+    private int sign;
+
+    public ExprAdd(Expr left, Expr right, int sign)
     {
-        super(left, right, negated);
+        super(left, right, sign);
     }
 
-    public void accept(ExprVisitor ExprMethods)
+    public String accept(ExprVisitor exprVisitor)
     {
-        ExprMethods.visitAdd(super.getLeft(), super.getRight());
+        return exprVisitor.visitAdd(this);
     }
 
+    public int getSign()
+    {
+        return super.getSign();
+    }
 }
