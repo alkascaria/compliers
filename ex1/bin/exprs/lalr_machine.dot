@@ -1,0 +1,99 @@
+// compile using graphviz: 
+// dot lalr_machine.dot -Tsvg -o lalr_machine.svg
+// fdp lalr_machine.dot -Tsvg -o lalr_machine.svg
+// neato lalr_machine.dot -Tsvg -o lalr_machine.svg
+digraph g {
+   overlap = false;
+   splines = true;
+// ===== Viable Prefix Recognizer =====
+// START 
+"node0" [
+   label ="0\l[expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF }]\l[$START ::= (*) expr EOF , {EOF }]\l[expr ::= (*) NUMBER , {EOF }]\l[expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF }]\l"
+
+   shape ="rect"
+];
+node0 -> node3 [ label="LPAREN"];
+node0 -> node2 [ label="expr"];
+node0 -> node1 [ label="NUMBER"];
+//-------------------
+"node1" [
+   label ="1\l[expr ::= NUMBER (*) , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+//-------------------
+"node2" [
+   label ="2\l[$START ::= expr (*) EOF , {EOF }]\l"
+
+   shape ="rect"
+];
+node2 -> node11 [ label="EOF"];
+//-------------------
+"node3" [
+   label ="3\l[expr ::= LPAREN (*) expr TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]\l[expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS TIMES }]\l[expr ::= (*) NUMBER , {PLUS TIMES }]\l[expr ::= LPAREN (*) expr PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]\l[expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS TIMES }]\l"
+
+   shape ="rect"
+];
+node3 -> node4 [ label="expr"];
+node3 -> node3 [ label="LPAREN"];
+node3 -> node1 [ label="NUMBER"];
+//-------------------
+"node4" [
+   label ="4\l[expr ::= LPAREN expr (*) TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]\l[expr ::= LPAREN expr (*) PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+node4 -> node6 [ label="TIMES"];
+node4 -> node5 [ label="PLUS"];
+//-------------------
+"node5" [
+   label ="5\l[expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]\l[expr ::= LPAREN expr PLUS (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]\l[expr ::= (*) NUMBER , {RPAREN }]\l[expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]\l"
+
+   shape ="rect"
+];
+node5 -> node3 [ label="LPAREN"];
+node5 -> node9 [ label="expr"];
+node5 -> node1 [ label="NUMBER"];
+//-------------------
+"node6" [
+   label ="6\l[expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]\l[expr ::= (*) NUMBER , {RPAREN }]\l[expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]\l[expr ::= LPAREN expr TIMES (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+node6 -> node3 [ label="LPAREN"];
+node6 -> node7 [ label="expr"];
+node6 -> node1 [ label="NUMBER"];
+//-------------------
+"node7" [
+   label ="7\l[expr ::= LPAREN expr TIMES expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+node7 -> node8 [ label="RPAREN"];
+//-------------------
+"node8" [
+   label ="8\l[expr ::= LPAREN expr TIMES expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+//-------------------
+"node9" [
+   label ="9\l[expr ::= LPAREN expr PLUS expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+node9 -> node10 [ label="RPAREN"];
+//-------------------
+"node10" [
+   label ="10\l[expr ::= LPAREN expr PLUS expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]\l"
+
+   shape ="rect"
+];
+//-------------------
+"node11" [
+   label ="11\l[$START ::= expr EOF (*) , {EOF }]\l"
+
+   shape ="rect"
+];
+//-------------------
+}

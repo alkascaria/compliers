@@ -1,0 +1,47 @@
+-------- ACTION_TABLE --------
+From state #0
+ [term 6:SHIFT(to state 3)] [term 9:SHIFT(to state 1)]
+From state #1
+ [term 0:REDUCE(with prod 3)] [term 2:REDUCE(with prod 3)]
+ [term 4:REDUCE(with prod 3)] [term 7:REDUCE(with prod 3)]
+From state #2
+ [term 0:SHIFT(to state 11)]
+From state #3
+ [term 6:SHIFT(to state 3)] [term 9:SHIFT(to state 1)]
+From state #4
+ [term 2:SHIFT(to state 5)] [term 4:SHIFT(to state 6)]
+From state #5
+ [term 6:SHIFT(to state 3)] [term 9:SHIFT(to state 1)]
+From state #6
+ [term 6:SHIFT(to state 3)] [term 9:SHIFT(to state 1)]
+From state #7
+ [term 7:SHIFT(to state 8)]
+From state #8
+ [term 0:REDUCE(with prod 2)] [term 2:REDUCE(with prod 2)]
+ [term 4:REDUCE(with prod 2)] [term 7:REDUCE(with prod 2)]
+From state #9
+ [term 7:SHIFT(to state 10)]
+From state #10
+ [term 0:REDUCE(with prod 0)] [term 2:REDUCE(with prod 0)]
+ [term 4:REDUCE(with prod 0)] [term 7:REDUCE(with prod 0)]
+From state #11
+ [term 0:REDUCE(with prod 1)]
+------------------------------
+-------- REDUCE_TABLE --------
+From state #0
+ [non term 0->state 2]
+From state #1
+From state #2
+From state #3
+ [non term 0->state 4]
+From state #4
+From state #5
+ [non term 0->state 9]
+From state #6
+ [non term 0->state 7]
+From state #7
+From state #8
+From state #9
+From state #10
+From state #11
+-----------------------------

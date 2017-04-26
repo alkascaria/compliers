@@ -1,0 +1,92 @@
+===== Viable Prefix Recognizer =====
+START lalr_state [0]: {
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF }]
+  [$START ::= (*) expr EOF , {EOF }]
+  [expr ::= (*) NUMBER , {EOF }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF }]
+}
+transition on LPAREN to state [3]
+transition on expr to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [1]: {
+  [expr ::= NUMBER (*) , {EOF PLUS TIMES RPAREN }]
+}
+
+-------------------
+lalr_state [2]: {
+  [$START ::= expr (*) EOF , {EOF }]
+}
+transition on EOF to state [11]
+
+-------------------
+lalr_state [3]: {
+  [expr ::= LPAREN (*) expr TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS TIMES }]
+  [expr ::= (*) NUMBER , {PLUS TIMES }]
+  [expr ::= LPAREN (*) expr PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS TIMES }]
+}
+transition on expr to state [4]
+transition on LPAREN to state [3]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [4]: {
+  [expr ::= LPAREN expr (*) TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= LPAREN expr (*) PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]
+}
+transition on TIMES to state [6]
+transition on PLUS to state [5]
+
+-------------------
+lalr_state [5]: {
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]
+  [expr ::= LPAREN expr PLUS (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) NUMBER , {RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]
+}
+transition on LPAREN to state [3]
+transition on expr to state [9]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [6]: {
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]
+  [expr ::= (*) NUMBER , {RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]
+  [expr ::= LPAREN expr TIMES (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]
+}
+transition on LPAREN to state [3]
+transition on expr to state [7]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [7]: {
+  [expr ::= LPAREN expr TIMES expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]
+}
+transition on RPAREN to state [8]
+
+-------------------
+lalr_state [8]: {
+  [expr ::= LPAREN expr TIMES expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]
+}
+
+-------------------
+lalr_state [9]: {
+  [expr ::= LPAREN expr PLUS expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]
+}
+transition on RPAREN to state [10]
+
+-------------------
+lalr_state [10]: {
+  [expr ::= LPAREN expr PLUS expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]
+}
+
+-------------------
+lalr_state [11]: {
+  [$START ::= expr EOF (*) , {EOF }]
+}
+
+-------------------
