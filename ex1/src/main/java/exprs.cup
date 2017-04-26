@@ -112,8 +112,16 @@ non terminal Expr expr;
 non terminal Expr expr_operation;
 
 
-precedence left TIMES, DIV, PLUS, MINUS;
 
+/*
+Citing from
+http://www2.cs.tum.edu/projects/cup/docs.php#precedence
+The order of precedence, from highest to lowest, is bottom to top.
+Hence, this declares that multiplication and division have higher precedence than addition and subtraction:
+*/
+
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIV;
 
 
 /* ----------------------------Grammar Section-------------------- */

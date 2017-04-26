@@ -54,7 +54,6 @@ public class ExprPrinter implements ExprVisitor {
     public String visitDiv(ExprDiv exprDiv)
     {
         String stringToReturn = "";
-
         //positive
         if(exprDiv.getSign() == 0)
         {
@@ -84,6 +83,81 @@ public class ExprPrinter implements ExprVisitor {
             stringToReturn =  "-" + "(" + exprMult.getLeft().accept(this) + "*" + exprMult.getRight().accept(this) + ")";
         }
         return (stringToReturn);
+    }
+
+    public int visitEvaluateAdd(ExprAdd exprAdd)
+    {
+        int result = 0;
+
+        //positive
+        if(exprAdd.getSign() == 0)
+        {
+            result = exprAdd.getLeft().acceptEvaluate(this) + exprAdd.getRight().acceptEvaluate(this);
+        }
+        //negative
+        else
+        {
+            result = -1 * (exprAdd.getLeft().acceptEvaluate(this) + exprAdd.getRight().acceptEvaluate(this));
+        }
+
+        return result;
+    }
+
+    public int visitEvaluateSub(ExprSub exprSub)
+    {
+        int result = 0;
+
+        //positive
+        if(exprSub.getSign() == 0)
+        {
+            result = exprSub.getLeft().acceptEvaluate(this) - exprSub.getRight().acceptEvaluate(this);
+        }
+        //negative
+        else
+        {
+            result = -1 * (exprSub.getLeft().acceptEvaluate(this) - exprSub.getRight().acceptEvaluate(this));
+        }
+
+        return result;
+    }
+
+    public int visitEvaluateMult(ExprMult exprMult)
+    {
+        int result = 0;
+
+        //positive
+        if(exprMult.getSign() == 0)
+        {
+            result = exprMult.getLeft().acceptEvaluate(this) * exprMult.getRight().acceptEvaluate(this);
+        }
+        //negative
+        else
+        {
+            result = -1 * (exprMult.getLeft().acceptEvaluate(this) * exprMult.getRight().acceptEvaluate(this));
+        }
+
+        return result;
+    }
+
+    public int visitEvaluateDiv(ExprDiv exprDiv)
+    {
+        int result = 0;
+        //positive
+        if(exprDiv.getSign() == 0)
+        {
+            result = exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this);
+        }
+        //negative
+        else
+        {
+            result = -1 * (exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this));
+        }
+        return result;
+    }
+
+    public int visitEvaluateNumber(ExprNumber number)
+    {
+        return number.getValue();
     }
 
 }

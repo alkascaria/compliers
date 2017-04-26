@@ -19,14 +19,17 @@ public class Main {
         System.out.println("Write one expression per line:");
         Scanner s = new Scanner(System.in);
         while (s.hasNext()) {
-            try {
+            try
+            {
                 String input = s.nextLine();
                 Expr expr = parseString(input);
-                if (expr != null) {
-                    //System.out.println(expr + " = " + evaluate(expr));
-                     System.out.println(prettyPrint(expr));
+                if (expr != null)
+                {
+                    System.out.println(prettyPrint(expr) + " = " + evaluate(expr));
                 }
-            } catch (ParserError e) {
+            }
+            catch (ParserError e)
+            {
                 System.out.println(e.toString());
             }
         }
@@ -52,9 +55,9 @@ public class Main {
         return (Expr) result.value;
     }
 
-    public static String prettyPrint(Expr e) {
+    public static String prettyPrint(Expr e)
+    {
         ExprPrinter exprPrinter = new ExprPrinter();
-
       return e.accept(exprPrinter);
     }
 
@@ -67,8 +70,10 @@ public class Main {
         }
     }
 
-    private static int evaluate(Expr e) {
+    private static int evaluate(Expr e)
+    {
+        ExprPrinter exprPrinter = new ExprPrinter();
 
-        return 0;
+        return e.acceptEvaluate(exprPrinter);
     }
 }

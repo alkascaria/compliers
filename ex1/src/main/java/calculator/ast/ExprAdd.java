@@ -5,6 +5,8 @@ package calculator.ast;
  */
 public class ExprAdd extends ExprBinary
 {
+
+
     private int sign;
 
     public ExprAdd(Expr left, Expr right, int sign)
@@ -15,6 +17,11 @@ public class ExprAdd extends ExprBinary
     public String accept(ExprVisitor exprVisitor)
     {
         return exprVisitor.visitAdd(this);
+    }
+
+    public int acceptEvaluate(ExprVisitor exprVisitor)
+    {
+        return exprVisitor.visitEvaluateAdd(this);
     }
 
     public int getSign()

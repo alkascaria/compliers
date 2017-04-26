@@ -13,6 +13,11 @@ public class ExprMult extends ExprBinary {
         return exprVisitor.visitMult(this);
     }
 
+    public int acceptEvaluate(ExprVisitor exprVisitor)
+    {
+        return exprVisitor.visitEvaluateMult(this);
+    }
+
     public int getSign()
     {
         return super.getSign();

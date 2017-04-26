@@ -13,6 +13,11 @@ public class ExprDiv  extends ExprBinary {
         return exprVisitor.visitDiv(this);
     }
 
+    public int acceptEvaluate(ExprVisitor exprVisitor)
+    {
+        return exprVisitor.visitEvaluateDiv(this);
+    }
+
     public int getSign()
     {
         return super.getSign();

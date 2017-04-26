@@ -14,4 +14,10 @@ public class ExprSub extends ExprBinary
         return exprVisitor.visitSub(this);
     }
 
+    public int acceptEvaluate(ExprVisitor exprVisitor)
+    {
+        return exprVisitor.visitEvaluateSub(this);
+    }
+
+
 }

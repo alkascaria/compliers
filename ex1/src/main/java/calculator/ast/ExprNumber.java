@@ -19,6 +19,11 @@ public class ExprNumber extends Expr {
 		return exprVisitor.visitNumber(this);
 	}
 
+	public int acceptEvaluate(ExprVisitor exprVisitor)
+	{
+		return exprVisitor.visitEvaluateNumber(this);
+	}
+
 	public int getValue() {
 		return value;
 	}
