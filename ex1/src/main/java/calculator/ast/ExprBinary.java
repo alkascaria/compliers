@@ -14,6 +14,11 @@ public abstract class ExprBinary extends Expr {
         this.sign = sign;
     }
 
+    public ExprBinary(Expr left)
+    {
+        this.left = left;
+    }
+
     public Expr getLeft() {
         return left;
     }

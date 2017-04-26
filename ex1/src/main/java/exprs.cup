@@ -104,12 +104,11 @@ parser code {:
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
 
 //Terminals (tokens returned by the scanner).
-terminal           PLUS, MINUS, TIMES, DIV, LPAREN, RPAREN, INVALID_TOKEN;
+terminal           PLUS, MINUS, TIMES, DIV, LPAREN, RPAREN, INVALID_TOKEN, UMINUS;
 terminal String   NUMBER;
 
 // Non terminals used in the grammar section.
 non terminal Expr expr;
-non terminal Expr expr_operation;
 
 
 
@@ -120,68 +119,74 @@ The order of precedence, from highest to lowest, is bottom to top.
 Hence, this declares that multiplication and division have higher precedence than addition and subtraction:
 */
 
+precedence left RPAREN;
+precedence left LPAREN;
 precedence left  PLUS, MINUS;
 precedence left  TIMES, DIV;
 
 
-/* ----------------------------Grammar Section-------------------- */
 
+
+/* ----------------------------Grammar Section-------------------- */
 
 expr ::=
 
-    // TIMES with brackets
-      LPAREN expr:l TIMES expr:r RPAREN
-       {: RESULT = new ExprMult(l, r, 0); :}
-    //TIMES negated
-    | MINUS LPAREN expr:l TIMES expr:r RPAREN
-         {: RESULT = new ExprMult(l, r, 1); :}
-    //TIMES no brackets
-    | expr:l TIMES expr:r
-       {: RESULT = new ExprMult(l, r, 0);
-       :}
-
-    //DIV with brackets
-    | LPAREN expr:l DIV expr:r RPAREN
-       {: RESULT = new ExprDiv(l, r, 0); :}
-    //DIV negated
-    | MINUS LPAREN expr:l DIV expr:r RPAREN
-       {:
-       RESULT = new ExprDiv(l, r, 1); :}
-     //DIV no brackets
-         | expr:l DIV expr:r
-            {: RESULT = new ExprDiv(l, r, 0); :}
-
-    //PLUS with brackets
-    | LPAREN expr:l PLUS expr:r RPAREN
-       {: RESULT = new ExprAdd(l, r, 0); :}
-     //PLUS negated
-    | MINUS LPAREN expr:l PLUS expr:r RPAREN
-          {: RESULT = new ExprAdd(l, r, 1); :}
-     //PLUS no brackets
-      | expr:l PLUS expr:r
-            {: RESULT = new ExprAdd(l, r, 0); :}
-
-    //MINUS with brackets
-    | LPAREN expr:l MINUS expr:r RPAREN
-       {: RESULT = new ExprSub(l, r, 0); :}
-    //MINUS negated
-    | MINUS LPAREN expr:l MINUS expr:r RPAREN
-        {: RESULT = new ExprSub(l, r, 1); :}
-     // no parentheses version
-    | expr:l MINUS expr:r
-         {: RESULT = new ExprSub(l, r, 0); :}
+        LPAREN expr:e RPAREN
+        {: RESULT = e;:}
 
 
-    //negative number with parentheses around it
-    | LPAREN MINUS NUMBER:n RPAREN
-        {: RESULT = new ExprNumber("-" + n); :}
-     //negative number
-    | MINUS NUMBER:n
-        {: RESULT = new ExprNumber("-" + n); :}
-     //positive number with parentheses around it
-    | LPAREN NUMBER:n RPAREN
-       {: RESULT = new ExprNumber(n); :}
-     //positive number
-    |  NUMBER:n
-    {: RESULT = new ExprNumber(n); :}
+     // TIMES with brackets
+        |  LPAREN expr:l TIMES expr:r RPAREN
+           {: RESULT = new ExprMult(l, r, 0); :}
+        //TIMES negated
+        | MINUS LPAREN expr:l TIMES expr:r RPAREN
+             {: RESULT = new ExprMult(l, r, 1); :}
+        //TIMES no brackets
+        | expr:l TIMES expr:r
+           {: RESULT = new ExprMult(l, r, 0);
+           :}
+        //DIV with brackets
+        | LPAREN expr:l DIV expr:r RPAREN
+           {: RESULT = new ExprDiv(l, r, 0); :}
+        //DIV negated
+        | MINUS LPAREN expr:l DIV expr:r RPAREN
+           {:
+           RESULT = new ExprDiv(l, r, 1); :}
+         //DIV no brackets
+             | expr:l DIV expr:r
+                {: RESULT = new ExprDiv(l, r, 0); :}
+
+        //PLUS with brackets
+        | LPAREN expr:l PLUS expr:r RPAREN
+           {: RESULT = new ExprAdd(l, r, 0); :}
+         //PLUS negated
+        | MINUS LPAREN expr:l PLUS expr:r RPAREN
+              {: RESULT = new ExprAdd(l, r, 1); :}
+         //PLUS no brackets
+          | expr:l PLUS expr:r
+                {: RESULT = new ExprAdd(l, r, 0); :}
+
+        //MINUS with brackets
+        | LPAREN expr:l MINUS expr:r RPAREN
+           {: RESULT = new ExprSub(l, r, 0); :}
+        //MINUS negated
+        | MINUS LPAREN expr:l MINUS expr:r RPAREN
+            {: RESULT = new ExprSub(l, r, 1); :}
+         // no parentheses version
+        | expr:l MINUS expr:r
+             {: RESULT = new ExprSub(l, r, 0); :}
+        //negative number with parentheses around it
+        | LPAREN MINUS NUMBER:n RPAREN
+            {: RESULT = new ExprNumber("-" + n); :}
+         //negative number
+        | MINUS NUMBER:n
+            {: RESULT = new ExprNumber("-" + n); :}
+         //positive number with parentheses around it
+        | LPAREN NUMBER:n RPAREN
+           {: RESULT = new ExprNumber(n); :}
+         //positive number
+        |  NUMBER:n
+        {: RESULT = new ExprNumber(n); :}
+
+
   ;

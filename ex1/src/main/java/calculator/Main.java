@@ -38,8 +38,11 @@ public class Main {
 
     public static Expr parseString(String input) throws Exception {
         Reader in = new StringReader(input);
+
+
         return parse(in);
     }
+
 
     public static Expr parse(Reader in) throws Exception {
         ComplexSymbolFactory sf = new ComplexSymbolFactory();
@@ -60,7 +63,22 @@ public class Main {
     public static String prettyPrint(Expr e)
     {
         ExprPrinter exprPrinter = new ExprPrinter();
-      return e.accept(exprPrinter);
+
+        String returnPrinter = e.accept(exprPrinter);
+
+
+        //if it's a simple integer, that means it has no brackets around it --> add brackets around it.
+        try
+        {
+            int parsedNumber = Integer.parseInt(returnPrinter);
+            returnPrinter = "(" + parsedNumber + ")";
+        }
+        catch (NumberFormatException exception)
+        {
+            //do nothing, it's a normal expression then.
+        }
+
+      return returnPrinter;
     }
 
     public static int run(String s) {
@@ -78,4 +96,6 @@ public class Main {
 
         return e.acceptEvaluate(exprPrinter);
     }
+
+
 }
