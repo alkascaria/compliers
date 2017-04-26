@@ -171,10 +171,17 @@ expr ::=
     | expr:l MINUS expr:r
          {: RESULT = new ExprSub(l, r, 0); :}
 
-     //negated number
+
+    //negative number with parentheses around it
+    | LPAREN MINUS NUMBER:n RPAREN
+        {: RESULT = new ExprNumber("-" + n); :}
+     //negative number
     | MINUS NUMBER:n
         {: RESULT = new ExprNumber("-" + n); :}
-     //non-negated number
+     //positive number with parentheses around it
+    | LPAREN NUMBER:n RPAREN
+       {: RESULT = new ExprNumber(n); :}
+     //positive number
     |  NUMBER:n
     {: RESULT = new ExprNumber(n); :}
   ;

@@ -20,6 +20,7 @@ public class ParserTest {
         String input = "((5*3) + 4)";
         Expr e = parseString(input);
         String output = prettyPrint(e);
+        System.out.println(output);
         assertEquals("((5 * 3) + 4)", output);
     }
 

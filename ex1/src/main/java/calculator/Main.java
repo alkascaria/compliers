@@ -45,9 +45,11 @@ public class Main {
         ComplexSymbolFactory sf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(sf, in);
         ExprParser parser = new ExprParser(lexer, sf);
-       // parser.onError((ParserError e) -> {
-         //   throw e;
-        //});
+
+        parser.onError((ParserError e) ->
+        {
+            throw e;
+        });
 
 
         Symbol result = parser.parse();

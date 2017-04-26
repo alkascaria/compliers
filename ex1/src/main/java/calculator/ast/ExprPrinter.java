@@ -15,12 +15,12 @@ public class ExprPrinter implements ExprVisitor {
         //positive
         if(exprAdd.getSign() == 0)
         {
-            stringToReturn =  "(" + exprAdd.getLeft().accept(this) + "+" + exprAdd.getRight().accept(this) + ")";
+            stringToReturn =  "(" + exprAdd.getLeft().accept(this) + " + " + exprAdd.getRight().accept(this) + ")";
         }
         //negative
         else if(exprAdd.getSign() == 1)
         {
-            stringToReturn =  "-" + "(" + exprAdd.getLeft().accept(this) + "+" + exprAdd.getRight().accept(this) + ")";
+            stringToReturn =  "-" + "(" + exprAdd.getLeft().accept(this) + " + " + exprAdd.getRight().accept(this) + ")";
         }
 
         return (stringToReturn);
@@ -40,12 +40,12 @@ public class ExprPrinter implements ExprVisitor {
         //positive
         if(exprSub.getSign() == 0)
         {
-            stringToReturn =  "(" + exprSub.getLeft().accept(this) + "-" + exprSub.getRight().accept(this) + ")";
+            stringToReturn =  "(" + exprSub.getLeft().accept(this) + " - " + exprSub.getRight().accept(this) + ")";
         }
         //negative
         else if(exprSub.getSign() == 1)
         {
-            stringToReturn =  "-" + "(" + exprSub.getLeft().accept(this) + "-" + exprSub.getRight().accept(this) + ")";
+            stringToReturn =  "-" + "(" + exprSub.getLeft().accept(this) + " - " + exprSub.getRight().accept(this) + ")";
         }
 
         return (stringToReturn);
@@ -57,12 +57,12 @@ public class ExprPrinter implements ExprVisitor {
         //positive
         if(exprDiv.getSign() == 0)
         {
-            stringToReturn =  "(" + exprDiv.getLeft().accept(this) + "/" + exprDiv.getRight().accept(this) + ")";
+            stringToReturn =  "(" + exprDiv.getLeft().accept(this) + " / " + exprDiv.getRight().accept(this) + ")";
         }
         //negative
         else if(exprDiv.getSign() == 1)
         {
-            stringToReturn =  "-" + "(" + exprDiv.getLeft().accept(this) + "/" + exprDiv.getRight().accept(this) + ")";
+            stringToReturn =  "-" + "(" + exprDiv.getLeft().accept(this) + " / " + exprDiv.getRight().accept(this) + ")";
         }
 
         return (stringToReturn);
@@ -75,12 +75,12 @@ public class ExprPrinter implements ExprVisitor {
         //positive
         if(exprMult.getSign() == 0)
         {
-            stringToReturn =  "(" + exprMult.getLeft().accept(this) + "*" + exprMult.getRight().accept(this) + ")";
+            stringToReturn =  "(" + exprMult.getLeft().accept(this) + " * " + exprMult.getRight().accept(this) + ")";
         }
         //negative
         else if(exprMult.getSign() == 1)
         {
-            stringToReturn =  "-" + "(" + exprMult.getLeft().accept(this) + "*" + exprMult.getRight().accept(this) + ")";
+            stringToReturn =  "-" + "(" + exprMult.getLeft().accept(this) + " * " + exprMult.getRight().accept(this) + ")";
         }
         return (stringToReturn);
     }
