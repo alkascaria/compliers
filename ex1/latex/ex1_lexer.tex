@@ -1,0 +1,150 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Example: Project Report
+%
+% Source: http://www.howtotex.com
+%
+% Feel free to distribute this example, but please keep the referral
+% to howtotex.com
+% Date: March 2011 
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+% If you're new to LaTeX, the wikibook is a great place to start:
+% http://en.wikibooks.org/wiki/LaTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Edit the title below to update the display in My Documents
+%\title{Project Report}
+%
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+\usepackage{times}
+\usepackage{listings}
+\usepackage{filecontents}
+
+
+
+\usepackage[english, german]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+\usepackage[bottom=1.0in]{geometry}
+
+
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{\centering \normalfont\scshape}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\normalfont \normalsize \textsc{Department of Computer Science, Technische Universit\"at Kaiserslautern\\
+Compilers and Language Processing Tools - SS17
+		} \\ [25pt]
+		\horrule{0.5pt} \\[0.4cm]
+		\huge A Lexer for Mathematical Expressions\\
+		\horrule{2pt} \\[0.5cm]
+}
+
+\author{	
+		Exercise 1\\
+		Group 03\\
+        Gadler Daniele\\[-1pt]		\normalsize
+}
+\date{27th April 2016}
+
+
+%%% Begin document
+\begin{document}
+\maketitle
+
+\section{Overview}
+In the present report, we describe the Lexer we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports. The constructed Lexer passes all default tests provided and other ones written by the report writer. 
+\subsection*{Features}
+
+\begin{itemize}
+	\item \textbf{Support for parentheses-enclosed and non-parentheses enclosed expressions}: The resulting Lexer is able to parse and evaluate both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, expressions are output with parentheses too (e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)) to disambiguate the operations' order. 
+	\item \textbf{Addition, subtraction, multiplication and division Support}: The resulting Lexer supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/'', with proper prioritization. 
+	\item \textbf{Redundant parentheses' support}: The built lexer accepts and evaluates expressions with redundant brackets. (e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
+\end{itemize}
+
+
+\section{Technical Description}
+
+%\subsection*{Task 1: Lexer Extension}
+%We extended the provided Lexer's grammar so that it can accept division, subtraction and negative numbers both when delimited by brackets and without being delimited by brackets by adding adequate rules in the grammar. We also gave precedence to parentheses-delimited expressions over non-parentheses delimited expressions.
+\subsection*{Task 2: AST and Binding Strength}
+\label{Task2}
+We solved the binding strength for addition/subtraction and multiplication/division by setting proper priority for operands (from bottom to top), as explained in the official CUP's documentation \cite{key01}. We also set the priority for parentheses, as they need to be parsed into an AST when computing expressions containing redundant brackets (e.g: (((1+2))) ).
+
+\begin{lstlisting}
+precedence left RPAREN;
+precedence left LPAREN;
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIV;
+\end{lstlisting}
+
+Particular attention needed to be paid to expressions preceded by a minus sign and negative integers. 
+\begin{itemize}
+	\item \textbf{Negative Expressions}: To distinguish between positive and negative expressions, we implemented an instance attribute named 'sign' in ExprBinary (the parent class of all expressions).
+If an expression is preceded by a ''-'', the attribute 'sign' is set to 1. Otherwise, in case of a positive expressions, it is set to 0. In the evaluation, if the attribute 'sign' is 1, the expression will be multiplied by -1. 
+	\item \textbf{Negative Integers}: After all non-terminal expressions are evaluated, terminal nodes (numbers) are parsed. We distinguish between positive and negative numbers. If a number is preceded by a ''-'' sign, it is recognized to be negative and it is passed into the new instance of ExprNumber with a '-' in front of it. 
+\end{itemize}
+ASTs are built by parsing the grammar for all input expressions.  
+
+\subsection*{Task 3 and 4 - Visitor Pattern}
+
+We implemented the Visitor Pattern by creating an interface called 'ExprVisitor' that defines methods' signatures for accessing the pretty printing and evaluation functions for the different expressions (e.g., for addition, visitAdd for printing or visitEvaluateAdd for evaluating an expressions). Methods take as input the corresponding expression (e.g: ExprAdd) and return respectively a string for printing or an integer for evaluating the passed expression.  \\
+The class 'ExprPrinter' implements the interface 'ExprVisitor' and specifies the 'visit' methods' bodies for the different operations. \\
+In the abstract class 'Expr', 'accept' methods are defined: this class is extended by the class 'ExprBinary', which is again extended by all different expressions' classes (e.g: ExprAdd, ExprSub, ExprMult, ExprDiv) . The only purpose of accept methods is calling the corresponding 'visit' method in the class implementing visit methods (hence, in 'ExprPrinter). \\
+Methods for carrying out expressions (visitOperation) can be thought to work in a 'recursive' manner, recursively accessing the left-hand-side or the right-hand-side of an expression until a number is found. If a number is found, its value is returned and these numbers are processed in the manner defined by the expression itself (e.g: for visitAdd, as an addition). \\
+For further details on the processing of negative numbers, refer to Section \ref{Task2}.
+
+
+ 
+\section{Bibliography}
+\begin{thebibliography}{9}% 2nd arg is the width of the widest label.
+\bibitem{key01}
+Official CUP Documentation from TU M\"unchen. \textit{http://www2.cs.tum.edu/projects/cup/}. Accessed on 26th April 2017.
+\end{thebibliography}
+
+
+
+
+\end{document}
