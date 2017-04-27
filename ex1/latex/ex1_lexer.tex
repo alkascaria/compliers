@@ -36,7 +36,7 @@
 
 
 
-\usepackage[english, german]{babel}															% English language/hyphenation
+\usepackage[english]{babel}															% English language/hyphenation
 \usepackage[protrusion=true,expansion=true]{microtype}	
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 \usepackage[pdftex]{graphicx}	
@@ -95,13 +95,13 @@ Compilers and Language Processing Tools - SS17
 \maketitle
 
 \section{Overview}
-In the present report, we describe the Lexer we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports. The constructed Lexer passes all default tests provided and other ones written by the report writer. 
+In the present report, we describe the Lexer we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports. The constructed Lexer passes both default exercise tests and tests created "ad-hoc".
 \subsection*{Features}
 
 \begin{itemize}
-	\item \textbf{Support for parentheses-enclosed and non-parentheses enclosed expressions}: The resulting Lexer is able to parse and evaluate both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, expressions are output with parentheses too (e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)) to disambiguate the operations' order. 
-	\item \textbf{Addition, subtraction, multiplication and division Support}: The resulting Lexer supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/'', with proper prioritization. 
-	\item \textbf{Redundant parentheses' support}: The built lexer accepts and evaluates expressions with redundant brackets. (e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
+	\item \textbf{Support for parentheses-enclosed and non-parentheses-enclosed expressions}: The resulting Lexer is able to parse and evaluate both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, the Lexer is able to disambiguate expressions through precedence rules and adds parentheses when and where needed. e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)).
+	\item \textbf{Addition, subtraction, multiplication and division support}: The resulting Lexer supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/''. Results are always output as integers. 
+	\item \textbf{Redundant parentheses' support}: The built Lexer accepts and evaluates expressions with redundant brackets. e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
 \end{itemize}
 
 
@@ -111,7 +111,7 @@ In the present report, we describe the Lexer we built for parsing and interpreti
 %We extended the provided Lexer's grammar so that it can accept division, subtraction and negative numbers both when delimited by brackets and without being delimited by brackets by adding adequate rules in the grammar. We also gave precedence to parentheses-delimited expressions over non-parentheses delimited expressions.
 \subsection*{Task 2: AST and Binding Strength}
 \label{Task2}
-We solved the binding strength for addition/subtraction and multiplication/division by setting proper priority for operands (from bottom to top), as explained in the official CUP's documentation \cite{key01}. We also set the priority for parentheses, as they need to be parsed into an AST when computing expressions containing redundant brackets (e.g: (((1+2))) ).
+We solved the binding strength for addition/subtraction and multiplication/division by setting adequate priority for operands (from bottom to top), as explained in the official CUP's documentation \cite{key01}. We also set priority for parentheses, as they need to be parsed into an AST when computing expressions containing redundant brackets (e.g: (((1+2))) ).
 
 \begin{lstlisting}
 precedence left RPAREN;
@@ -120,21 +120,21 @@ precedence left  PLUS, MINUS;
 precedence left  TIMES, DIV;
 \end{lstlisting}
 
-Particular attention needed to be paid to expressions preceded by a minus sign and negative integers. 
+Particular attention needed to be paid to expressions preceded by a minus sign (e.g: - (1 / 4)) and negative integers (e.g: -1).
 \begin{itemize}
 	\item \textbf{Negative Expressions}: To distinguish between positive and negative expressions, we implemented an instance attribute named 'sign' in ExprBinary (the parent class of all expressions).
-If an expression is preceded by a ''-'', the attribute 'sign' is set to 1. Otherwise, in case of a positive expressions, it is set to 0. In the evaluation, if the attribute 'sign' is 1, the expression will be multiplied by -1. 
-	\item \textbf{Negative Integers}: After all non-terminal expressions are evaluated, terminal nodes (numbers) are parsed. We distinguish between positive and negative numbers. If a number is preceded by a ''-'' sign, it is recognized to be negative and it is passed into the new instance of ExprNumber with a '-' in front of it. 
+If an expression is preceded by a ''-'', the attribute 'sign' is set to 1. Otherwise, in case of a positive expressions, it is set to 0. In the evaluation, if the attribute 'sign' is 1, the expression will be multiplied by -1 so that will yield a negative result.  
+	\item \textbf{Negative Integers}: After all non-terminal expressions are evaluated, terminal nodes (numbers) are parsed. We distinguish between positive and negative numbers. If a number is preceded by a ''-'' sign, it is recognized to be negative and it is passed into the new instance of ExprNumber with a '-' in front of it. This way, it will be considered a negative integer.
 \end{itemize}
-ASTs are built by parsing the grammar for all input expressions.  
+ASTs are built automatically by parsing the grammar for all recognized expressions defined in the grammar.
 
 \subsection*{Task 3 and 4 - Visitor Pattern}
 
-We implemented the Visitor Pattern by creating an interface called 'ExprVisitor' that defines methods' signatures for accessing the pretty printing and evaluation functions for the different expressions (e.g., for addition, visitAdd for printing or visitEvaluateAdd for evaluating an expressions). Methods take as input the corresponding expression (e.g: ExprAdd) and return respectively a string for printing or an integer for evaluating the passed expression.  \\
-The class 'ExprPrinter' implements the interface 'ExprVisitor' and specifies the 'visit' methods' bodies for the different operations. \\
-In the abstract class 'Expr', 'accept' methods are defined: this class is extended by the class 'ExprBinary', which is again extended by all different expressions' classes (e.g: ExprAdd, ExprSub, ExprMult, ExprDiv) . The only purpose of accept methods is calling the corresponding 'visit' method in the class implementing visit methods (hence, in 'ExprPrinter). \\
-Methods for carrying out expressions (visitOperation) can be thought to work in a 'recursive' manner, recursively accessing the left-hand-side or the right-hand-side of an expression until a number is found. If a number is found, its value is returned and these numbers are processed in the manner defined by the expression itself (e.g: for visitAdd, as an addition). \\
-For further details on the processing of negative numbers, refer to Section \ref{Task2}.
+We implemented the Visitor Pattern by creating an interface called 'ExprVisitor' that defines methods' signatures for accessing the pretty printing and evaluation functions for the different expressions (e.g., for addition, visitAdd for printing or visitEvaluateAdd for evaluating an expression). Methods defined in this interface take the corresponding expression (e.g: ExprAdd) as input and return respectively a string for printing or an integer for evaluating the passed expression.  \\
+The class 'ExprPrinter' implements the interface 'ExprVisitor' and consequently overrides the 'visit' methods' bodies declared in 'ExprVisitor' defining methods for the different operations. \\
+In the abstract class 'Expr', 'accept' methods are defined: this class is extended by the class 'ExprBinary'. All expressions' classes (e.g: ExprAdd, ExprSub, ExprMult, ExprDiv) extend this class and implement the 'accept' method . The only purpose of accept methods is calling the corresponding 'visit' method in the class implementing visit methods (hence, in 'ExprPrinter'). \\
+Methods for carrying out expressions (e.g: visitAdd for addition) can be thought to work in a 'recursive' manner, accessing the left-hand-side or the right-hand-side of an expression until a number is found. If a number is found, its value is returned and these numbers are processed in the manner defined by the expression itself (e.g: for visitAdd, as an addition). \\
+For further details on the processing of negative numbers, refer to Task \ref{Task2}.
 
 
  
