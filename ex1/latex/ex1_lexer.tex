@@ -78,7 +78,7 @@
 Compilers and Language Processing Tools - SS17
 		} \\ [25pt]
 		\horrule{0.5pt} \\[0.4cm]
-		\huge A Lexer for Mathematical Expressions\\
+		\huge A Parser for Mathematical Expressions\\
 		\horrule{2pt} \\[0.5cm]
 }
 
@@ -94,18 +94,19 @@ Compilers and Language Processing Tools - SS17
 \begin{document}
 \maketitle
 
-\section{Overview}
-In the present report, we describe the Lexer we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports. The constructed Lexer passes both default exercise tests and tests created "ad-hoc".
+\section*{Overview}
+In the present report, we describe the Parser we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports and more in-depth technical details. The constructed Parser passes both default and group-designed tests.
 \subsection*{Features}
 
 \begin{itemize}
-	\item \textbf{Support for parentheses-enclosed and non-parentheses-enclosed expressions}: The resulting Lexer is able to parse and evaluate both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, the Lexer is able to disambiguate expressions through precedence rules and adds parentheses when and where needed. e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)).
-	\item \textbf{Addition, subtraction, multiplication and division support}: The resulting Lexer supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/''. Results are always output as integers. 
-	\item \textbf{Redundant parentheses' support}: The built Lexer accepts and evaluates expressions with redundant brackets. e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
+	\item \textbf{Support for parentheses-enclosed and non-parentheses-enclosed expressions}: The resulting Parser is capable of parsing and evaluating both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, the Parser is able to disambiguate expressions through precedence rules and adds parentheses when and where needed. e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)).
+	\item \textbf{Addition, subtraction, multiplication and division support}: The Parser we constructed supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/''. Results are always output as integers. 
+	\item \textbf{Redundant parentheses' support}: The built Parser accepts and evaluates expressions with redundant brackets. e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
 \end{itemize}
 
 
-\section{Technical Description}
+\section*{Technical Description}
+
 
 %\subsection*{Task 1: Lexer Extension}
 %We extended the provided Lexer's grammar so that it can accept division, subtraction and negative numbers both when delimited by brackets and without being delimited by brackets by adding adequate rules in the grammar. We also gave precedence to parentheses-delimited expressions over non-parentheses delimited expressions.
@@ -138,7 +139,7 @@ For further details on the processing of negative numbers, refer to Task \ref{Ta
 
 
  
-\section{Bibliography}
+\section*{Bibliography}
 \begin{thebibliography}{9}% 2nd arg is the width of the widest label.
 \bibitem{key01}
 Official CUP Documentation from TU M\"unchen. \textit{http://www2.cs.tum.edu/projects/cup/}. Accessed on 26th April 2017.
