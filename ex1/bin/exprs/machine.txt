@@ -1,92 +1,735 @@
 ===== Viable Prefix Recognizer =====
 START lalr_state [0]: {
-  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF }]
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr PLUS expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS NUMBER , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr MINUS expr , {EOF PLUS MINUS TIMES DIV }]
   [$START ::= (*) expr EOF , {EOF }]
-  [expr ::= (*) NUMBER , {EOF }]
-  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr TIMES expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr DIV expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) NUMBER , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr RPAREN , {EOF PLUS MINUS TIMES DIV }]
 }
-transition on LPAREN to state [3]
-transition on expr to state [2]
+transition on LPAREN to state [4]
+transition on expr to state [3]
+transition on MINUS to state [2]
 transition on NUMBER to state [1]
 
 -------------------
 lalr_state [1]: {
-  [expr ::= NUMBER (*) , {EOF PLUS TIMES RPAREN }]
+  [expr ::= NUMBER (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
 
 -------------------
 lalr_state [2]: {
-  [$START ::= expr (*) EOF , {EOF }]
+  [expr ::= MINUS (*) NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
-transition on EOF to state [11]
+transition on LPAREN to state [30]
+transition on NUMBER to state [47]
 
 -------------------
 lalr_state [3]: {
-  [expr ::= LPAREN (*) expr TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]
-  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS TIMES }]
-  [expr ::= (*) NUMBER , {PLUS TIMES }]
-  [expr ::= LPAREN (*) expr PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]
-  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS TIMES }]
+  [expr ::= expr (*) MINUS expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) PLUS expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) DIV expr , {EOF PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) TIMES expr , {EOF PLUS MINUS TIMES DIV }]
+  [$START ::= expr (*) EOF , {EOF }]
 }
-transition on expr to state [4]
-transition on LPAREN to state [3]
-transition on NUMBER to state [1]
+transition on TIMES to state [18]
+transition on EOF to state [46]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
 
 -------------------
 lalr_state [4]: {
-  [expr ::= LPAREN expr (*) TIMES expr RPAREN , {EOF PLUS TIMES RPAREN }]
-  [expr ::= LPAREN expr (*) PLUS expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN (*) expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
-transition on TIMES to state [6]
-transition on PLUS to state [5]
+transition on LPAREN to state [4]
+transition on expr to state [7]
+transition on MINUS to state [6]
+transition on NUMBER to state [5]
 
 -------------------
 lalr_state [5]: {
-  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]
-  [expr ::= LPAREN expr PLUS (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]
-  [expr ::= (*) NUMBER , {RPAREN }]
-  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]
+  [expr ::= NUMBER (*) , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN NUMBER (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
-transition on LPAREN to state [3]
-transition on expr to state [9]
-transition on NUMBER to state [1]
+transition on RPAREN to state [45]
 
 -------------------
 lalr_state [6]: {
-  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {RPAREN }]
-  [expr ::= (*) NUMBER , {RPAREN }]
-  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {RPAREN }]
-  [expr ::= LPAREN expr TIMES (*) expr RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= MINUS (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN MINUS (*) NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
 }
-transition on LPAREN to state [3]
-transition on expr to state [7]
-transition on NUMBER to state [1]
+transition on LPAREN to state [30]
+transition on NUMBER to state [29]
 
 -------------------
 lalr_state [7]: {
-  [expr ::= LPAREN expr TIMES expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= LPAREN expr (*) MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr (*) PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr (*) DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr (*) TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
+transition on TIMES to state [12]
+transition on DIV to state [11]
+transition on MINUS to state [10]
+transition on PLUS to state [9]
 transition on RPAREN to state [8]
 
 -------------------
 lalr_state [8]: {
-  [expr ::= LPAREN expr TIMES expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]
+  [expr ::= LPAREN expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
 
 -------------------
 lalr_state [9]: {
-  [expr ::= LPAREN expr PLUS expr (*) RPAREN , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr PLUS (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr PLUS (*) expr , {PLUS MINUS TIMES DIV RPAREN }]
 }
-transition on RPAREN to state [10]
+transition on LPAREN to state [4]
+transition on expr to state [27]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
 
 -------------------
 lalr_state [10]: {
-  [expr ::= LPAREN expr PLUS expr RPAREN (*) , {EOF PLUS TIMES RPAREN }]
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS (*) expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr MINUS (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
 }
+transition on LPAREN to state [4]
+transition on expr to state [25]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
 
 -------------------
 lalr_state [11]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr DIV (*) expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr DIV (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [23]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [12]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES (*) expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr TIMES (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [13]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [13]: {
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES expr (*) , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr TIMES expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [14]
+
+-------------------
+lalr_state [14]: {
+  [expr ::= LPAREN expr TIMES expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [15]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr PLUS (*) expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [22]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [16]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS (*) expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [21]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [17]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr DIV (*) expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [20]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [18]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES (*) expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [19]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [19]: {
+  [expr ::= expr (*) MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES expr (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+
+-------------------
+lalr_state [20]: {
+  [expr ::= expr DIV expr (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+
+-------------------
+lalr_state [21]: {
+  [expr ::= expr (*) MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS expr (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+
+-------------------
+lalr_state [22]: {
+  [expr ::= expr PLUS expr (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+
+-------------------
+lalr_state [23]: {
+  [expr ::= expr DIV expr (*) , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr DIV expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [24]
+
+-------------------
+lalr_state [24]: {
+  [expr ::= LPAREN expr DIV expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [25]: {
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr MINUS expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS expr (*) , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [26]
+
+-------------------
+lalr_state [26]: {
+  [expr ::= LPAREN expr MINUS expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [27]: {
+  [expr ::= expr PLUS expr (*) , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN expr PLUS expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [28]
+
+-------------------
+lalr_state [28]: {
+  [expr ::= LPAREN expr PLUS expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [29]: {
+  [expr ::= MINUS NUMBER (*) , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= LPAREN MINUS NUMBER (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on RPAREN to state [44]
+
+-------------------
+lalr_state [30]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN (*) expr TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN (*) expr DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN (*) expr PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN (*) expr MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [31]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [31]: {
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN expr (*) MINUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= MINUS LPAREN expr (*) PLUS expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr (*) DIV expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr (*) TIMES expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [35]
+transition on DIV to state [34]
+transition on MINUS to state [33]
+transition on PLUS to state [32]
+
+-------------------
+lalr_state [32]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr PLUS (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr PLUS (*) expr , {PLUS MINUS TIMES DIV }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [42]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [33]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS (*) expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr MINUS (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [40]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [34]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr DIV (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr DIV (*) expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [38]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [35]: {
+  [expr ::= (*) LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr TIMES (*) expr RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr DIV expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES (*) expr , {PLUS MINUS TIMES DIV }]
+  [expr ::= (*) expr TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr PLUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN MINUS NUMBER RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr TIMES expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) expr DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) MINUS LPAREN expr MINUS expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) NUMBER , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= (*) LPAREN expr RPAREN , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on LPAREN to state [4]
+transition on expr to state [36]
+transition on MINUS to state [2]
+transition on NUMBER to state [1]
+
+-------------------
+lalr_state [36]: {
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr TIMES expr (*) , {PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr TIMES expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [37]
+
+-------------------
+lalr_state [37]: {
+  [expr ::= MINUS LPAREN expr TIMES expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [38]: {
+  [expr ::= expr DIV expr (*) , {PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr DIV expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [39]
+
+-------------------
+lalr_state [39]: {
+  [expr ::= MINUS LPAREN expr DIV expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [40]: {
+  [expr ::= MINUS LPAREN expr MINUS expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr MINUS expr (*) , {PLUS MINUS TIMES DIV }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [41]
+
+-------------------
+lalr_state [41]: {
+  [expr ::= MINUS LPAREN expr MINUS expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [42]: {
+  [expr ::= expr PLUS expr (*) , {PLUS MINUS TIMES DIV }]
+  [expr ::= expr (*) MINUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= MINUS LPAREN expr PLUS expr (*) RPAREN , {EOF PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) PLUS expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) DIV expr , {PLUS MINUS TIMES DIV RPAREN }]
+  [expr ::= expr (*) TIMES expr , {PLUS MINUS TIMES DIV RPAREN }]
+}
+transition on TIMES to state [18]
+transition on DIV to state [17]
+transition on MINUS to state [16]
+transition on PLUS to state [15]
+transition on RPAREN to state [43]
+
+-------------------
+lalr_state [43]: {
+  [expr ::= MINUS LPAREN expr PLUS expr RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [44]: {
+  [expr ::= LPAREN MINUS NUMBER RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [45]: {
+  [expr ::= LPAREN NUMBER RPAREN (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
+}
+
+-------------------
+lalr_state [46]: {
   [$START ::= expr EOF (*) , {EOF }]
+}
+
+-------------------
+lalr_state [47]: {
+  [expr ::= MINUS NUMBER (*) , {EOF PLUS MINUS TIMES DIV RPAREN }]
 }
 
 -------------------

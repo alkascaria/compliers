@@ -1,14 +1,28 @@
 ===== Terminals =====
 [0]EOF [1]error [2]PLUS [3]MINUS [4]TIMES 
-[5]DIV [6]LPAREN [7]RPAREN [8]INVALID_TOKEN [9]NUMBER 
-
+[5]DIV [6]LPAREN [7]RPAREN [8]INVALID_TOKEN [9]UMINUS 
+[10]NUMBER 
 
 ===== Non terminals =====
 [0]expr 
 
 ===== Productions =====
-[0] expr ::= LPAREN expr PLUS expr RPAREN 
+[0] expr ::= LPAREN expr RPAREN 
 [1] $START ::= expr EOF 
 [2] expr ::= LPAREN expr TIMES expr RPAREN 
-[3] expr ::= NUMBER 
+[3] expr ::= MINUS LPAREN expr TIMES expr RPAREN 
+[4] expr ::= expr TIMES expr 
+[5] expr ::= LPAREN expr DIV expr RPAREN 
+[6] expr ::= MINUS LPAREN expr DIV expr RPAREN 
+[7] expr ::= expr DIV expr 
+[8] expr ::= LPAREN expr PLUS expr RPAREN 
+[9] expr ::= MINUS LPAREN expr PLUS expr RPAREN 
+[10] expr ::= expr PLUS expr 
+[11] expr ::= LPAREN expr MINUS expr RPAREN 
+[12] expr ::= MINUS LPAREN expr MINUS expr RPAREN 
+[13] expr ::= expr MINUS expr 
+[14] expr ::= LPAREN MINUS NUMBER RPAREN 
+[15] expr ::= MINUS NUMBER 
+[16] expr ::= LPAREN NUMBER RPAREN 
+[17] expr ::= NUMBER 
 

@@ -59,6 +59,7 @@ WhiteSpace     = {LineTerminator} | [ \t\f]
 Number = 0 | [1-9][0-9]*
 
 
+
 %%
 /* ------------------------Lexical Rules Section---------------------- */
 
