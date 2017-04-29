@@ -40,7 +40,38 @@ public class InterpreterTest {
         String expr = "(((((5)))))";
         int v = Main.run(expr);
         Assert.assertEquals(5, v);
+        
     }
 
+    @Test
+    public void testArith4() {
+        String expr = "3+4*1-2";
+        int v = Main.run(expr);
+        Assert.assertEquals(5, v);
+        
+    }
+    
+    @Test
+    public void testArith5() {
+        String expr = "3+4*1-2";
+        int v = Main.run(expr);
+        Assert.assertEquals(5, v);
+        
+    }
+    
+    @Test
+    public void testArith6() {
+        String expr = "-6-5-7/5";
+        int v = Main.run(expr);
+        Assert.assertEquals(-12, v);
+        
+    }
+    @Test
+    public void testArith7() {
+        String expr = "-7+9/4+3-1";
+        int v = Main.run(expr);
+        Assert.assertEquals(-3, v);
+        
+    }
 
 }
