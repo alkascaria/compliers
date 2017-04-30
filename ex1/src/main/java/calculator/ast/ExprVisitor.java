@@ -1,7 +1,17 @@
 package calculator.ast;
 
 /**
- * Created by Daniele on 26/04/2017.
+ * Created by Daniele 
+ * 
+ * @since 26/04/2017.
+ * 
+ * This Visitor class Print and Evaluate Expressions 
+ * 
+ * Addition, Division , Subtraction , Multiplication
+ * 
+ * Once input entered, ExprPrinter refers Visitor Class for 
+ * printing and evaluation
+ * 
  */
 public interface ExprVisitor
 {

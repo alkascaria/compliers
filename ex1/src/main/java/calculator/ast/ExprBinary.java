@@ -1,5 +1,11 @@
 package calculator.ast;
 
+/**
+ * 
+ * @author praveengopal
+ * 
+ * Holds Binary expression 
+ */
 public abstract class ExprBinary extends Expr {
     private Expr left;
     private Expr right;
