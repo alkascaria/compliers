@@ -180,6 +180,7 @@ public class ExprPrinter implements ExprVisitor {
         return result;
     }
 
+<<<<<<< HEAD
     /**
      * Performs Division operation and returns result as integer  
      * @param  exprDiv(@code ExprSub)
@@ -196,6 +197,23 @@ public class ExprPrinter implements ExprVisitor {
         else
         {
             result = -1 * (exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this));
+=======
+    public int visitEvaluateDiv(ExprDiv exprDiv) {
+        int result;
+        //positive
+        if (exprDiv.getRight().acceptEvaluate(this) != 0) {
+            if (exprDiv.getSign() == 0) {
+                result = exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this);
+            }
+            //negative
+            else {
+                result = -1 * (exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this));
+            }
+
+        } else {
+            System.out.println("Divide by zero gives you infinity, so the given value");
+            result = Integer.MAX_VALUE;
+>>>>>>> 4f636ec89205ebdf13f44ab90125f06bec71f533
         }
         return result;
     }
@@ -206,6 +224,7 @@ public class ExprPrinter implements ExprVisitor {
      */
     public int visitEvaluateNumber(ExprNumber number)
     {
+
         return number.getValue();
     }
 

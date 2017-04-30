@@ -28,6 +28,7 @@
 %
 %%% Preamble
 \documentclass[paper=a4, fontsize=11pt]{scrartcl}
+
 \usepackage[T1]{fontenc}
 \usepackage{fourier}
 \usepackage{times}
@@ -41,7 +42,7 @@
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 \usepackage[pdftex]{graphicx}	
 \usepackage{url}
-\usepackage[bottom=1.0in]{geometry}
+\usepackage[bottom=0.5in]{geometry}
 
 
 
@@ -76,37 +77,37 @@
 		\usefont{OT1}{bch}{b}{n}
 		\normalfont \normalsize \textsc{Department of Computer Science, Technische Universit\"at Kaiserslautern\\
 Compilers and Language Processing Tools - SS17
-		} \\ [25pt]
+		} \\ [2pt]
 		\horrule{0.5pt} \\[0.4cm]
 		\huge A Parser for Mathematical Expressions\\
 		\horrule{2pt} \\[0.5cm]
 }
 
 \author{	
-		Exercise 1\\
+		\textbf{Exercise 1}\\
 		Group 03\\
-        Gadler Daniele\\[-1pt]		\normalsize
+        Daniele Gadler, Gopal Praveen\\Alka Scaria, Stephen Banin Payin \\[-1pt]		\normalsize
 }
-\date{27th April 2016}
 
+
+\date{April 30, 2017}
 
 %%% Begin document
 \begin{document}
 \maketitle
 
 \section*{Overview}
-In the present report, we describe the Parser we built for parsing and interpreting mathematical expressions. Following, we provide an outline of the main features that it supports and more in-depth technical details. The constructed Parser passes both default and group-designed tests.
+In the present report, we describe the Parser we built for parsing and interpreting mathematical expressions through a general 'Overview' and through a more in-depth 'Technical Description'. The constructed Parser passes both default and group-designed tests.
 \subsection*{Features}
 
 \begin{itemize}
-	\item \textbf{Support for parentheses-enclosed and non-parentheses-enclosed expressions}: The resulting Parser is capable of parsing and evaluating both parentheses-enclosed expressions (e.g., ((2+2) + (4+2)) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, the Parser is able to disambiguate expressions through precedence rules and adds parentheses when and where needed. e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)).
-	\item \textbf{Addition, subtraction, multiplication and division support}: The Parser we constructed supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/''. Results are always output as integers. 
-	\item \textbf{Redundant parentheses' support}: The built Parser accepts and evaluates expressions with redundant brackets. e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1).
+	\item \textbf{Support for parentheses-enclosed and non-parentheses-enclosed expressions}: The resulting Parser is capable of parsing and evaluating both parentheses-enclosed expressions. e.g., (2+2) or (4+2) as well as non-parentheses-enclosed expressions (e.g:, 1+4 + 2*3 ). In the latter case, the Parser is able to disambiguate expressions through precedence rules and adds parentheses when and where needed. e.g:, 1+4 + 2*3 becomes ((1 + 4) + (2 * 3)).
+	\item \textbf{Addition, subtraction, multiplication and division support}: The Parser we constructed supports the mentioned operations respectively through the following operands: ''+'', ''--'', ''*'', ''/'' and can handle complicated Results are always output as integers. 
+	\item \textbf{Redundant parentheses' and nested expressions support}: The built Parser accepts and evaluates expressions with redundant brackets. e.g: (((3))) is evaluated to 3 or (((2+1))) is evaluated as (2 + 1). Furthermore, it can also handle complex nested expressions such as ((2+1) * (5*3)) + 1 through the evaluation as Abstract Syntax Tree. 
 \end{itemize}
 
 
 \section*{Technical Description}
-
 
 %\subsection*{Task 1: Lexer Extension}
 %We extended the provided Lexer's grammar so that it can accept division, subtraction and negative numbers both when delimited by brackets and without being delimited by brackets by adding adequate rules in the grammar. We also gave precedence to parentheses-delimited expressions over non-parentheses delimited expressions.
@@ -127,7 +128,7 @@ Particular attention needed to be paid to expressions preceded by a minus sign (
 If an expression is preceded by a ''-'', the attribute 'sign' is set to 1. Otherwise, in case of a positive expressions, it is set to 0. In the evaluation, if the attribute 'sign' is 1, the expression will be multiplied by -1 so that will yield a negative result.  
 	\item \textbf{Negative Integers}: After all non-terminal expressions are evaluated, terminal nodes (numbers) are parsed. We distinguish between positive and negative numbers. If a number is preceded by a ''-'' sign, it is recognized to be negative and it is passed into the new instance of ExprNumber with a '-' in front of it. This way, it will be considered a negative integer.
 \end{itemize}
-ASTs are built automatically by parsing the grammar for all recognized expressions defined in the grammar.
+ASTs are built automatically by parsing the grammar for all recognized expressions defined in the grammar in the file exprs.cup.
 
 \subsection*{Task 3 and 4 - Visitor Pattern}
 
@@ -135,7 +136,7 @@ We implemented the Visitor Pattern by creating an interface called 'ExprVisitor'
 The class 'ExprPrinter' implements the interface 'ExprVisitor' and consequently overrides the 'visit' methods' bodies declared in 'ExprVisitor' defining methods for the different operations. \\
 In the abstract class 'Expr', 'accept' methods are defined: this class is extended by the class 'ExprBinary'. All expressions' classes (e.g: ExprAdd, ExprSub, ExprMult, ExprDiv) extend this class and implement the 'accept' method . The only purpose of accept methods is calling the corresponding 'visit' method in the class implementing visit methods (hence, in 'ExprPrinter'). \\
 Methods for carrying out expressions (e.g: visitAdd for addition) can be thought to work in a 'recursive' manner, accessing the left-hand-side or the right-hand-side of an expression until a number is found. If a number is found, its value is returned and these numbers are processed in the manner defined by the expression itself (e.g: for visitAdd, as an addition). \\
-For further details on the processing of negative numbers, refer to Task \ref{Task2}.
+For further details on the processing of negative numbers, please refer to Task 2.
 
 
  
