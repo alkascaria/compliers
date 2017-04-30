@@ -1,10 +1,10 @@
 package calculator.ast;
 
 /**
- * 
+ *
+ *  Holds Binary expression
  * @author praveengopal
  * 
- * Holds Binary expression 
  */
 public abstract class ExprBinary extends Expr {
     private Expr left;

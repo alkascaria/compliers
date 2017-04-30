@@ -1,9 +1,9 @@
 package calculator.ast;
 
 /**
- * Created by mweber on 04/04/2017.
+ *  This Class Performs addition
+ * @author Created by mweber on 04/04/2017.
  * 
- * This Class Performs addition
  */
 
 public class ExprAdd extends ExprBinary

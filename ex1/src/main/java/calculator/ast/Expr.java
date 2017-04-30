@@ -1,11 +1,11 @@
 package calculator.ast;
 
 /**
- * @author praveengopal
+ *  Supports Expr type conversion
+ *  @author praveengopal
  * @since   2017-04-29 
  * 
- * Supports Expr type conversion    
- * 
+ *
  */
 public abstract class Expr
 {

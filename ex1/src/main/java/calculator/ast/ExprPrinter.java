@@ -1,13 +1,13 @@
 package calculator.ast;
 
 /**
- * Created by Daniele on 26/04/2017.
  * This ExprPrinter Class Pretty Prints and Evaluates the input.
- * 
- * Addition, Subtraction, Multiplication, Division  
+ *
+ * Addition, Subtraction, Multiplication, Division
  * 
  * For every arithmetic expression, according to mathematics precedence rule,
- * the input pretty prints and evaluation applied to given input 
+ * the input pretty prints and evaluation applied to given input
+ * @author Created by Daniele on 26/04/2017.
  */
 
 public class ExprPrinter implements ExprVisitor {

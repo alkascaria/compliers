@@ -1,9 +1,9 @@
 package calculator.ast;
 
 /**
- * Created by mweber on 04/04/2017.
- * 
  * This Class performs Multiplication
+ * @author Created by mweber on 04/04/2017.
+ * 
  */
 public class ExprMult extends ExprBinary {
     public ExprMult(Expr left, Expr right, int sign) {

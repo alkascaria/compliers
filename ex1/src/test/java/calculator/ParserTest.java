@@ -10,7 +10,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * This class tests the parser with some input strings.
- * <p>
  * Before you run this test you have to make the method Main.parseToAST public.
  **/
 public class ParserTest {

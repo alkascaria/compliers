@@ -4,9 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * This tests the basic version of the
+ * This tests the basic version of the parser.
  * It tests some basic expressions without lambdas or lets.
- *
  * To run this test you have to create a class named explang.interpret.Interpreter
  * This class should have a static method named "run" which takes a String,
  * parses and evaluates it and returns the result of the evaluation as an int.

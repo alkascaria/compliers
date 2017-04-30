@@ -1,9 +1,9 @@
 package calculator.ast;
 
 /**
- * Created by Daniele on 25/04/2017.
- * 
- * This class performs Subtraction
+ *  * This class performs Subtraction
+ * @author Created by Daniele on 25/04/2017.
+ *
  */
 public class ExprSub extends ExprBinary
 {
