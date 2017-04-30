@@ -128,7 +128,7 @@ Particular attention needed to be paid to expressions preceded by a minus sign (
 If an expression is preceded by a ''-'', the attribute 'sign' is set to 1. Otherwise, in case of a positive expressions, it is set to 0. In the evaluation, if the attribute 'sign' is 1, the expression will be multiplied by -1 so that will yield a negative result.  
 	\item \textbf{Negative Integers}: After all non-terminal expressions are evaluated, terminal nodes (numbers) are parsed. We distinguish between positive and negative numbers. If a number is preceded by a ''-'' sign, it is recognized to be negative and it is passed into the new instance of ExprNumber with a '-' in front of it. This way, it will be considered a negative integer.
 \end{itemize}
-ASTs are built automatically by parsing the grammar for all recognized expressions defined in the grammar in the file 
+ASTs are built automatically by parsing the grammar for all recognized expressions defined in the grammar in the file exprs.cup.
 
 \subsection*{Task 3 and 4 - Visitor Pattern}
 
