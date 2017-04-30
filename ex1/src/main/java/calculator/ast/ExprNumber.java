@@ -35,7 +35,8 @@ public class ExprNumber extends Expr {
 		return exprVisitor.visitEvaluateNumber(this);
 	}
 	/**
-     * Returns value as Integer     
+     * Returns value as Integer   
+     * @return value  
      */
 	public int getValue() {
 		return value;
