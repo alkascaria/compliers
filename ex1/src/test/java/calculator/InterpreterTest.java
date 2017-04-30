@@ -39,18 +39,6 @@ public class InterpreterTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void paren_expr() {
-        String expr = "(((((5)))))";
-        int v = Main.run(expr);
-        //Expected 5
-        Assert.assertEquals(5, v);
-        
-    }
-
-    @Test
-=======
->>>>>>> 4f636ec89205ebdf13f44ab90125f06bec71f533
     public void testArith4() {
         String expr = "3+4*1-2";
         int v = Main.run(expr);
@@ -61,17 +49,10 @@ public class InterpreterTest {
     
     @Test
     public void testArith5() {
-<<<<<<< HEAD
-        String expr = "3+7*1/2-1/5";
-        int v = Main.run(expr);
-        //Expected 6
-        Assert.assertEquals(6, v);
-=======
         String expr = "-9/6*4+16/9+3*(18-5+(4-2*8))";
         int v = Main.run(expr);
         Assert.assertEquals(0, v);
->>>>>>> 4f636ec89205ebdf13f44ab90125f06bec71f533
-        
+
     }
     
     @Test
@@ -198,5 +179,15 @@ public class InterpreterTest {
         String expr = "(((((-10)))))";
         int v = Main.run(expr);
         Assert.assertEquals(-10, v);
+    }
+
+
+    @Test
+    public void paren_expr2() {
+        String expr = "(((((5)))))";
+        int v = Main.run(expr);
+        //Expected 5
+        Assert.assertEquals(5, v);
+
     }
 }

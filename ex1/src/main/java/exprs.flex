@@ -46,8 +46,7 @@ import java.util.function.Consumer;
 	    return symbolFactory.newSymbol(name, code, left, right, lexem);
     }
 
-%
-}
+%}
 
 
 

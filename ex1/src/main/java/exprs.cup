@@ -121,7 +121,6 @@ Hence, this declares that multiplication and division have higher precedence tha
 
 precedence left RPAREN;
 precedence left LPAREN;
-
 precedence left  PLUS, MINUS;
 precedence left  TIMES, DIV;
 
