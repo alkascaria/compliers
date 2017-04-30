@@ -139,24 +139,28 @@ public class ExprPrinter implements ExprVisitor {
         return result;
     }
 
-    public int visitEvaluateDiv(ExprDiv exprDiv)
-    {
-        int result = 0;
+    public int visitEvaluateDiv(ExprDiv exprDiv) {
+        int result;
         //positive
-        if(exprDiv.getSign() == 0)
-        {
-            result = exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this);
-        }
-        //negative
-        else
-        {
-            result = -1 * (exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this));
+        if (exprDiv.getRight().acceptEvaluate(this) != 0) {
+            if (exprDiv.getSign() == 0) {
+                result = exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this);
+            }
+            //negative
+            else {
+                result = -1 * (exprDiv.getLeft().acceptEvaluate(this) / exprDiv.getRight().acceptEvaluate(this));
+            }
+
+        } else {
+            System.out.println("Divide by zero gives you infinity, so the given value");
+            result = Integer.MAX_VALUE;
         }
         return result;
     }
 
     public int visitEvaluateNumber(ExprNumber number)
     {
+
         return number.getValue();
     }
 
