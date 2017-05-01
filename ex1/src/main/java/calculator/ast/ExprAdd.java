@@ -1,7 +1,7 @@
 package calculator.ast;
 
 /**
- *  This Class Performs addition
+ *  This Class Performs addition,
  * @author Created by mweber on 04/04/2017.
  * 
  */
