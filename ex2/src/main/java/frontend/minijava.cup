@@ -112,16 +112,46 @@ terminal String   NUMBER, ID;
    
 // Non terminals used in the grammar section.  
 non terminal MJProgram program;
+non terminal MJMainClass mainClass;
+non terminal MJClassDeclList classesDeclList;
+non terminal MJClassDecl classDecl;
+non terminal MJBlock block;
+
+non terminal
+
 
 
 
 /* ----------------------------Grammar Section-------------------- */
-   
 
-program ::=
-    {: RESULT = Program(mainClass, classDecl); :}
+//initilization of the AST
+program   ::=  mainClass:mainClass classesDeclList:classedDecl
+      {:
+            RESULT = Program(mainClass, classedDecl);
+      :} ;
+
+//Detecting main class
+mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
+    {:
+        RESULT = MainClass(className, argsName, blockName);
+    :};
+
+
+//detecting extra classes and parsing them as well
+classesDeclList ::= classDecl:classD  classesDeclList:classesDeclList
+  {:
+        classesDeclList.add(classD);
+        RESULT = classesDeclList;
+   :};
+
+//parsing the extra class detected
+classDecl ::= CLASS ID:className LBRACE memb
 
 
 
-        ;
+
+
+
+
+
 

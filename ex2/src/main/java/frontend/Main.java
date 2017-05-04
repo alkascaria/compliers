@@ -1,5 +1,7 @@
 package frontend;
 
+
+import minijava.ast.MJClassDeclList;
 import minijava.ast.MJProgram;
 
 import java.io.FileReader;
@@ -18,8 +20,6 @@ public class Main {
         try (FileReader r = new FileReader(fileName)) {
             MJFrontend frontend = new MJFrontend();
             MJProgram prog = frontend.parse(r);
-            AstPrinter astPrinter = new AstPrinter();
-            //prevent constructs that are not java.
             System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);
