@@ -4,9 +4,12 @@ typeprefix: MJ
 
 abstract syntax:
 
+//done
 Program(MainClass mainClass, ClassDeclList classDecls)
 
+//done
 MainClass(String name, String argsName, Block mainBody)
+
 
 ClassDecl(String name, Extended extended, VarDeclList fields, MethodDeclList methods)
 

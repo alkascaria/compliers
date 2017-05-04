@@ -23,7 +23,6 @@ public class Main {
             MJClassDecl mjClassDecl;
             MJBlock mjBlock;
             MJStatement mjStatement;
-
             System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);

@@ -117,6 +117,7 @@ non terminal MJClassDeclList classesDeclList;
 non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
 non terminal MJType type;
+non terminal MJStatetement statement;
 
 
 non terminal MJMemberDecl memberDecl;
@@ -137,39 +138,32 @@ mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LB
         RESULT = MainClass(className, argsName, blockName);
     :};
 
-//detecting a block with braces
-block ::= LBRACE block:b block:listBlocks RBRACE
+statement ::= block:b
     {:
-        listBlocks.add(b);
-        RESULT = listBlocks;
-    :}
-    | block:b
-    {:
-        listBlocs.add
-        RESULT = t;
+    RESULT = Statement(b);
     :};
-    //TODO: statement
-
-
-
-
-
 
 
 
 
 //detecting extra classes and adding them to the list of existing classes
-classesDeclList ::= classDecl:classD  classesDeclList:classesDeclList
+classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
         classesDeclList.add(classD);
-        RESULT = classesDeclList;
+        RESULT = classesList;
    :};
 
 //parsing the content of the extra class detected.
-classDecl ::= CLASS ID:className LBRACE memberDecl:memb classDecl:classD RBRACE
+classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
    {:
-     RESULT = classD;
-   :};
+   
+   :}
+   | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
+   {:   :}
+
+   ;
+
+
 
 //TODO: parse the content of memberDecl
 
