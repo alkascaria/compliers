@@ -1,8 +1,7 @@
 package frontend;
 
 
-import minijava.ast.MJClassDeclList;
-import minijava.ast.MJProgram;
+import minijava.ast.*;
 
 import java.io.FileReader;
 import java.io.StringReader;
@@ -20,6 +19,11 @@ public class Main {
         try (FileReader r = new FileReader(fileName)) {
             MJFrontend frontend = new MJFrontend();
             MJProgram prog = frontend.parse(r);
+
+            MJClassDecl mjClassDecl;
+            MJBlock mjBlock;
+            MJStatement mjStatement;
+
             System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);

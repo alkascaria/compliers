@@ -116,36 +116,68 @@ non terminal MJMainClass mainClass;
 non terminal MJClassDeclList classesDeclList;
 non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
+non terminal MJType type;
 
-non terminal
 
-
+non terminal MJMemberDecl memberDecl;
 
 
 /* ----------------------------Grammar Section-------------------- */
 
-//initilization of the AST
-program   ::=  mainClass:mainClass classesDeclList:classedDecl
+//initialization of the AST
+program   ::=  mainClass:mainC classesDeclList:classesDecl
       {:
-            RESULT = Program(mainClass, classedDecl);
+            RESULT = Program(mainC, classesDecl);
       :} ;
 
 //Detecting main class
+//mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
 mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
     {:
         RESULT = MainClass(className, argsName, blockName);
     :};
 
+//detecting a block with braces
+block ::= LBRACE block:b block:listBlocks RBRACE
+    {:
+        listBlocks.add(b);
+        RESULT = listBlocks;
+    :}
+    | block:b
+    {:
+        listBlocs.add
+        RESULT = t;
+    :};
+    //TODO: statement
 
-//detecting extra classes and parsing them as well
+
+
+
+
+
+
+
+
+//detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesDeclList
   {:
         classesDeclList.add(classD);
         RESULT = classesDeclList;
    :};
 
-//parsing the extra class detected
-classDecl ::= CLASS ID:className LBRACE memb
+//parsing the content of the extra class detected.
+classDecl ::= CLASS ID:className LBRACE memberDecl:memb classDecl:classD RBRACE
+   {:
+     RESULT = classD;
+   :};
+
+//TODO: parse the content of memberDecl
+
+
+
+
+
+
 
 
 
