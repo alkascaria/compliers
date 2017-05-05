@@ -117,31 +117,10 @@ non terminal MJClassDeclList classesDeclList;
 non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
 non terminal MJType type;
-non terminal MJStatement statement;
-non terminal MJStatement blockStatement;
-non terminal MJVarDecl vardecl;
-non terminal MJUnaryOperator unaryOperator;
-non terminal MJTypeClass id;
-non terminal MJStmtIf stmtIf;
-non terminal MJStmtWhile stmtWhile;
-non terminal MJExpr expr;
-non terminal MJOperator operator;
-non terminal List<MJStatement> blockStatementsList;
-non terminal MJExprList exprsList;
-non terminal MJExpreList exprListOthers
+non terminal MJStatetement statement;
 
 
 non terminal MJMemberDecl memberDecl;
-
-
-//precedence from bottom to top.
-
-//not really sure where we should put the dot
-precedence left LESS, AND, EQUALS, EQ, DOT;
-precedence left  PLUS, MINUS;
-precedence left  TIMES, DIV;
-//brackets have precedence over operations. Used for arrays too.
-precedence left LBRACKET, RBRACKET;
 
 
 /* ----------------------------Grammar Section-------------------- */
@@ -153,236 +132,37 @@ program   ::=  mainClass:mainC classesDeclList:classesDecl
       :} ;
 
 //Detecting main class
+//mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
 mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
     {:
         RESULT = MainClass(className, argsName, blockName);
     :};
 
-block ::= LBRACE blockStatementsList:blockStatements RBRACE
+statement ::= block:b
     {:
-        //putting blockstatements into the block.
-        RESULT = MJ.Block(blockStatements);
-    :};
-
-
-blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
-    {:
-        blockStmtList.add(blockStatement);
-        RESULT = blockStmtList;
-    :}
-    |
-    {:
-        RESULT = new LinkedList<MJStatement>();
-    :};
-
-blockStatement ::= statement:s
-       {:
-            RESULT = s;
-       :}
-       | type:t ID:idName SEMI
-       {:
-            RESULT = VarDecl(t, idName);
-       :};
-
-statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
-      {:
-          RESULT = StmtIf(exprCondition, stmtTrue, stmtFalse);
-      :}
-      | WHILE LPAREN expr:exprCondition RPAREN statement:stmtWhile
-      {:
-         RESULT = StmtWhile(exprCondition, stmtWhile);
-      :}
-      | RETURN expr:exprReturn SEMI
-      {:
-         RESULT = StmtReturn(exprReturn);
-      :}
-      | SYSTEM DOT OUT PRINTLN LPAREN expr:exprPrint RPAREN SEMI
-      {:
-        RESULT = StmtPrint(exprPrint);
-      :}
-      | expr:exprSemi SEMI
-      {:
-        RESULT = StmtExpr(exprSemi);
-      :}
-      | expr:exprLeft EQ expr:exprRight
-      {:
-        RESULT = StmtAssign(exprLeft, exprRight);
-      :}
-      | block:b
-      {:
-         RESULT = b;
-      :};
-
-
-type ::= INT LBRACKET RBRACKET
-    {:
-        RESULT = TypeIntArray();
-    :}
-    | INT
-    {:
-        RESULT = TypeInt();
-    :}
-    | BOOLEAN
-    {:
-        RESULT = TypeBool();
-    :}
-    | ID:idName
-    {:
-        RESULT = TypeClass(idName);
+    RESULT = Statement(b);
     :};
 
 
 
-operator ::= AND
-    {:
-        RESULT = And();
-    :}
-    | PLUS
-    {:
-        RESULT = Plus();
-    :}
-    | MINUS
-    {:
-        RESULT = Minus();
-    :}
-    | TIMES
-    {:
-         RESULT = Times();
-    :}
-    | DIV
-    {:
-         RESULT = Div();
-    :}
-    | LESS
-    {:
-        RESULT = Less();
-    :}
-    | EQUALS
-    {:
-        RESULT = Equals();
-    :};
-
-
-//introduces - expr or ! expr
-unaryOperator ::= MINUS
-    {:
-        RESULT = UnaryMinus();
-    :}
-    | NEG
-    {:
-        RESULT = Negate();
-    :}
-;
-
-expr ::= expr:exprLeft operator:o expr:exprRight
-    {:
-        RESULT = ExprBinary(exprLeft, o, exprRight);
-    :}
-    | unaryOperator:o expr:exprNeg
-    {:
-        RESULT = ExprUnary(o, exprNeg);
-    :}
-    | expr:arrayExpr LBRACKET expr:arrayIndex RBRACKET
-    {:
-      RESULT = ArrayLookup(arrayExpr, arrayIndex);
-    :}
-    | expr:exprArrLength DOT LENGTH
-    {:
-      RESULT = ArrayLength(exprArrLength);
-    :}
-    //TODO: disambiguate following expressions:
-     //HOw to solve the conflict within the two following expressions?
-
-     //| expr:exprReceiver DOT ID:fieldName
-    //{:
-    //  RESULT = FieldAccess(exprReceiver, fieldName);
-    //:}
-     //Which one should be picked? And when?
-    | expr:exprReceiver DOT ID:methodName exprsList:arguments
-      {:
-          RESULT = MethodCall(exprReceiver, methodName, arguments);
-      :}
-
-    | TRUE
-    {:
-      RESULT = BoolConst(true);
-    :}
-    | FALSE
-    {:
-      RESULT = BoolConst(false);
-    :}
-    | ID:varName
-    {:
-      RESULT = VarUse(varName);
-    :}
-    //apparently NUMBER is a string too?
-    | NUMBER:intValue
-    {:
-        RESULT = Number(Integer.parseInt(intValue));
-    :}
-    | THIS
-    {:
-      RESULT = ExprThis();
-    :}
-    | NULL
-    {:
-      RESULT = ExprNull();
-    :}
-    | NEW INT LBRACKET expr:arraySize RBRACKET
-    {:
-      RESULT = NewIntArray(arraySize);
-    :}
-    | NEW ID:className LPAREN RPAREN
-    {:
-      RESULT =  NewObject(className);
-    :}
-    | LPAREN expr:exprCur RPAREN
-    {:
-        RESULT = exprCur;
-    :};
-
-
-//TODO: found a valid argument for the list of expressions. then add it to the list
-exprsList ::= expr:e exprListOthers:l {: RESULT = l; l.add(0,e);  :}
-                             | {: RESULT =  ExprList(); :}
-                             ;
-
-exprListOthers ::= COMMA expr:e exprListOthers:l {: RESULT = l; l.add(0,e); :}
-                             | {: RESULT =  ExprList(); :}
-
-;
 
 //detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
-        classesList.add(classD);
+        classesDeclList.add(classD);
         RESULT = classesList;
-  :}
-  //empty list of classes
-  |{:
-     if(l==null)
-      l = ClassDeclList();
-      l.add(0, cdec);
-      RESULT = l;
-  :}
-  ;
-
-  // classesDeclList ::=
- // {:
-     RESULT =  ClassDeclList() ;
-//   :};
+   :};
 
 //parsing the content of the extra class detected.
-//classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
-//   {:   :};
- //  | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
-  // {:   :}
-//
-  // ;
+classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
+   {:
+   
+   :}
+   | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
+   {:   :}
 
-memberDecl ::=
+   ;
 
-;
 
 
 //TODO: parse the content of memberDecl
