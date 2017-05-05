@@ -162,7 +162,12 @@ block ::= LBRACE block:blockList RBRACE
      ;
 
 
-type ::= INT
+type ::=
+     INT LBRACKET RBRACKET
+    {:
+        RESULT = TypeIntArray();
+    :}
+    | INT
     {:
         RESULT = TypeInt();
     :}
@@ -170,18 +175,11 @@ type ::= INT
     {:
         RESULT = TypeBool();
     :}
+    //ask if this is alright.
     | ID:idName
     {:
         RESULT = TypeClass(idName);
     :};
-
-
-
-
-
-
-
-
 
 
 
