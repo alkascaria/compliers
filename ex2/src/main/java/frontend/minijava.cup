@@ -118,7 +118,15 @@ non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
 non terminal MJType type;
 non terminal MJStatement statement;
+non terminal MJStatement blockStatement;
+
 non terminal MJTypeClass id;
+non terminal MJStmtIf stmtIf;
+non terminal MJStmtWhile stmtWhile;
+non terminal MJExpr expr;
+non terminal MJOperator oper;
+
+non terminal List<MJStatement> blockStatementsList;
 
 
 non terminal MJMemberDecl memberDecl;
@@ -133,37 +141,73 @@ program   ::=  mainClass:mainC classesDeclList:classesDecl
       :} ;
 
 //Detecting main class
-//mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
 mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
     {:
         RESULT = MainClass(className, argsName, blockName);
     :};
 
 //at the beginning, remove braces.
-block ::= LBRACE block:blockList RBRACE
+block ::= LBRACE blockStatementsList:blockStatements RBRACE
     {:
-        RESULT = blockList;
-    :}
-    //statement found?
-    | statement:s block:blockList
+        //putting blockstatements into the block.
+        RESULT = MJ.Block(blockStatements);
+    :};
+
+
+blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
     {:
-        blockList.add(s);
-        RESULT = blockList;
+        blockStmtList.add(blockStatement);
+        RESULT = blockStmtList;
     :}
-    //type found?
-     | type:t ID:idType SEMI block:blockList
-     {:
-        RESULT = blockList;
-     :}
-     | //empty block?
-     {:
+    |
+    {:
+        RESULT = new LinkedList<MJStatement>();
+    :};
 
-     :}
-     ;
+blockStatement ::= statement:s
+       {:
+            RESULT = s;
+       :}
+       | type:t id:d SEMI
+       {:
+            RESULT = Type(t);
+       :};
+
+statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
+      {:
+          RESULT = StmtIf(exprCondition, stmtTrue, stmtFalse);
+      :}
+      | WHILE LPAREN expr:exprCondition RPAREN statement:stmtWhile
+      {:
+         RESULT = StmtWhile(exprCondition, stmtWhile);
+      :}
+      | RETURN expr:exprReturn SEMI
+      {:
+         RESULT = StmtReturn(exprReturn);
+      :}
+      | SYSTEM DOT OUT PRINTLN LPAREN expr:exprPrint RPAREN SEMI
+      {:
+        RESULT = StmtPrint(exprPrint);
+      :}
+      | expr:exprSemi SEMI
+      {:
+        RESULT = StmtExpr(exprSemi);
+      :}
+      | expr:exprLeft EQUALS expr:exprRight
+      {:
+        RESULT = StmtAssign(exprLeft, exprRight);
+      :}
+      | block:b
+      {:
+         RESULT = b;
+      :}
+      ;
 
 
-type ::=
-     INT LBRACKET RBRACKET
+
+
+
+type ::= INT LBRACKET RBRACKET
     {:
         RESULT = TypeIntArray();
     :}
@@ -183,21 +227,25 @@ type ::=
 
 
 
-////TOASK: how to make a statement return a block as result??
-//  statement ::= block:b statement:s
- //     {:
- //         RESULT = s;
- //     :}
- //     ;
+
+opr ::= AND AND
+    {:
+        RESULT = And();
+    :};
 
 
 
 
 //detecting extra classes and adding them to the list of existing classes
-classesDeclList ::= classDecl:classD  classesDeclList:classesList
+//classesDeclList ::= classDecl:classD  classesDeclList:classesList
+ // {:
+  //      classesList.add(classD);
+   //     RESULT = classesList;
+  // :};
+
+   classesDeclList ::=
   {:
-        classesList.add(classD);
-        RESULT = classesList;
+
    :};
 
 //parsing the content of the extra class detected.

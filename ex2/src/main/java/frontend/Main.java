@@ -21,7 +21,7 @@ public class Main {
             MJProgram prog = frontend.parse(r);
 
 
-            System.out.println(prog);
+            //System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);
         }
