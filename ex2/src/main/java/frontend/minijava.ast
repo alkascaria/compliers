@@ -31,6 +31,7 @@ Type =
   | TypeBool()
   | TypeClass(String name)
 
+//TODO
 Statement =
     Block
   | StmtIf(Expr condition, Statement ifTrue, Statement ifFalse)

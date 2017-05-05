@@ -20,9 +20,7 @@ public class Main {
             MJFrontend frontend = new MJFrontend();
             MJProgram prog = frontend.parse(r);
 
-            MJClassDecl mjClassDecl;
-            MJBlock mjBlock;
-            MJStatement mjStatement;
+
             System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);

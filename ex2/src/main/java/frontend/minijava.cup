@@ -94,6 +94,8 @@ terminal ABSTRACT,  CONTINUE,   FOR,          NEW,         SWITCH,
          CLASS,     FINALLY,    LONG,         STRICTFP,    VOLATILE,
          CONST,     FLOAT,      NATIVE,       SUPER,       WHILE;
 
+
+
 // additional keywords:
 terminal MAIN, STRING, LENGTH, SYSTEM, OUT, PRINTLN;
 
@@ -115,15 +117,15 @@ non terminal MJClassDeclList classesDeclList;
 non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
 non terminal MJType type;
-non terminal MJStatetement statement;
+non terminal MJStatement statement;
+non terminal MJTypeClass id;
+
 
 non terminal MJMemberDecl memberDecl;
-non terminal MJBoolConst boolean;
-
 
 
 /* ----------------------------Grammar Section-------------------- */
-   
+
 //initialization of the AST
 program   ::=  mainClass:mainC classesDeclList:classesDecl
       {:
@@ -132,38 +134,96 @@ program   ::=  mainClass:mainC classesDeclList:classesDecl
 
 //Detecting main class
 //mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
-
-mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName
-    {:         
-        RESULT = MainClassImpl(className, argsName, blockName);
+mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
+    {:
+        RESULT = MainClass(className, argsName, blockName);
     :};
 
-//statement ::= block:b
-  //  {:
-    //	RESULT = Statement(b);
-   // :};
+//at the beginning, remove braces.
+block ::= LBRACE block:blockList RBRACE
+    {:
+        RESULT = blockList;
+    :}
+    //statement found?
+    | statement:s block:blockList
+    {:
+        blockList.add(s);
+        RESULT = blockList;
+    :}
+    //type found?
+     | type:t ID:idType SEMI block:blockList
+     {:
+        RESULT = blockList;
+     :}
+     | //empty block?
+     {:
 
-boolean ::= BOOLEAN ID:b
-{:
- RESULT = VarDecl(Boolean,b); 
+     :}
+     ;
 
-:};
+
+type ::= INT
+    {:
+        RESULT = TypeInt();
+    :}
+    | BOOLEAN
+    {:
+        RESULT = TypeBool();
+    :}
+    | ID:idName
+    {:
+        RESULT = TypeClass(idName);
+    :};
+
+
+
+
+
+
+
+
+
+
+
+////TOASK: how to make a statement return a block as result??
+//  statement ::= block:b statement:s
+ //     {:
+ //         RESULT = s;
+ //     :}
+ //     ;
+
+
+
 
 //detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
-        classesDeclList.add(classD);
+        classesList.add(classD);
         RESULT = classesList;
    :};
 
 //parsing the content of the extra class detected.
-classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
-   {:
-   
-   :}
-   | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
-   {:   
-    
-   :}
+//classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
+ //  {:   :}
+ //  | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
+  // {:   :}
+//
+  // ;
 
-   ;
+
+//TODO: parse the content of memberDecl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
