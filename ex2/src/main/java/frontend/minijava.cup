@@ -119,17 +119,21 @@ non terminal MJBlock block;
 non terminal MJType type;
 non terminal MJStatement statement;
 non terminal MJStatement blockStatement;
+non terminal MJVarDecl vardecl;
 
 non terminal MJTypeClass id;
 non terminal MJStmtIf stmtIf;
 non terminal MJStmtWhile stmtWhile;
 non terminal MJExpr expr;
-non terminal MJOperator oper;
+non terminal MJOperator op;
 
 non terminal List<MJStatement> blockStatementsList;
 
 
 non terminal MJMemberDecl memberDecl;
+
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIV;
 
 
 /* ----------------------------Grammar Section-------------------- */
@@ -168,9 +172,9 @@ blockStatement ::= statement:s
        {:
             RESULT = s;
        :}
-       | type:t id:d SEMI
+       | type:t ID:idName SEMI
        {:
-            RESULT = Type(t);
+            RESULT = VarDecl(t, idName);
        :};
 
 statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
@@ -193,18 +197,14 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
       {:
         RESULT = StmtExpr(exprSemi);
       :}
-      | expr:exprLeft EQUALS expr:exprRight
+      | expr:exprLeft EQ expr:exprRight
       {:
         RESULT = StmtAssign(exprLeft, exprRight);
       :}
       | block:b
       {:
          RESULT = b;
-      :}
-      ;
-
-
-
+      :}  ;
 
 
 type ::= INT LBRACKET RBRACKET
@@ -228,10 +228,39 @@ type ::= INT LBRACKET RBRACKET
 
 
 
-opr ::= AND AND
+
+
+op ::= AND AND
     {:
         RESULT = And();
+    :}
+    | PLUS
+    {:
+        RESULT = Plus();
+    :}
+    | MINUS
+    {:
+        RESULT = Minus();
+    :}
+    | TIMES
+    {:
+         RESULT = Times();
+    :}
+    | DIV
+    {:
+         RESULT = Div();
+    :}
+    | LESS
+    {:
+        RESULT = Less();
+    :}
+    | EQUALS
+    {:
+        RESULT = Equals();
     :};
+
+
+
 
 
 
