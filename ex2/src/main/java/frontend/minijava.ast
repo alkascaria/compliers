@@ -25,13 +25,14 @@ MemberDecl =
     VarDecl
   | MethodDecl
 
+//done
 Type =
     TypeIntArray()
   | TypeInt()
   | TypeBool()
   | TypeClass(String name)
 
-//TODO
+//done
 Statement =
     Block
   | StmtIf(Expr condition, Statement ifTrue, Statement ifFalse)
@@ -42,6 +43,8 @@ Statement =
   | StmtExpr(Expr expr)
   | StmtAssign(Expr left, Expr right)
 
+//done. TODO: disambiguate MethodCall and FieldAccess.
+//TODO: Impplement ExprList for arguments.
 Expr =
     ExprBinary(Expr left, Operator operator, Expr right)
   | ExprUnary(UnaryOperator unaryOperator, Expr expr)
@@ -57,6 +60,7 @@ Expr =
   | NewIntArray(Expr arraySize)
   | NewObject(String className)
 
+//done
 Operator =
     And()
   | Plus()
@@ -66,6 +70,7 @@ Operator =
   | Less()
   | Equals()
 
+//done
 UnaryOperator =
     UnaryMinus()
   | Negate()
