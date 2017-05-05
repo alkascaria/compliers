@@ -128,6 +128,7 @@ non terminal MJExpr expr;
 non terminal MJOperator operator;
 non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
+non terminal MJExpreList exprListOthers
 
 
 non terminal MJMemberDecl memberDecl;
@@ -342,13 +343,14 @@ expr ::= expr:exprLeft operator:o expr:exprRight
 
 
 //TODO: found a valid argument for the list of expressions. then add it to the list
-exprsList ::=
+exprsList ::= expr:e exprListOthers:l {: RESULT = l; l.add(0,e);  :}
+                             | {: RESULT =  ExprList(); :}
+                             ;
+
+exprListOthers ::= COMMA expr:e exprListOthers:l {: RESULT = l; l.add(0,e); :}
+                             | {: RESULT =  ExprList(); :}
 
 ;
-
-
-
-
 
 //detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
@@ -358,12 +360,16 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
   :}
   //empty list of classes
   |{:
-
+     if(l==null)
+      l = ClassDeclList();
+      l.add(0, cdec);
+      RESULT = l;
   :}
   ;
 
   // classesDeclList ::=
  // {:
+     RESULT =  ClassDeclList() ;
 //   :};
 
 //parsing the content of the extra class detected.
