@@ -10,27 +10,33 @@ Program(MainClass mainClass, ClassDeclList classDecls)
 //done
 MainClass(String name, String argsName, Block mainBody)
 
-
+//done --to be checked
 ClassDecl(String name, Extended extended, VarDeclList fields, MethodDeclList methods)
 
+//done --to be checked
 Extended =
     ExtendsNothing()
   | ExtendsClass(String name)
-
+  
+//done --to be checked
 VarDecl(Type type, String name)
 
+//done --to be checked
 MethodDecl(Type returnType, String name, VarDeclList formalParameters, Block methodBody)
 
+//done -- to be checked
 MemberDecl =
     VarDecl
   | MethodDecl
 
+//done
 Type =
     TypeIntArray()
   | TypeInt()
   | TypeBool()
   | TypeClass(String name)
 
+//done
 Statement =
     Block
   | StmtIf(Expr condition, Statement ifTrue, Statement ifFalse)
@@ -41,6 +47,8 @@ Statement =
   | StmtExpr(Expr expr)
   | StmtAssign(Expr left, Expr right)
 
+//done. TODO: disambiguate MethodCall and FieldAccess.
+//TODO: Impplement ExprList for arguments.
 Expr =
     ExprBinary(Expr left, Operator operator, Expr right)
   | ExprUnary(UnaryOperator unaryOperator, Expr expr)
@@ -56,6 +64,7 @@ Expr =
   | NewIntArray(Expr arraySize)
   | NewObject(String className)
 
+//done
 Operator =
     And()
   | Plus()
@@ -65,6 +74,7 @@ Operator =
   | Less()
   | Equals()
 
+//done
 UnaryOperator =
     UnaryMinus()
   | Negate()
