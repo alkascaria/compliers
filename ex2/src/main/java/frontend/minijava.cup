@@ -460,7 +460,11 @@ memberDecl ::= type:t CLASS ID:typeName SEMI
 
 =======
 //TODO: varDeclList: it can also be empty!
- 
+//To be Checked
+ varDecl::= type:t CLASS ID:typeName SEMI
+ {:
+    RESULT = VarDecl(t,typeName)
+ :}; 
  
  
 >>>>>>> 94df71359a36c90d196163eb76754d2b94d73e70
