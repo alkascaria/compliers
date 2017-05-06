@@ -317,6 +317,7 @@ exprsList ::=
 ;
 
 //detecting extra classes and adding them to the list of existing classes
+//classesDeclList ::= classDecl:classD  classesDeclList:classesList
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
         //initialize it
@@ -324,13 +325,14 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
         //fill it with the found class
         classesList.add(classD);
         //and finally return the list with the newly added class
-        RESULT = classesList;
+        RESULT =  MJ.ClassDeclList;
   :}
   //empty list of classes. return what has been found so far.
   |{:
         RESULT = MJ.ClassDeclList();
   :}
   ;
+
 
 
 classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:memberDList RBRACE
@@ -340,13 +342,13 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
 	    //store them into two corresponding lists for constructor initialization.
 
         //initialize empty varDeclList
+        MJVarDeclList varDeclList = MJ.VarDeclList();
 
-         MJVarDeclList varDeclList = MJ.VarDeclList();
 
         //loop through all different members and get their varDecl.
         for(int i = 0; i < memberDList.size(); i++)
         {
-            //If MJElement is a VarDecl
+            //if MJElement is a VarDecl
             MJElement mjElement = memberDList.get(i);
             if(mjElement.getClass().equals("MJVarDeclImpl"))
             {
@@ -359,16 +361,14 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
                 }
             }
         }
-
         //initialize empty methodDeclList
         MJMethodDeclList methodDeclList = MJ.MethodDeclList();
         //loop through all different members and get their methodDecl.
         for(int i = 0; i < memberDList.size(); i++)
         {
-            MJElement mjElement = memberDList.get(i);
 
-            //if MJElement is a
-            if(mjElement.getClass().equals("MJMethodDeclImpl"))
+            MJElement mjElem = memberDList.get(i);
+            if(mjElem.getClass().equals("MJMethodDeclImpl"))
             {
                 //MJVarDecl is a child of MJMember, so casting is no problem.
                 MJMethodDecl mjMethodDecl = (MJMethodDecl)memberDList.get(i);
@@ -378,16 +378,19 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
                     //add it to the list of variable declarations.
                     methodDeclList.add(mjMethodDecl);
                 }
-             }
-
-            ClassDecl(className, extNothing, varDeclList,methodDeclList);
-
+            }
+        }
+        ClassDecl(className, extNothing, varDeclList, methodDeclList);
 	:}
 
-	//TODO: Class extending another class.
-	//TODO: this classDecl can also be empty
-	;
+  	//TODO: implement classDecl for extending a class as well. fix eventual conflicts arising.
 
+	//TODO: this classDecl can also be empty. However, this leads to a conflict with "classesDeclList". Fix the conflict.
+	//|
+	//{:
+    //
+	//:}
+	;
 
 
 memberDeclList ::=
