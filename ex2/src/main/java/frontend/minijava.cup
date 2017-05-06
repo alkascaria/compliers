@@ -1,5 +1,4 @@
 package minijava.syntax;
-
 import minijava.ast.*;
 import static minijava.ast.MJ.*;
 import java_cup.runtime.*;
@@ -9,35 +8,30 @@ import java.util.List;
 import java.util.function.Consumer;
 import frontend.SyntaxError;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
-
-
 class MiniJavaParser;
-   
-// Parser code to change the way the parser reports errors (include
-// line and column number of the error). 
-parser code {:
-    
-    private Consumer<SyntaxError> onError;
 
+// Parser code to change the way the parser reports errors (include
+// line and column number of the error).
+parser code {:
+
+    private Consumer<SyntaxError> onError;
     public void onError(Consumer<SyntaxError> onError) {
         this.onError = onError;
     }
-    
 
     @Override
     public void syntax_error(Symbol info) {
-
         List<Integer> expectedTokens = expected_token_ids();
-        
+
         int line, column;
         StringBuilder message = new StringBuilder("Unexpected token ");
         if (info instanceof ComplexSymbol) {
             ComplexSymbol s = (ComplexSymbol) info;
             line = s.getLeft().getLine();
             column = s.getLeft().getColumn();
-            
+
             message.append(s.getName());
-            
+
             if (s.value != null) {
                 message.append("(");
                 message.append(s.value);
@@ -47,7 +41,7 @@ parser code {:
             line = cur_token.left;
             column = cur_token.right;
         }
-        
+
         if (!expectedTokens.isEmpty()) {
             message.append(", expected one of the following: ");
             boolean first = true;
@@ -59,8 +53,8 @@ parser code {:
                 first = false;
             }
         }
-        
-        
+
+
         SyntaxError err = new SyntaxError(message.toString(), line, column);
         if (onError == null) {
             System.err.println(err);
@@ -68,20 +62,16 @@ parser code {:
             onError.accept(err);
         }
     }
-
     @Override
     public void report_fatal_error(String message, Object info) {
         // ignore
     }
-    
+
 :};
-   
 
-   
+
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
-
 terminal INVALID_TOKEN;
-
 // Java keywords:
 terminal ABSTRACT,  CONTINUE,   FOR,          NEW,         SWITCH,
          ASSERT,    DEFAULT,    IF,           PACKAGE,     SYNCHRONIZED,
@@ -93,24 +83,18 @@ terminal ABSTRACT,  CONTINUE,   FOR,          NEW,         SWITCH,
          CHAR,      FINAL,      INTERFACE,    STATIC,      VOID,
          CLASS,     FINALLY,    LONG,         STRICTFP,    VOLATILE,
          CONST,     FLOAT,      NATIVE,       SUPER,       WHILE;
-
-
-
 // additional keywords:
 terminal MAIN, STRING, LENGTH, SYSTEM, OUT, PRINTLN;
-
 // symbols:
 terminal LBRACE, RBRACE, // { }
          LBRACKET, RBRACKET, // [ ]
          LPAREN, RPAREN, // ()
          DOT, SEMI, COMMA, EQ, NEG, AND, PLUS, MINUS, TIMES, DIV, LESS, EQUALS;
-
 // literals:
 terminal TRUE, FALSE, NULL;
-
 terminal String   NUMBER, ID;
-   
-// Non terminals used in the grammar section.  
+
+// Non terminals used in the grammar section.
 non terminal MJProgram program;
 non terminal MJMainClass mainClass;
 non terminal MJClassDeclList classesDeclList;
@@ -130,39 +114,32 @@ non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
 non terminal MJMemberDecl memberDecl;
 non terminal List<MJMemberDecl> memberDeclList;
-
-
+non terminal MJExtendsNothing extendsNothing;
+non terminal MJVarDeclList varDeclList;
+non terminal MJExtendsClass extendsClass;
 //precedence from bottom to top.
-
 //not really sure where we should put the dot
 precedence left LESS, AND, EQUALS, EQ, DOT;
 precedence left  PLUS, MINUS;
 precedence left  TIMES, DIV;
 //brackets have precedence over operations. Used for arrays too.
 precedence left LBRACKET, RBRACKET;
-
-
 /* ----------------------------Grammar Section-------------------- */
-
 //initialization of the AST
 program   ::=  mainClass:mainC classesDeclList:classesDecl
       {:
             RESULT = Program(mainC, classesDecl);
       :} ;
-
 //Detecting main class
 mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
     {:
         RESULT = MainClass(className, argsName, blockName);
     :};
-
 block ::= LBRACE blockStatementsList:blockStatements RBRACE
     {:
         //putting blockstatements into the block.
         RESULT = MJ.Block(blockStatements);
     :};
-
-
 blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
     {:
         blockStmtList.add(blockStatement);
@@ -172,7 +149,6 @@ blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockS
     {:
         RESULT = new LinkedList<MJStatement>();
     :};
-
 blockStatement ::= statement:s
        {:
             RESULT = s;
@@ -181,7 +157,6 @@ blockStatement ::= statement:s
        {:
             RESULT = VarDecl(t, idName);
        :};
-
 statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
       {:
           RESULT = StmtIf(exprCondition, stmtTrue, stmtFalse);
@@ -210,8 +185,6 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
       {:
          RESULT = b;
       :};
-
-
 type ::= INT LBRACKET RBRACKET
     {:
         RESULT = TypeIntArray();
@@ -228,9 +201,6 @@ type ::= INT LBRACKET RBRACKET
     {:
         RESULT = TypeClass(idName);
     :};
-
-
-
 operator ::= AND
     {:
         RESULT = And();
@@ -259,8 +229,6 @@ operator ::= AND
     {:
         RESULT = Equals();
     :};
-
-
 //introduces - expr or ! expr
 unaryOperator ::= MINUS
     {:
@@ -271,7 +239,6 @@ unaryOperator ::= MINUS
         RESULT = Negate();
     :}
 ;
-
 expr ::= expr:exprLeft operator:o expr:exprRight
     {:
         RESULT = ExprBinary(exprLeft, o, exprRight);
@@ -290,7 +257,6 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     :}
     //TODO: disambiguate following expressions:
      //HOw to solve the conflict within the two following expressions?
-
      //| expr:exprReceiver DOT ID:fieldName
     //{:
     //  RESULT = FieldAccess(exprReceiver, fieldName);
@@ -300,7 +266,6 @@ expr ::= expr:exprLeft operator:o expr:exprRight
       {:
           RESULT = MethodCall(exprReceiver, methodName, arguments);
       :}
-
     | TRUE
     {:
       RESULT = BoolConst(true);
@@ -338,43 +303,59 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
         RESULT = exprCur;
     :};
-
-
 //TODO: found a valid argument for the list of expressions. then add it to the list
 exprsList ::=
-
 ;
 
+classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:membDeclList RBRACE
+	{:
 
-//detecting extra classes and adding them to the list of existing classes
-classesDeclList ::= classDecl:classD  classesDeclList:classesList
-  {:
-        //initialize it
-        MJ.ClassDeclList(classesList);
-        //fill it with the found class
-        classesList.add(classD);
-        //and finally return the list with the newly added class
-        RESULT = classesList;
-  :}
-  //empty list of classes. return what has been found so far.
-  |{:
-        RESULT = MJ.ClassDeclList();
-  :}
-  ;
+        //TODO: how to get the parameters that memberDecl got and pass them to the constructor?
+        //Are we sure this is the right way of doing it to accept varDeclarations and method declarations
+       // ClassDecl(className, extNothing, ) //missing: varDeclaration, MethodDeclaration
+       
+	:}
+	//TODO: Class extending another class.
+	;
 
-
-
-
-
-
-
+// To be Checked
+extendsNothing ::=
+    {:
+        RESULT = ExtendsNothing();
+    :}
+    | extendsClass: ClassID: ClassName
+    {:
+    	RESULT = ExtendsClass(ClassName)
+    :};
+    ;
 
 
+memberDeclList ::=
+    //found a member inside it, followed by more members
+     memberDecl:membDecl memberDeclList:membDeclList
+     {:
+
+        membDeclList.add(membDecl);
+        RESULT = membDeclList;
+     :}
+     //if empty, return an empty list
+     |
+     {:
+        RESULT = new LinkedList<MJMemberDecl>();
+     :}
+;
+
+memberDecl ::= type:t CLASS ID:typeName SEMI
+    {:
+        RESULT = VarDecl(t, typeName);
+    :}
+    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    {:
+        RESULT = MethodDecl(t, methodName, varDList, b);
+    :};
 
 
-
-
-
-
-
-
+//TODO: varDeclList: it can also be empty!
+ 
+ 
+ 
