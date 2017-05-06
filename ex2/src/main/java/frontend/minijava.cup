@@ -182,7 +182,7 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
       {:
         RESULT = StmtExpr(exprSemi);
       :}
-      | expr:exprLeft EQ expr:exprRight
+      | expr:exprLeft EQ expr:exprRight SEMI
       {:
         RESULT = StmtAssign(exprLeft, exprRight);
       :}
@@ -266,12 +266,12 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     :}
     //TODO: disambiguate following expressions:
      //HOw to solve the conflict within the two following expressions?
-     //| expr:exprReceiver DOT ID:fieldName
-    //{:
-    //  RESULT = FieldAccess(exprReceiver, fieldName);
-    //:}
+     | expr:exprReceiver DOT ID:fieldName
+    {:
+      RESULT = FieldAccess(exprReceiver, fieldName);
+    :}
      //Which one should be picked? And when?
-    | expr:exprReceiver DOT ID:methodName exprsList:arguments
+    | expr:exprReceiver DOT ID:methodName LPAREN exprsList:arguments RPAREN
       {:
           RESULT = MethodCall(exprReceiver, methodName, arguments);
       :}
