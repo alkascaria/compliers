@@ -5,6 +5,8 @@ import minijava.ast.*;
 
 import java.io.FileReader;
 import java.io.StringReader;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -24,8 +26,8 @@ public class Main {
             MJClassDecl mjClassDecl;
             MJBlock mjBlock;
             MJStatement mjStatement;
-            System.out.println(prog);
 
+            System.out.println(prog);
 
             frontend.getSyntaxErrors().forEach(System.out::println);
         }
