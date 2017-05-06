@@ -130,6 +130,8 @@ non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
 non terminal MJMemberDecl memberDecl;
 non terminal List<MJMemberDecl> memberDeclList;
+non terminal MJExtendsNothing extendsNothing;
+non terminal MJVarDeclList varDeclList;
 
 
 //precedence from bottom to top.
@@ -362,6 +364,49 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
   :}
   ;
 
+classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:membDeclList RBRACE
+	{:
+
+        //TODO: how to get the parameters that memberDecl got and pass them to the constructor?
+        //Are we sure this is the right way of doing it to accept varDeclarations and method declarations
+       // ClassDecl(className, extNothing, ) //missing: varDeclaration, MethodDeclaration
+	:}
+	//TODO: Class extending another class.
+	;
+
+extendsNothing ::=
+    {:
+        RESULT = ExtendsNothing();
+
+    :};
+
+
+memberDeclList ::=
+    //found a member inside it, followed by more members
+     memberDecl:membDecl memberDeclList:membDeclList
+     {:
+
+        membDeclList.add(membDecl);
+        RESULT = membDeclList;
+     :}
+     //if empty, return an empty list
+     |
+     {:
+        RESULT = new LinkedList<MJMemberDecl>();
+     :}
+;
+
+memberDecl ::= type:t CLASS ID:typeName SEMI
+    {:
+        RESULT = VarDecl(t, typeName);
+    :}
+    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    {:
+        RESULT = MethodDecl(t, methodName, varDList, b);
+    :};
+
+
+//TODO: varDeclList: it can also be empty!
 
 
 
