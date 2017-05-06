@@ -264,7 +264,7 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
       RESULT = ArrayLength(exprArrLength);
     :}
-    //TODO: disambiguate following expressions:
+    // TODO: disambiguate following expressions:
      //HOw to solve the conflict within the two following expressions?
      | expr:exprReceiver DOT ID:fieldName
     {:
