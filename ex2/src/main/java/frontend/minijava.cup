@@ -117,6 +117,7 @@ non terminal List<MJMemberDecl> memberDeclList;
 non terminal MJExtendsNothing extendsNothing;
 non terminal MJVarDeclList varDeclList;
 non terminal MJExtendsClass extendsClass;
+
 //precedence from bottom to top.
 //not really sure where we should put the dot
 precedence left LESS, AND, EQUALS, EQ, DOT;
@@ -317,6 +318,66 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
 	:}
 	//TODO: Class extending another class.
 	;
+
+//detecting extra classes and adding them to the list of existing classes
+classesDeclList ::= classDecl:classD  classesDeclList:classesList
+  {:
+        //initialize it
+        MJ.ClassDeclList(classesList);
+        //fill it with the found class
+        classesList.add(classD);
+        //and finally return the list with the newly added class
+        RESULT = classesList;
+  :}
+  //empty list of classes. return what has been found so far.
+  |{:
+        RESULT = MJ.ClassDeclList();
+  :}
+  ;
+
+classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:membDeclList RBRACE
+	{:
+
+        //TODO: how to get the parameters that memberDecl got and pass them to the constructor?
+        //Are we sure this is the right way of doing it to accept varDeclarations and method declarations
+       // ClassDecl(className, extNothing, ) //missing: varDeclaration, MethodDeclaration
+	:}
+	//TODO: Class extending another class.
+	;
+
+extendsNothing ::=
+    {:
+        RESULT = ExtendsNothing();
+
+    :};
+
+memberDeclList ::=
+    //found a member inside it, followed by more members
+     memberDecl:membDecl memberDeclList:membDeclList
+     {:
+
+        membDeclList.add(membDecl);
+        RESULT = membDeclList;
+     :}
+     //if empty, return an empty list
+     |
+     {:
+        RESULT = new LinkedList<MJMemberDecl>();
+     :}
+;
+
+memberDecl ::= type:t CLASS ID:typeName SEMI
+    {:
+        RESULT = VarDecl(t, typeName);
+    :}
+    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    {:
+        RESULT = MethodDecl(t, methodName, varDList, b);
+    :};
+
+
+//TODO: varDeclList: it can also be empty!
+
 
 // To be Checked
 extendsNothing ::=
