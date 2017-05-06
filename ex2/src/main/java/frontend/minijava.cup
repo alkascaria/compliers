@@ -308,17 +308,6 @@ expr ::= expr:exprLeft operator:o expr:exprRight
 exprsList ::=
 ;
 
-classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:membDeclList RBRACE
-	{:
-
-        //TODO: how to get the parameters that memberDecl got and pass them to the constructor?
-        //Are we sure this is the right way of doing it to accept varDeclarations and method declarations
-       // ClassDecl(className, extNothing, ) //missing: varDeclaration, MethodDeclaration
-       
-	:}
-	//TODO: Class extending another class.
-	;
-
 //detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
@@ -377,11 +366,6 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
 	//TODO: this classDecl can also be empty
 	;
 
-extendsNothing ::=
-    {:
-        RESULT = ExtendsNothing();
-
-    :};
 
 memberDeclList ::=
     //found a member inside it, followed by more members
@@ -416,55 +400,5 @@ extendsNothing ::=
     {:
         RESULT = ExtendsNothing();
     :}
-    | extendsClass: ClassID: ClassName
-    {:
-    	RESULT = ExtendsClass(ClassName)
-    :};
-    ;
+   ;
 
-
-memberDeclList ::=
-    //found a member inside it, followed by more members
-     memberDecl:membDecl memberDeclList:membDeclList
-     {:
-
-        membDeclList.add(membDecl);
-        RESULT = membDeclList;
-     :}
-     //if empty, return an empty list
-     |
-     {:
-        RESULT = new LinkedList<MJMemberDecl>();
-     :}
-;
-
-memberDecl ::= type:t CLASS ID:typeName SEMI
-    {:
-        RESULT = VarDecl(t, typeName);
-    :}
-    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
-    {:
-        RESULT = MethodDecl(t, methodName, varDList, b);
-    :};
-
-
-<<<<<<< HEAD
-
-
-
-
-
-
-
-
-
-=======
-//TODO: varDeclList: it can also be empty!
-//To be Checked
- varDecl::= type:t CLASS ID:typeName SEMI
- {:
-    RESULT = VarDecl(t,typeName)
- :}; 
- 
- 
->>>>>>> 94df71359a36c90d196163eb76754d2b94d73e70
