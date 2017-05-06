@@ -94,6 +94,8 @@ terminal ABSTRACT,  CONTINUE,   FOR,          NEW,         SWITCH,
          CLASS,     FINALLY,    LONG,         STRICTFP,    VOLATILE,
          CONST,     FLOAT,      NATIVE,       SUPER,       WHILE;
 
+
+
 // additional keywords:
 terminal MAIN, STRING, LENGTH, SYSTEM, OUT, PRINTLN;
 
@@ -115,24 +117,33 @@ non terminal MJClassDeclList classesDeclList;
 non terminal MJClassDecl classDecl;
 non terminal MJBlock block;
 non terminal MJType type;
-non terminal MJStatetement statement;
-non terminal MJVarDec varDecl;
-non terminal MJExtended extended;
-non terminal MJExtendsClass extendsClass;
-non terminal MJExtendsNothing extendsNothing;
-//to be checked
-non terminal MJVarDeclList fields;
-non terminal MJMethodDeclList methods;
-//to be checked
-non terminal MJMethodDecl methodDecl;
-
+non terminal MJStatement statement;
+non terminal MJStatement blockStatement;
+non terminal MJVarDecl vardecl;
+non terminal MJUnaryOperator unaryOperator;
+non terminal MJTypeClass id;
+non terminal MJStmtIf stmtIf;
+non terminal MJStmtWhile stmtWhile;
+non terminal MJExpr expr;
+non terminal MJOperator operator;
+non terminal List<MJStatement> blockStatementsList;
+non terminal MJExprList exprsList;
 non terminal MJMemberDecl memberDecl;
-non terminal MJBoolConst boolean;
+non terminal List<MJMemberDecl> memberDeclList;
 
+
+//precedence from bottom to top.
+
+//not really sure where we should put the dot
+precedence left LESS, AND, EQUALS, EQ, DOT;
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIV;
+//brackets have precedence over operations. Used for arrays too.
+precedence left LBRACKET, RBRACKET;
 
 
 /* ----------------------------Grammar Section-------------------- */
-   
+
 //initialization of the AST
 program   ::=  mainClass:mainC classesDeclList:classesDecl
       {:
@@ -145,41 +156,7 @@ mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LB
         RESULT = MainClass(className, argsName, blockName);
     :};
 
-classDecl::= CLASS ID:className  classextended:extendedNothing varDeclList:varDecl methodDeclList: methodDecl
-	{:
-      RESULT = ClassDecl(className, extended, fields , methods);
-	:};
-
-extended ::= LBRACKET extendsNothing RBRACKET
-	{:
-		RESULT = ExtendsNothing(); 
-	;}
-	|extendsClass
-	{:
-     	RESULT = ExtendsClass(className);
-	:};
-
-varDecl :: = type:t CLASS ID:className
-	{:
-		RESULT = VarDecl(type, className);
-	:};
-
-methodDecl::= type:r CLASS ID: className varDeclList:varDecl block:blockName
-    {:
-    	 RESULT = MethodDecl(returnType, className, formalParameters, methodBody);
-    :};
-
-memberDecl::= varDecl:
-	{:
-		RESULT = VarDecl;
-	:}
-	|methodDecl
-	{:
-		RESULT = MethodDecl
-	:};
-
-
-block ::= LBRACE blockStatementsList:blockStatements LBRACE
+block ::= LBRACE blockStatementsList:blockStatements RBRACE
     {:
         //putting blockstatements into the block.
         RESULT = MJ.Block(blockStatements);
@@ -251,7 +228,9 @@ type ::= INT LBRACKET RBRACKET
     {:
         RESULT = TypeClass(idName);
     :};
-    
+
+
+
 operator ::= AND
     {:
         RESULT = And();
@@ -361,8 +340,6 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     :};
 
 
-
-
 //TODO: found a valid argument for the list of expressions. then add it to the list
 exprsList ::=
 
@@ -372,42 +349,32 @@ exprsList ::=
 //detecting extra classes and adding them to the list of existing classes
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
+        //initialize it
+        MJ.ClassDeclList(classesList);
+        //fill it with the found class
         classesList.add(classD);
+        //and finally return the list with the newly added class
         RESULT = classesList;
   :}
-  //empty list of classes
+  //empty list of classes. return what has been found so far.
   |{:
-
+        RESULT = MJ.ClassDeclList();
   :}
   ;
 
-  // classesDeclList ::=
- // {:
- 
-//  :};
 
-//parsing the content of the extra class detected.
-//classDecl ::= CLASS ID:className LBRACE memberDecl:memb RBRACE
-//   {:   :};
- //  | CLASS ID:className EXTENDS ID:classExtended LBRACE classesDeclList:memb RBRACE
-  // {:   :}
-//
-  // ;
 
-memberDecl ::=
 
-;
-//to be checked
-block :: =
-{:
- 	RESULT = Statement();
-:};
-//to be checked
-exprList :: =
-{:
-	RESULT = ExprList();
-:};
 
-//TODO: parse the content of memberDecl
 
-   
+
+
+
+
+
+
+
+
+
+
+

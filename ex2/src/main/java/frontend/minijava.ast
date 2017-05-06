@@ -10,21 +10,17 @@ Program(MainClass mainClass, ClassDeclList classDecls)
 //done
 MainClass(String name, String argsName, Block mainBody)
 
-//done --to be checked
+
 ClassDecl(String name, Extended extended, VarDeclList fields, MethodDeclList methods)
 
-//done --to be checked
 Extended =
     ExtendsNothing()
   | ExtendsClass(String name)
-  
-//done --to be checked
+
 VarDecl(Type type, String name)
 
-//done --to be checked
 MethodDecl(Type returnType, String name, VarDeclList formalParameters, Block methodBody)
 
-//done -- to be checked
 MemberDecl =
     VarDecl
   | MethodDecl
