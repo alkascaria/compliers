@@ -116,7 +116,9 @@ non terminal MJMemberDecl memberDecl;
 non terminal List<MJMemberDecl> memberDeclList;
 non terminal MJExtendsNothing extendsNothing;
 non terminal MJVarDeclList varDeclList;
+non terminal MJVarDecl varDecl;
 non terminal MJExtendsClass extendsClass;
+
 
 //precedence from bottom to top.
 //not really sure where we should put the dot
@@ -330,10 +332,8 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
   //empty list of classes. return what has been found so far.
   |{:
         RESULT = MJ.ClassDeclList();
-  :}
-  ;
-
-
+  :};
+  
 
 classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:memberDList RBRACE
 	{:
@@ -386,12 +386,24 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
   	//TODO: implement classDecl for extending a class as well. fix eventual conflicts arising.
 
 	//TODO: this classDecl can also be empty. However, this leads to a conflict with "classesDeclList". Fix the conflict.
-	//|
-	//{:
-    //
-	//:}
-	;
 
+extends::= extendsNothing:extendsN extendsClass:extendsC
+{:
+	
+	MJ.ExtendsClass(extendsC)
+	
+	extendsC.add(extendsN)
+	
+	RESULT = MJ.ExtendsClass();
+:}
+|{:
+    RESULT = MJ.ExtendsClass();;
+:};
+// To be Checked
+extendsNothing ::=
+    {:
+        RESULT = ExtendsNothing();
+    :};  
 
 memberDeclList ::=
     //found a member inside it, followed by more members
@@ -417,16 +429,12 @@ memberDecl ::= type:t ID:typeName SEMI
         RESULT = MethodDecl(t, methodName, varDList, b);
     :};
 
+//To be Checked
+varDecl ::= type:t ID:typeName SEMI
+{:
+     RESULT = VarDecl(t, typeName)
+:};
 
 
-
-
-
-// To be Checked
-extendsNothing ::=
-    {:
-        RESULT = ExtendsNothing();
-    :}
-   ;
 
 
