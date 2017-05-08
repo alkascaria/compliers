@@ -440,13 +440,14 @@ expr ::= expr:exprLeft operator:o expr:exprRight
 exprsList ::= expr:e exprRest:expsRest
     {:
         //instantiate empty list.
-        ExprList exprListReturn = MJ.ExprList();
+        MJExprList exprListReturn = MJ.ExprList();
         expsRest.add(e);
+
         //exprListReturn.add(e);
         //then, append all elements in the rest list to the list
        for(int i = 0; i < expsRest.size(); i++)
         {
-            Expr exprInList = expsRest.get(i);
+            MJExpr exprInList = expsRest.get(i);
             exprInList.setParent(null);
             exprListReturn.add(exprInList);
         }
@@ -458,7 +459,6 @@ exprsList ::= expr:e exprRest:expsRest
         RESULT = MJ.ExprList();
     :} ;
 
-//15.	Grammer for ExpRest
 
 exprRest ::= COMMA expr:e exprRest:expsRest
     {:
@@ -480,32 +480,6 @@ exprRest ::= COMMA expr:e exprRest:expsRest
     :}
 ;
 
-
-
-
-
-
-
-//detecting extra classes and adding them to the list of existing classes
-//classesDeclList ::= classDecl:classD  classesDeclList:classesList
-classesDeclList ::= classDecl:classD  classesDeclList:classesList
-  {:
-        //initialize it
-        MJ.ClassDeclList(classesList);
-
-        //fill it with the found class
-        classesList.add(classD);
-        //and finally return the list with the newly added class
-        RESULT =  classesList;
-  :}
-  |
-  {:
-    RESULT = MJ.ClassDeclList();
-  :}
-  ;
-
-
-    :};
 
 //16.	Grammer for id  -   Done in statement
 
