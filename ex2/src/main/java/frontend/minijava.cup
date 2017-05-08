@@ -103,7 +103,7 @@ non terminal MJBlock block;
 non terminal MJType type;
 non terminal MJStatement statement;
 non terminal MJStatement blockStatement;
-non terminal MJVarDecl vardecl;
+non terminal MJVarDecl varDecl;
 non terminal MJUnaryOperator unaryOperator;
 non terminal MJTypeClass id;
 non terminal MJStmtIf stmtIf;
@@ -112,11 +112,14 @@ non terminal MJExpr expr;
 non terminal MJOperator operator;
 non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
+non terminal MJExprList exprRest;
 non terminal MJMemberDecl memberDecl;
 non terminal List<MJMemberDecl> memberDeclList;
-non terminal MJExtendsNothing extendsNothing;
+non terminal MJExtended extended;
 non terminal MJVarDeclList varDeclList;
+non terminal MJVarDeclList varDeclRestList;
 non terminal MJExtendsClass extendsClass;
+non terminal MJMethodDecl methodDecl;
 
 //precedence from bottom to top.
 //not really sure where we should put the dot
@@ -128,39 +131,205 @@ precedence left LBRACKET, RBRACKET;
 
 
 /* ----------------------------Grammar Section-------------------- */
-//initialization of the AST
-program   ::=  mainClass:mainC classesDeclList:classesDecl
-      {:
-            RESULT = Program(mainC, classesDecl);
-      :} ;
-//Detecting main class
-mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
+
+//1.	Grammer for  Program
+
+ //initialization of the AST
+ program   ::=  mainClass:mainC classesDeclList:classesDecl
+       {:
+             RESULT = Program(mainC, classesDecl);
+       :} ;
+
+//2.	Grammer for MainClass
+
+ //Detecting main class
+ mainClass ::= CLASS ID:className LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID:argsName RPAREN block:blockName RBRACE
+     {:
+         RESULT = MainClass(className, argsName, blockName);
+     :};
+
+//3.	Grammer for ClassDecl
+
+//detecting extra classes and adding them to the list of existing classes
+//classesDeclList ::= classDecl:classD  classesDeclList:classesList
+classesDeclList ::= classDecl:classD  classesDeclList:classesList
+  {:
+        //initialize it
+        MJ.ClassDeclList(classesList);
+
+        //fill it with the found class
+        classesList.add(classD);
+        //and finally return the list with the newly added class
+        RESULT =  classesList;
+  :}
+  |
+  {:
+    RESULT = MJ.ClassDeclList();
+  :}
+  ;
+
+classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
+	{:
+	    //TODO: The two following codeblocks ought to be put into methods.
+	    //These two codeblocks get all VarDecl and MethodDecl within a MemberDeclList and
+	    //store them into two corresponding lists for constructor initialization.
+
+        //initialize empty varDeclList
+        MJVarDeclList varDeclList = MJ.VarDeclList();
+
+        //loop through all different members and get their varDecl.
+        for(int i = 0; i < memberDList.size(); i++)
+        {
+            //if MJElement is a VarDecl
+            MJElement mjElement = memberDList.get(i);
+            if(mjElement.getClass().equals("MJVarDeclImpl"))
+            {
+                MJVarDecl mjVarDecl = (MJVarDecl)memberDList.get(i);
+                //if it contains a valid variable
+                if(mjVarDecl.getName() != null && mjVarDecl.getType() != null && (!mjVarDecl.getName().isEmpty()))
+                {
+                    //add it to the list of variable declarations.
+                    varDeclList.add(mjVarDecl);
+                }
+            }
+        }
+        //initialize empty methodDeclList
+        MJMethodDeclList methodDeclList = MJ.MethodDeclList();
+        //loop through all different members and get their methodDecl.
+        for(int i = 0; i < memberDList.size(); i++)
+        {
+            MJElement mjElem = memberDList.get(i);
+            if(mjElem.getClass().equals("MJMethodDeclImpl"))
+            {
+                //MJMethodDecl is a child of MJMember, so casting is no problem.
+                MJMethodDecl mjMethodDecl = (MJMethodDecl)memberDList.get(i);
+                //if it contains a valid method.
+                if(mjMethodDecl.getName() != null && mjMethodDecl.getFormalParameters() != null &&  mjMethodDecl.getMethodBody() != null)
+                {
+                    //add it to the list of variable declarations.
+                    methodDeclList.add(mjMethodDecl);
+                }
+            }
+        }
+        RESULT = ClassDecl(className, ext, varDeclList, methodDeclList);
+	:};
+
+	extended ::= EXTENDS ID:classExtended
+        {:
+            RESULT = ExtendsClass(classExtended);
+        :}
+        |
+        {:
+           RESULT = ExtendsNothing();
+       :};
+
+//4.	Grammer for MemberDecl
+
+memberDeclList ::=
+    //found a member inside it, followed by more members
+     memberDecl:membDecl memberDeclList:membDeclList
+     {:
+        membDeclList.add(membDecl);
+        RESULT = membDeclList;
+     :}
+     //if empty, return an empty list
+     |
+     {:
+        RESULT = new LinkedList<MJMemberDecl>();
+     :};
+
+memberDecl ::= varDecl:varD
     {:
-        RESULT = MainClass(className, argsName, blockName);
-    :};
-block ::= LBRACE blockStatementsList:blockStatements RBRACE
-    {:
-        //putting blockstatements into the block.
-        RESULT = MJ.Block(blockStatements);
-    :};
-blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
-    {:
-        blockStmtList.add(blockStatement);
-        RESULT = blockStmtList;
+        RESULT = varD;
     :}
-    |
+    | methodDecl:methDecl
     {:
-        RESULT = new LinkedList<MJStatement>();
+        RESULT = methDecl;
     :};
 
-blockStatement ::= statement:s
-       {:
-            RESULT = s;
-       :}
-       | type:t ID:idName SEMI
-       {:
-            RESULT = VarDecl(t, idName);
-       :};
+//5.	Grammer for VarDecl
+
+varDecl ::= type:t ID:id SEMI
+{:
+    RESULT = VarDecl(t,id);
+:};
+
+//6.	Grammer for MethodDecl
+
+methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    {:
+        RESULT = MethodDecl(t, methodName, varDList, b);
+    :};
+
+//7.	Grammer for ParamList
+
+//paramList
+varDeclList ::= type:t ID:id varDeclList:varDList
+    {:
+        varDList.add(VarDecl(t, id));
+        RESULT = varDList;
+
+    :}
+    | COMMA type:t ID:id varDeclList:varDList           //8.	Grammer for ParamRest
+    {:
+         varDList.add(VarDecl(t, id));
+         RESULT = varDList;
+    :}
+    //it is optional. so it can also be empty
+    |
+    {:
+        RESULT = MJ.VarDeclList();
+    :};
+
+//9.	Grammer for Type
+
+type ::= INT LBRACKET RBRACKET
+    {:
+        RESULT = TypeIntArray();
+    :}
+    | INT
+    {:
+        RESULT = TypeInt();
+    :}
+    | BOOLEAN
+    {:
+        RESULT = TypeBool();
+    :}
+    | ID:idName
+    {:
+        RESULT = TypeClass(idName);
+    :};
+
+//10.	Grammer for Block
+
+ block ::= LBRACE blockStatementsList:blockStatements RBRACE
+     {:
+         //putting blockstatements into the block.
+         RESULT = MJ.Block(blockStatements);
+     :};
+
+ blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
+     {:
+         blockStmtList.add(blockStatement);
+         RESULT = blockStmtList;
+     :}
+     |
+     {:
+         RESULT = new LinkedList<MJStatement>();
+     :};
+
+//11.	Grammer for BlockStatement
+
+ blockStatement ::= statement:s
+        {:
+             RESULT = s;
+        :}
+        | varDecl:varD
+        {:
+             RESULT = varD;
+        :};
+
+//12.	Grammer for BlockStatement
 
 statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
       {:
@@ -182,7 +351,7 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
       {:
         RESULT = StmtExpr(exprSemi);
       :}
-      | expr:exprLeft EQ expr:exprRight
+      | expr:exprLeft EQ expr:exprRight SEMI
       {:
         RESULT = StmtAssign(exprLeft, exprRight);
       :}
@@ -191,51 +360,7 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
          RESULT = b;
       :};
 
-type ::= INT LBRACKET RBRACKET
-    {:
-        RESULT = TypeIntArray();
-    :}
-    | INT
-    {:
-        RESULT = TypeInt();
-    :}
-    | BOOLEAN
-    {:
-        RESULT = TypeBool();
-    :}
-    | ID:idName
-    {:
-        RESULT = TypeClass(idName);
-    :};
-
-operator ::= AND
-    {:
-        RESULT = And();
-    :}
-    | PLUS
-    {:
-        RESULT = Plus();
-    :}
-    | MINUS
-    {:
-        RESULT = Minus();
-    :}
-    | TIMES
-    {:
-         RESULT = Times();
-    :}
-    | DIV
-    {:
-         RESULT = Div();
-    :}
-    | LESS
-    {:
-        RESULT = Less();
-    :}
-    | EQUALS
-    {:
-        RESULT = Equals();
-    :};
+//13.	Grammer for Exp
 
 //introduces - expr or ! expr
 unaryOperator ::= MINUS
@@ -245,8 +370,7 @@ unaryOperator ::= MINUS
     | NEG
     {:
         RESULT = Negate();
-    :}
-;
+    :};
 
 expr ::= expr:exprLeft operator:o expr:exprRight
     {:
@@ -264,14 +388,12 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
       RESULT = ArrayLength(exprArrLength);
     :}
-    //TODO: disambiguate following expressions:
-     //HOw to solve the conflict within the two following expressions?
-     //| expr:exprReceiver DOT ID:fieldName
-    //{:
-    //  RESULT = FieldAccess(exprReceiver, fieldName);
-    //:}
+     | expr:exprReceiver DOT ID:fieldName
+    {:
+      RESULT = FieldAccess(exprReceiver, fieldName);
+    :}
      //Which one should be picked? And when?
-    | expr:exprReceiver DOT ID:methodName exprsList:arguments
+    | expr:exprReceiver DOT ID:methodName LPAREN exprsList:arguments RPAREN
       {:
           RESULT = MethodCall(exprReceiver, methodName, arguments);
       :}
@@ -312,121 +434,73 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
         RESULT = exprCur;
     :};
-//TODO: found a valid argument for the list of expressions. then add it to the list
-exprsList ::=
-;
 
-//detecting extra classes and adding them to the list of existing classes
-//classesDeclList ::= classDecl:classD  classesDeclList:classesList
-classesDeclList ::= classDecl:classD  classesDeclList:classesList
-  {:
-        //initialize it
-        MJ.ClassDeclList(classesList);
-        //fill it with the found class
-        classesList.add(classD);
-        //and finally return the list with the newly added class
-        RESULT =  MJ.ClassDeclList;
-  :}
-  //empty list of classes. return what has been found so far.
-  |{:
-        RESULT = MJ.ClassDeclList();
-  :}
-  ;
+//14.	Grammer for ExpList
 
-
-
-classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:memberDList RBRACE
-	{:
-	    //TODO: The two following codeblocks ought to be put into methods.
-	    //These two codeblocks get all VarDecl and MethodDecl within a MemberDeclList and
-	    //store them into two corresponding lists for constructor initialization.
-
-        //initialize empty varDeclList
-        MJVarDeclList varDeclList = MJ.VarDeclList();
-
-
-        //loop through all different members and get their varDecl.
-        for(int i = 0; i < memberDList.size(); i++)
-        {
-            //if MJElement is a VarDecl
-            MJElement mjElement = memberDList.get(i);
-            if(mjElement.getClass().equals("MJVarDeclImpl"))
-            {
-                MJVarDecl mjVarDecl = (MJVarDecl)memberDList.get(i);
-                //if it contains a valid variable
-                if(mjVarDecl.getName() != null && mjVarDecl.getType() != null && (!mjVarDecl.getName().isEmpty()))
-                {
-                    //add it to the list of variable declarations.
-                    varDeclList.add(mjVarDecl);
-                }
-            }
-        }
-        //initialize empty methodDeclList
-        MJMethodDeclList methodDeclList = MJ.MethodDeclList();
-        //loop through all different members and get their methodDecl.
-        for(int i = 0; i < memberDList.size(); i++)
-        {
-
-            MJElement mjElem = memberDList.get(i);
-            if(mjElem.getClass().equals("MJMethodDeclImpl"))
-            {
-                //MJVarDecl is a child of MJMember, so casting is no problem.
-                MJMethodDecl mjMethodDecl = (MJMethodDecl)memberDList.get(i);
-                //if it contains a valid method.
-                if(mjMethodDecl.getName() != null && mjMethodDecl.getFormalParameters() != null &&  mjMethodDecl.getMethodBody() != null)
-                {
-                    //add it to the list of variable declarations.
-                    methodDeclList.add(mjMethodDecl);
-                }
-            }
-        }
-        ClassDecl(className, extNothing, varDeclList, methodDeclList);
-	:}
-
-  	//TODO: implement classDecl for extending a class as well. fix eventual conflicts arising.
-
-	//TODO: this classDecl can also be empty. However, this leads to a conflict with "classesDeclList". Fix the conflict.
-	//|
-	//{:
-    //
-	//:}
-	;
-
-
-memberDeclList ::=
-    //found a member inside it, followed by more members
-     memberDecl:membDecl memberDeclList:membDeclList
-     {:
-        membDeclList.add(membDecl);
-        RESULT = membDeclList;
-     :}
-     //if empty, return an empty list
-     |
-     {:
-        RESULT = new LinkedList<MJMemberDecl>();
-     :}
-;
-//now declare the single methods
-memberDecl ::= type:t ID:typeName SEMI
+exprsList ::= expr:e exprRest:expsRest
     {:
-        System.out.println(typeName);
-        RESULT = VarDecl(t, typeName);
+        //instantiate empty list.
+        MJExprList exprListReturn = MJ.ExprList();
+        expsRest.add(e);
+        //exprListReturn.add(e);
+        //then, append all elements in the rest list to the list
+       for(int i = 0; i < expsRest.size(); i++)
+        {
+            MJExpr exprInList = expsRest.get(i);
+            exprInList.setParent(null);
+            exprListReturn.add(exprInList);
+        }
+        RESULT = exprListReturn;
     :}
-    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    //if empty, return empty list.
+    |
     {:
-        RESULT = MethodDecl(t, methodName, varDList, b);
+        RESULT = MJ.ExprList();
+    :} ;
+
+//15.	Grammer for ExpRest
+
+exprRest ::= COMMA expr:e exprRest:expsRest
+    {:
+        //create list containing the elements found so far
+        MJ.ExprList(expsRest);
+        expsRest.add(e);
+        RESULT = expsRest;
+    :}
+    //if empty, return empty list
+    |{:
+        RESULT = MJ.ExprList();
     :};
 
+//16.	Grammer for id  -   Done in statement
 
+//17.	Grammer for op
 
-
-
-
-// To be Checked
-extendsNothing ::=
+operator ::= AND
     {:
-        RESULT = ExtendsNothing();
+        RESULT = And();
     :}
-   ;
-
-
+    | PLUS
+    {:
+        RESULT = Plus();
+    :}
+    | MINUS
+    {:
+        RESULT = Minus();
+    :}
+    | TIMES
+    {:
+         RESULT = Times();
+    :}
+    | DIV
+    {:
+         RESULT = Div();
+    :}
+    | LESS
+    {:
+        RESULT = Less();
+    :}
+    | EQUALS
+    {:
+        RESULT = Equals();
+    :};
