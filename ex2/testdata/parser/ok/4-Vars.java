@@ -1,11 +1,15 @@
-class Main {
-	public static void main(String[] a){
+class Main 
+{
+	public static void main(String[] a)
+	{
 		System.out.println(new A().run());
 	}
 }
 
-class A {
-	int run() {
+class A 
+{
+	int run() 
+	{
 		int a;
 		int b;
 		a = this.helper(12);
@@ -13,7 +17,8 @@ class A {
 		return a + b;
 	}
 
-	int helper(int param) {
+	int helper(int param) 
+	{
 		int x;
 		x = param;
 		param = param + 1;

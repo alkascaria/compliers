@@ -1,13 +1,17 @@
-class Main {
-    public static void main(String[] a) {
+class Main 
+{
+    public static void main(String[] a) 
+    {
 	System.out.println(new A().run());
     }
 }
 
-class A {
+class A 
+{
      int[] a;
 
-    int run() {
+    int run() 
+    {
 	a = new int[20];
 	a[10] = 1;
 	System.out.println(a[10]);

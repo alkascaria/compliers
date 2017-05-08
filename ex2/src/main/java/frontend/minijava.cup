@@ -440,13 +440,13 @@ expr ::= expr:exprLeft operator:o expr:exprRight
 exprsList ::= expr:e exprRest:expsRest
     {:
         //instantiate empty list.
-        MJExprList exprListReturn = MJ.ExprList();
+        ExprList exprListReturn = MJ.ExprList();
         expsRest.add(e);
         //exprListReturn.add(e);
         //then, append all elements in the rest list to the list
        for(int i = 0; i < expsRest.size(); i++)
         {
-            MJExpr exprInList = expsRest.get(i);
+            Expr exprInList = expsRest.get(i);
             exprInList.setParent(null);
             exprListReturn.add(exprInList);
         }
