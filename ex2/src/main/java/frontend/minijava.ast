@@ -10,17 +10,21 @@ Program(MainClass mainClass, ClassDeclList classDecls)
 //done
 MainClass(String name, String argsName, Block mainBody)
 
-
+//done
 ClassDecl(String name, Extended extended, VarDeclList fields, MethodDeclList methods)
 
+//done
 Extended =
     ExtendsNothing()
   | ExtendsClass(String name)
 
+//done
 VarDecl(Type type, String name)
 
+//done
 MethodDecl(Type returnType, String name, VarDeclList formalParameters, Block methodBody)
 
+//done
 MemberDecl =
     VarDecl
   | MethodDecl
@@ -44,7 +48,6 @@ Statement =
   | StmtAssign(Expr left, Expr right)
 
 //done. TODO: disambiguate MethodCall and FieldAccess.
-//TODO: Impplement ExprList for arguments.
 Expr =
     ExprBinary(Expr left, Operator operator, Expr right)
   | ExprUnary(UnaryOperator unaryOperator, Expr expr)

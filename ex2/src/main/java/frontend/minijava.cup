@@ -103,7 +103,7 @@ non terminal MJBlock block;
 non terminal MJType type;
 non terminal MJStatement statement;
 non terminal MJStatement blockStatement;
-non terminal MJVarDecl vardecl;
+non terminal MJVarDecl varDecl;
 non terminal MJUnaryOperator unaryOperator;
 non terminal MJTypeClass id;
 non terminal MJStmtIf stmtIf;
@@ -114,9 +114,11 @@ non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
 non terminal MJMemberDecl memberDecl;
 non terminal List<MJMemberDecl> memberDeclList;
-non terminal MJExtendsNothing extendsNothing;
+non terminal MJExtended extended;
 non terminal MJVarDeclList varDeclList;
+non terminal MJVarDeclList varDeclRestList;
 non terminal MJExtendsClass extendsClass;
+non terminal MJMethodDecl methodDecl;
 
 //precedence from bottom to top.
 //not really sure where we should put the dot
@@ -143,6 +145,8 @@ block ::= LBRACE blockStatementsList:blockStatements RBRACE
         //putting blockstatements into the block.
         RESULT = MJ.Block(blockStatements);
     :};
+
+
 blockStatementsList ::= blockStatement:blockStatement blockStatementsList:blockStmtList
     {:
         blockStmtList.add(blockStatement);
@@ -157,9 +161,9 @@ blockStatement ::= statement:s
        {:
             RESULT = s;
        :}
-       | type:t ID:idName SEMI
+       | varDecl:varD
        {:
-            RESULT = VarDecl(t, idName);
+            RESULT = varD;
        :};
 
 statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
@@ -264,8 +268,6 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
       RESULT = ArrayLength(exprArrLength);
     :}
-    // TODO: disambiguate following expressions:
-     //HOw to solve the conflict within the two following expressions?
      | expr:exprReceiver DOT ID:fieldName
     {:
       RESULT = FieldAccess(exprReceiver, fieldName);
@@ -312,10 +314,30 @@ expr ::= expr:exprLeft operator:o expr:exprRight
     {:
         RESULT = exprCur;
     :};
-//TODO: found a valid argument for the list of expressions. then add it to the list
+
+
 exprsList ::=
 ;
+/*
+//TODO: resolve conflicts for following expressions
+exprsList ::= expr:exp exprsList:expsList
+    {:
+        MJ.ExprList(expsList);
+        exprsList.add(expr);
+        RESULT = expsList;
+    :}
+    |   COMMA expr:exp exprsList:expsList
+    {:
+          MJ.ExprList(expsList);
+           exprsList.add(expr);
+           RESULT = expsList;
+    :}
+    //can also be empty, as it's defined as "ExpList?"
+    |{:
+        RESULT = MJ.ExprList();
+    :};
 
+*/
 //detecting extra classes and adding them to the list of existing classes
 //classesDeclList ::= classDecl:classD  classesDeclList:classesList
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
@@ -325,17 +347,17 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
         //fill it with the found class
         classesList.add(classD);
         //and finally return the list with the newly added class
-        RESULT =  MJ.ClassDeclList;
+        RESULT =  classesList;
   :}
-  //empty list of classes. return what has been found so far.
-  |{:
-        RESULT = MJ.ClassDeclList();
+  |
+  {:
+    RESULT = MJ.ClassDeclList();
   :}
   ;
 
 
 
-classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:memberDList RBRACE
+classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
 	    //TODO: The two following codeblocks ought to be put into methods.
 	    //These two codeblocks get all VarDecl and MethodDecl within a MemberDeclList and
@@ -343,7 +365,6 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
 
         //initialize empty varDeclList
         MJVarDeclList varDeclList = MJ.VarDeclList();
-
 
         //loop through all different members and get their varDecl.
         for(int i = 0; i < memberDList.size(); i++)
@@ -366,11 +387,10 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
         //loop through all different members and get their methodDecl.
         for(int i = 0; i < memberDList.size(); i++)
         {
-
             MJElement mjElem = memberDList.get(i);
             if(mjElem.getClass().equals("MJMethodDeclImpl"))
             {
-                //MJVarDecl is a child of MJMember, so casting is no problem.
+                //MJMethodDecl is a child of MJMember, so casting is no problem.
                 MJMethodDecl mjMethodDecl = (MJMethodDecl)memberDList.get(i);
                 //if it contains a valid method.
                 if(mjMethodDecl.getName() != null && mjMethodDecl.getFormalParameters() != null &&  mjMethodDecl.getMethodBody() != null)
@@ -380,16 +400,8 @@ classDecl::= CLASS ID:className LBRACE extendsNothing:extNothing memberDeclList:
                 }
             }
         }
-        ClassDecl(className, extNothing, varDeclList, methodDeclList);
+        RESULT = ClassDecl(className, ext, varDeclList, methodDeclList);
 	:}
-
-  	//TODO: implement classDecl for extending a class as well. fix eventual conflicts arising.
-
-	//TODO: this classDecl can also be empty. However, this leads to a conflict with "classesDeclList". Fix the conflict.
-	//|
-	//{:
-    //
-	//:}
 	;
 
 
@@ -406,27 +418,54 @@ memberDeclList ::=
         RESULT = new LinkedList<MJMemberDecl>();
      :}
 ;
-//now declare the single methods
-memberDecl ::= type:t ID:typeName SEMI
+memberDecl ::= varDecl:varD
     {:
-        System.out.println(typeName);
-        RESULT = VarDecl(t, typeName);
+        RESULT = varD;
     :}
-    | type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
+    | methodDecl:methDecl
+    {:
+        RESULT = methDecl;
+    :};
+
+methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
     {:
         RESULT = MethodDecl(t, methodName, varDList, b);
     :};
 
-
-
-
-
-
-// To be Checked
-extendsNothing ::=
+//paramList
+varDeclList ::= type:t ID:id varDeclList:varDList
     {:
-        RESULT = ExtendsNothing();
+        varDList.add(VarDecl(t, id));
+        RESULT = varDList;
+
     :}
-   ;
+    | COMMA type:t ID:id varDeclList:varDList
+    {:
+         varDList.add(VarDecl(t, id));
+         RESULT = varDList;
+    :}
+    //it is optional. so it can also be empty
+    |
+    {:
+        RESULT = MJ.VarDeclList();
+    :};
+
+
+
+varDecl ::= type:t ID:id SEMI
+{:
+    RESULT = VarDecl(t,id);
+:};
+
+
+
+extended ::= EXTENDS ID:classExtended
+    {:
+        RESULT = ExtendsClass(classExtended);
+    :}
+    |
+    {:
+       RESULT = ExtendsNothing();
+   :};
 
 
