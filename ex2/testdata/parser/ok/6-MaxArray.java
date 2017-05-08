@@ -1,5 +1,7 @@
-class Main {
-    public static void main(String[] a) {
+class Main 
+{
+    public static void main(String[] a) 
+    {
     	int[] ar;
     	ar = new int[20];
     	ar[5] = 30;
@@ -8,17 +10,23 @@ class Main {
     }
 }
 
-class A {
+class A 
+{
 
-    int max(int[] ar) {
+    int max(int[] ar) 
+    {
     	int res;
     	int i;
 		res = ar[0];
 		i = 1;
-		while (i<ar.length) {
-			if (res < ar[i]) {
+		while (i<ar.length) 
+                {
+			if (res < ar[i]) 
+			{
 				res = ar[i];
-			} else {
+			} 
+			else 
+			{
 				
 			}
 			i = i + 1;

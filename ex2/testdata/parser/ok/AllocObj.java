@@ -4,8 +4,10 @@
  * @author anton
  *
  */
-class AllocObj {
-	public static void main(String[] args) {
+class AllocObj 
+{
+	public static void main(String[] args) 
+	{
 		Wurst w;
 		w = new Wurst();
 	}
