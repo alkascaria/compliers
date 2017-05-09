@@ -152,18 +152,19 @@ precedence left LBRACKET, RBRACKET, DOT, LPAREN, RPAREN;
          RESULT = MainClass(className, argsName, blockName);
      :};
 
-//3.	Grammer for ClassDecl
+//3.	Grammar for ClassDecl
+
+
+
 
 //detecting extra classes and adding them to the list of existing classes
 //classesDeclList ::= classDecl:classD  classesDeclList:classesList
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
-        //initialize it
-        MJ.ClassDeclList(classesList);
 
-        //fill it with the found class
-        classesList.add(classD);
-        //and finally return the list with the newly added class
+        classesList.addFront(classD);
+
+        //finally return the list with the newly added class
         RESULT =  classesList;
   :}
   |
@@ -418,8 +419,11 @@ expr ::=
     :}
     | expr:arrayExpr LBRACKET expr:arrayIndex RBRACKET
     {:
-     
-      RESULT = ArrayLookup(arrayExpr, arrayIndex);
+        //make sure the part preceding it is not an array instantion
+       String exprContent = arrayExpr.toString();
+        System.err.println("Test");
+         RESULT = ArrayLookup(arrayExpr, arrayIndex);
+
     :}
     | expr:exprArrLength DOT LENGTH
     {:
@@ -461,6 +465,7 @@ expr ::=
     :}
     | NEW INT LBRACKET expr:arraySize RBRACKET
     {:
+       System.out.println("array size " + arraySize.toString());
       RESULT = NewIntArray(arraySize);
     :}
     | NEW ID:className LPAREN RPAREN
