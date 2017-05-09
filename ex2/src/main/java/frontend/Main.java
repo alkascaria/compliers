@@ -18,9 +18,13 @@ public class Main {
             System.out.println("Enter a filename: ");
             fileName = new Scanner(System.in).nextLine();
         }
+
+
         try (FileReader r = new FileReader(fileName)) {
             MJFrontend frontend = new MJFrontend();
             MJProgram prog = frontend.parse(r);
+
+
 
             System.out.println(prog);
 

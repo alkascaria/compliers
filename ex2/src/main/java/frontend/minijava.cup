@@ -10,6 +10,7 @@ import frontend.SyntaxError;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 class MiniJavaParser;
 
+
 // Parser code to change the way the parser reports errors (include
 // line and column number of the error).
 parser code {:
@@ -175,49 +176,28 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
 
 classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
-	    //TODO: The two following codeblocks ought to be put into methods.
-	    //TODO: Use matcher instead of getClass
-	    //These two codeblocks get all VarDecl and MethodDecl within a MemberDeclList and
-	    //store them into two corresponding lists for constructor initialization.
+	   MJVarDeclList varDeclList = MJ.VarDeclList();
+	   MJMethodDeclList methodDeclList = MJ.MethodDeclList();
 
-        //initialize empty varDeclList
-        MJVarDeclList varDeclList = MJ.VarDeclList();
+        //TODO: get method declaration working
+        for(int i = 0; i  < memberDList.size(); i++)
+        {
+            MJElement elemInList = memberDList.get(i);
+            String classElem = elemInList.getClass().toString();
 
-        //loop through all different members and get their varDecl.
-        for(int i = 0; i < memberDList.size(); i++)
-        {
-            //if MJElement is a VarDecl
-            MJElement mjElement = memberDList.get(i);
-            //TODO: AstHelper for matching. Put this stuff there
-            if(mjElement.getClass().equals("MJVarDeclImpl"))
-            {
-                MJVarDecl mjVarDecl = (MJVarDecl)memberDList.get(i);
-                //if it contains a valid variable
-                if(mjVarDecl.getName() != null && mjVarDecl.getType() != null && (!mjVarDecl.getName().isEmpty()))
-                {
-                    //add it to the list of variable declarations.
-                    varDeclList.add(mjVarDecl);
-                }
-            }
+            System.out.println(classElem);
+            //if a method declaration list
+             if(classElem.equals("class minijava.ast.MJMethodDeclImpl"))
+             {
+                methodDeclList.add((MJMethodDecl)elemInList);
+             }
+             //if varDeclList
+             else if (classElem.equals("class minijava.ast.MJVarDeclListImpl"))
+             {
+                varDeclList.add((MJVarDecl) elemInList);
+             }
         }
-        //initialize empty methodDeclList
-        MJMethodDeclList methodDeclList = MJ.MethodDeclList();
-        //loop through all different members and get their methodDecl.
-        for(int i = 0; i < memberDList.size(); i++)
-        {
-            MJElement mjElem = memberDList.get(i);
-            if(mjElem.getClass().equals("MJMethodDeclImpl"))
-            {
-                //MJMethodDecl is a child of MJMember, so casting is no problem.
-                MJMethodDecl mjMethodDecl = (MJMethodDecl)memberDList.get(i);
-                //if it contains a valid method.
-                if(mjMethodDecl.getName() != null && mjMethodDecl.getFormalParameters() != null &&  mjMethodDecl.getMethodBody() != null)
-                {
-                    //add it to the list of variable declarations.
-                    methodDeclList.add(mjMethodDecl);
-                }
-            }
-        }
+
         RESULT = ClassDecl(className, ext, varDeclList, methodDeclList);
 	:};
 
@@ -236,6 +216,7 @@ memberDeclList ::=
     //found a member inside it, followed by more members
      memberDecl:membDecl memberDeclList:membDeclList
      {:
+        System.out.println("Found a member?");
         membDeclList.add(membDecl);
         RESULT = membDeclList;
      :}
@@ -247,10 +228,12 @@ memberDeclList ::=
 
 memberDecl ::= varDecl:varD
     {:
+        System.out.println("Found something here as var");
         RESULT = varD;
     :}
     | methodDecl:methDecl
     {:
+        System.out.println("Found a method decl");
         RESULT = methDecl;
     :};
 
@@ -258,6 +241,7 @@ memberDecl ::= varDecl:varD
 
 varDecl ::= type:t ID:id SEMI
 {:
+    System.out.println("Found a varDecl");
     RESULT = VarDecl(t,id);
 :};
 
@@ -265,6 +249,7 @@ varDecl ::= type:t ID:id SEMI
 
 methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
     {:
+    System.out.println("Parsed method");
         RESULT = MethodDecl(t, methodName, varDList, b);
     :};
 
