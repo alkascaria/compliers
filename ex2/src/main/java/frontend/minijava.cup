@@ -183,7 +183,7 @@ classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList R
         for(int i = 0; i  < memberDList.size(); i++)
         {
             MJElement elemInList = memberDList.get(i);
-            String classElem = elemInList.getClass().toString();
+            String classElem = elemInList..substring(fullClassName.lastIndexOf('.') + 1);
 
             System.out.println(classElem);
             //if a method declaration list
