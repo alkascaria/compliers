@@ -123,11 +123,15 @@ non terminal MJMethodDecl methodDecl;
 
 //precedence from bottom to top.
 //not really sure where we should put the dot
-precedence left LESS, AND, EQUALS, EQ, DOT;
+
+
+precedence left EQ;
+precedence left AND;
+precedence left EQUALS;
+precedence left LESS;
 precedence left  PLUS, MINUS;
 precedence left  TIMES, DIV;
-//brackets have precedence over operations. Used for arrays too.
-precedence left LBRACKET, RBRACKET;
+precedence left LBRACKET, RBRACKET, DOT, LPAREN, RPAREN;
 
 
 /* ----------------------------Grammar Section-------------------- */
@@ -171,6 +175,7 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
 classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
 	    //TODO: The two following codeblocks ought to be put into methods.
+	    //TODO: Use matcher instead of getClass
 	    //These two codeblocks get all VarDecl and MethodDecl within a MemberDeclList and
 	    //store them into two corresponding lists for constructor initialization.
 
@@ -182,6 +187,7 @@ classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList R
         {
             //if MJElement is a VarDecl
             MJElement mjElement = memberDList.get(i);
+            //TODO: AstHelper for matching. Put this stuff there
             if(mjElement.getClass().equals("MJVarDeclImpl"))
             {
                 MJVarDecl mjVarDecl = (MJVarDecl)memberDList.get(i);
@@ -331,7 +337,11 @@ type ::= INT LBRACKET RBRACKET
 
 //12.	Grammer for BlockStatement
 
-statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
+statement ::=   block:b
+       {:
+          RESULT = b;
+       :}
+       | IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statement:stmtFalse
       {:
           RESULT = StmtIf(exprCondition, stmtTrue, stmtFalse);
       :}
@@ -355,10 +365,9 @@ statement ::= IF LPAREN expr:exprCondition RPAREN statement:stmtTrue ELSE statem
       {:
         RESULT = StmtAssign(exprLeft, exprRight);
       :}
-      | block:b
-      {:
-         RESULT = b;
-      :};
+
+
+     ;
 
 //13.	Grammer for Exp
 
@@ -372,10 +381,37 @@ unaryOperator ::= MINUS
         RESULT = Negate();
     :};
 
-expr ::= expr:exprLeft operator:o expr:exprRight
+
+expr ::=
+     expr:exprLeft AND expr:exprRight
     {:
-        RESULT = ExprBinary(exprLeft, o, exprRight);
+        RESULT = ExprBinary(exprLeft, And(), exprRight);
     :}
+     | expr:exprLeft PLUS expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Plus(), exprRight);
+     :}
+      | expr:exprLeft MINUS expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Minus(), exprRight);
+     :}
+      | expr:exprLeft TIMES expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Times(), exprRight);
+     :}
+     | expr:exprLeft DIV expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Div(), exprRight);
+     :}
+     | expr:exprLeft LESS expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Less(), exprRight);
+     :}
+     | expr:exprLeft EQUALS expr:exprRight
+     {:
+         RESULT = ExprBinary(exprLeft, Less(), exprRight);
+     :}
+
     | unaryOperator:o expr:exprNeg
     {:
         RESULT = ExprUnary(o, exprNeg);
@@ -439,19 +475,8 @@ expr ::= expr:exprLeft operator:o expr:exprRight
 
 exprsList ::= expr:e exprRest:expsRest
     {:
-        //instantiate empty list.
-        MJExprList exprListReturn = MJ.ExprList();
-        expsRest.add(e);
-
-        //exprListReturn.add(e);
-        //then, append all elements in the rest list to the list
-       for(int i = 0; i < expsRest.size(); i++)
-        {
-            MJExpr exprInList = expsRest.get(i);
-            exprInList.setParent(null);
-            exprListReturn.add(exprInList);
-        }
-        RESULT = exprListReturn;
+        expsRest.addFront(e);
+        RESULT = expsRest;
     :}
     //if empty, return empty list.
     |
@@ -462,17 +487,9 @@ exprsList ::= expr:e exprRest:expsRest
 
 exprRest ::= COMMA expr:e exprRest:expsRest
     {:
-        //create list containing the elements found so far
-        MJExprList exprListReturn = MJ.ExprList();
-        expsRest.add(e);
-
-      for(int i = 0; i < expsRest.size(); i++)
-       {
-           MJExpr exprInList = expsRest.get(i);
-           exprInList.setParent(null);
-           exprListReturn.add(exprInList);
-       }
-        RESULT = exprListReturn;
+      //create list containing the elements found so far
+      expsRest.addFront(e);
+      RESULT = expsRest;
     :}
     //if empty, return empty list
     |{:
@@ -483,33 +500,4 @@ exprRest ::= COMMA expr:e exprRest:expsRest
 
 //16.	Grammer for id  -   Done in statement
 
-//17.	Grammer for op
 
-operator ::= AND
-    {:
-        RESULT = And();
-    :}
-    | PLUS
-    {:
-        RESULT = Plus();
-    :}
-    | MINUS
-    {:
-        RESULT = Minus();
-    :}
-    | TIMES
-    {:
-         RESULT = Times();
-    :}
-    | DIV
-    {:
-         RESULT = Div();
-    :}
-    | LESS
-    {:
-        RESULT = Less();
-    :}
-    | EQUALS
-    {:
-        RESULT = Equals();
-    :};
