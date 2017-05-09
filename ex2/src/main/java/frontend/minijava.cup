@@ -353,7 +353,7 @@ statement ::=   block:b
       {:
          RESULT = StmtReturn(exprReturn);
       :}
-      | SYSTEM DOT OUT PRINTLN LPAREN expr:exprPrint RPAREN SEMI
+      | SYSTEM DOT OUT DOT PRINTLN LPAREN expr:exprPrint RPAREN SEMI
       {:
         RESULT = StmtPrint(exprPrint);
       :}
@@ -418,6 +418,7 @@ expr ::=
     :}
     | expr:arrayExpr LBRACKET expr:arrayIndex RBRACKET
     {:
+     
       RESULT = ArrayLookup(arrayExpr, arrayIndex);
     :}
     | expr:exprArrLength DOT LENGTH
