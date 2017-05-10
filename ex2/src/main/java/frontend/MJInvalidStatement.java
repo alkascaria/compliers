@@ -61,7 +61,22 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
             stmtExpr.getExpr().accept(this);
         }
     }
+//ExtendsNothing
+    @Override public void visit(MJExtendsNothing mjExtendsNothing) {
+
+        if (mjExtendsNothing.getParent().getClass().toString().equals("minijava.ast.MJExtendsClassImpl"))
+        {
+            System.out.println("Extends found");
+            SyntaxError syntaxError = new SyntaxError(mjExtendsNothing.getParent(), "Error: Extends not supports in Minijava");
+
+            this.syntaxErrorsFound.add(syntaxError);
+
+        } else
+        {
+            mjExtendsNothing.getParent().accept(this);
+        }
+    }
 
 
+    }
 
-}
