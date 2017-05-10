@@ -34,7 +34,11 @@ public class MJFrontend {
 		Symbol result = parser.parse();
 		if (result != null && result.value instanceof MJProgram) {
 			MJProgram program = (MJProgram) result.value;
-			detectInvalidStatements(program);
+
+			detectInvalidStatements(program, this);
+
+
+
 			return program;
 		}
 		return null;
@@ -55,8 +59,20 @@ public class MJFrontend {
 	/**
 	 * detects invalid statements and adds SyntaxErrors to
 	 */
-	private void detectInvalidStatements(MJProgram value) {
-		// TODO part 2 of exercise
+
+	//this is the visit method.
+	private void detectInvalidStatements(MJProgram value, MJFrontend frontend) throws Exception
+	{
+		MJInvalidStatement invalidStatement = new MJInvalidStatement();
+		invalidStatement.acceptProgram(value, frontend);
+		//update the list of syntax errors
+		//add all found errors
+		for(int i = 0; i < invalidStatement.syntaxErrorsFound.size(); i++ )
+		{
+			this.syntaxErrors.addAll(invalidStatement.syntaxErrorsFound);
+		}
+		System.out.println("After adding, current list has: ");
+		System.out.println(this.getSyntaxErrors().toString());
 	}
 
 
