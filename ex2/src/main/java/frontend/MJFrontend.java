@@ -71,8 +71,6 @@ public class MJFrontend {
 		{
 			this.syntaxErrors.addAll(invalidStatement.syntaxErrorsFound);
 		}
-		System.out.println("After adding, current list has: ");
-		System.out.println(this.getSyntaxErrors().toString());
 	}
 
 

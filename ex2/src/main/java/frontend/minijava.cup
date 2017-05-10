@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import frontend.SyntaxError;
+
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 class MiniJavaParser;
 
@@ -115,7 +116,7 @@ non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
 non terminal MJExprList exprRest;
 non terminal MJMemberDecl memberDecl;
-non terminal List<MJMemberDecl> memberDeclList;
+non terminal MemberDeclarations memberDeclList;
 non terminal MJExtended extended;
 non terminal MJVarDeclList varDeclList;
 non terminal MJVarDeclList varDeclRestList;
@@ -175,27 +176,7 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
 //TODO: Replace getClass stuff with a matcher.
 classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
-	   MJVarDeclList varDeclList = MJ.VarDeclList();
-	   MJMethodDeclList methodDeclList = MJ.MethodDeclList();
-
-        for(int i = 0; i  < memberDList.size(); i++)
-        {
-            MJElement elemInList = memberDList.get(i);
-            String classElem = elemInList.getClass().toString();
-
-            //if a method declaration list
-             if(classElem.equals("class minijava.ast.MJMethodDeclImpl"))
-             {
-                methodDeclList.add((MJMethodDecl)elemInList);
-             }
-             //if varDeclList
-             else if (classElem.equals("class minijava.ast.MJVarDeclImpl"))
-             {
-                varDeclList.add((MJVarDecl) elemInList);
-             }
-        }
-
-        RESULT = ClassDecl(className, ext, varDeclList, methodDeclList);
+        RESULT = ClassDecl(className, ext, memberDList.getVarDeclList(), memberDList.getMethodDeclList());
 	:};
 
 extended ::= EXTENDS ID:classExtended
@@ -214,13 +195,13 @@ memberDeclList ::=
      memberDecl:membDecl memberDeclList:membDeclList
      {:
         //add in front.
-        membDeclList.add(0, membDecl);
+        membDeclList.addMemberToCorrectList(membDecl);
         RESULT = membDeclList;
      :}
      //if empty, return an empty list
      |
      {:
-        RESULT = new LinkedList<MJMemberDecl>();
+        RESULT = new MemberDeclarations();
      :};
 
 memberDecl ::= varDecl:varD
