@@ -181,8 +181,7 @@ classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList R
         for(int i = 0; i  < memberDList.size(); i++)
         {
             MJElement elemInList = memberDList.get(i);
-            String elemInList = stackTraceElement.getClassName();
-            String classElem = elemInList.substring(elemInList.lastIndexOf('.') + 1);
+            String classElem = elemInList.getClass().toString();
 
             //if a method declaration list
              if(classElem.equals("class minijava.ast.MJMethodDeclImpl"))
@@ -346,6 +345,8 @@ statement ::=   block:b
       {:
         RESULT = StmtAssign(exprLeft, exprRight);
       :}
+
+
      ;
 
 //13.	Grammer for Exp
@@ -398,9 +399,7 @@ expr ::=
     | expr:arrayExpr LBRACKET expr:arrayIndex RBRACKET
     {:
         //make sure the part preceding it is not an array instantion
-       String exprContent = arrayExpr.toString();
-        System.err.println("Test");
-         RESULT = ArrayLookup(arrayExpr, arrayIndex);
+       RESULT = ArrayLookup(arrayExpr, arrayIndex);
 
     :}
     | expr:exprArrLength DOT LENGTH
@@ -443,7 +442,6 @@ expr ::=
     :}
     | NEW INT LBRACKET expr:arraySize RBRACKET
     {:
-       System.out.println("array size " + arraySize.toString());
       RESULT = NewIntArray(arraySize);
     :}
     | NEW ID:className LPAREN RPAREN
