@@ -6,4 +6,3 @@
 *.ipr
 
 build/
-src-generated/
