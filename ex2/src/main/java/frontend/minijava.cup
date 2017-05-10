@@ -162,9 +162,7 @@ precedence left LBRACKET, RBRACKET, DOT, LPAREN, RPAREN;
 //classesDeclList ::= classDecl:classD  classesDeclList:classesList
 classesDeclList ::= classDecl:classD  classesDeclList:classesList
   {:
-
         classesList.addFront(classD);
-
         //finally return the list with the newly added class
         RESULT =  classesList;
   :}
@@ -174,25 +172,24 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
   :}
   ;
 
+//TODO: Replace getClass stuff with a matcher.
 classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
 	   MJVarDeclList varDeclList = MJ.VarDeclList();
 	   MJMethodDeclList methodDeclList = MJ.MethodDeclList();
 
-        //TODO: get method declaration working
         for(int i = 0; i  < memberDList.size(); i++)
         {
             MJElement elemInList = memberDList.get(i);
             String classElem = elemInList.getClass().toString();
 
-            System.out.println(classElem);
             //if a method declaration list
              if(classElem.equals("class minijava.ast.MJMethodDeclImpl"))
              {
                 methodDeclList.add((MJMethodDecl)elemInList);
              }
              //if varDeclList
-             else if (classElem.equals("class minijava.ast.MJVarDeclListImpl"))
+             else if (classElem.equals("class minijava.ast.MJVarDeclImpl"))
              {
                 varDeclList.add((MJVarDecl) elemInList);
              }
@@ -201,14 +198,14 @@ classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList R
         RESULT = ClassDecl(className, ext, varDeclList, methodDeclList);
 	:};
 
-	extended ::= EXTENDS ID:classExtended
-        {:
-            RESULT = ExtendsClass(classExtended);
-        :}
-        |
-        {:
-           RESULT = ExtendsNothing();
-       :};
+extended ::= EXTENDS ID:classExtended
+    {:
+        RESULT = ExtendsClass(classExtended);
+    :}
+    |
+    {:
+       RESULT = ExtendsNothing();
+   :};
 
 //4.	Grammer for MemberDecl
 
@@ -216,8 +213,8 @@ memberDeclList ::=
     //found a member inside it, followed by more members
      memberDecl:membDecl memberDeclList:membDeclList
      {:
-        System.out.println("Found a member?");
-        membDeclList.add(membDecl);
+        //add in front.
+        membDeclList.add(0, membDecl);
         RESULT = membDeclList;
      :}
      //if empty, return an empty list
@@ -228,12 +225,11 @@ memberDeclList ::=
 
 memberDecl ::= varDecl:varD
     {:
-        System.out.println("Found something here as var");
+        System.out.println("Adding var d");
         RESULT = varD;
     :}
     | methodDecl:methDecl
     {:
-        System.out.println("Found a method decl");
         RESULT = methDecl;
     :};
 
@@ -241,7 +237,6 @@ memberDecl ::= varDecl:varD
 
 varDecl ::= type:t ID:id SEMI
 {:
-    System.out.println("Found a varDecl");
     RESULT = VarDecl(t,id);
 :};
 
@@ -249,7 +244,6 @@ varDecl ::= type:t ID:id SEMI
 
 methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
     {:
-    System.out.println("Parsed method");
         RESULT = MethodDecl(t, methodName, varDList, b);
     :};
 
@@ -258,13 +252,13 @@ methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
 //paramList
 varDeclList ::= type:t ID:id varDeclList:varDList
     {:
-        varDList.add(VarDecl(t, id));
+        varDList.addFront(VarDecl(t, id));
         RESULT = varDList;
 
     :}
     | COMMA type:t ID:id varDeclList:varDList           //8.	Grammer for ParamRest
     {:
-         varDList.add(VarDecl(t, id));
+         varDList.addFront(VarDecl(t, id));
          RESULT = varDList;
     :}
     //it is optional. so it can also be empty
