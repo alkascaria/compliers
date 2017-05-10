@@ -166,4 +166,26 @@ public class ParserAstTests {
 		Assert.assertThat(printed, CoreMatchers.containsString("x = a.s(1, 2, (f + g));"));
 	}
 
+	@Test
+	//unaryOperator +, - , ++ , -- , !
+	public void testunaryOperatorCase1() throws Exception {
+		String input = "class Main { public static void main(String[] args) { System.out.println(-9+12); }}";
+		MJFrontend frontend = new MJFrontend();
+		MJProgram ast = frontend.parseString(input);
+		String printed = AstPrinter.print(ast);
+		Assert.assertThat(printed, CoreMatchers.containsString("System.out.println((- (9 + 12)));"));
+	}
+
+	@Test
+	public void testunaryOperatorCase2() throws Exception {
+		String input = "class Main { public static void main(String[] args) { System.out.println(21-52); }}";
+		MJFrontend frontend = new MJFrontend();
+		MJProgram ast = frontend.parseString(input);
+		String printed = AstPrinter.print(ast);
+		Assert.assertThat(printed, CoreMatchers.containsString("System.out.println((21 - 52));"));
+	}
+
+
+
+
 }
