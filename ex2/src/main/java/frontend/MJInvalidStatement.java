@@ -62,30 +62,23 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
     public void visit(MJStmtExpr stmtExpr)
     {
-        System.out.println("Checking in a stmtExpr");
-        String stmtExprContent = stmtExpr.getExpr().toString();
-        System.out.println(stmtExprContent);
-        detectInvalidStmtExpr(stmtExprContent, stmtExpr);
+
+        String stmtExprContent = stmtExpr.toString();
+        detectInvalidStmtExpr(stmtExpr);
+
+        stmtExpr.getExpr().match(this);
 
     }
 
-    public void detectInvalidStmtExpr(String stmtExprContent, MJStmtExpr stmtExpr)
+    public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
     {
-        //prevent a statement from having a single exprBinary inside it.
-        if(stmtExprContent.startsWith("ExprBinary"))
+        String exprContent = stmtExpr.getExpr().toString();
+
+        if(  (!exprContent.startsWith("MethodCall")) && (!exprContent.startsWith("NewObject"))  )
         {
-            String errorMsg = "Cannot accept a stray binary expression.";
+            String errorMsg = "Invalid stray expression. The only stray expressions allowed are for Method Call and new Object Creation.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
-        else if(stmtExprContent.startsWith("FieldAccess(VarUse"))
-        {
-            String errorMsg = "Cannot accept a stray variable access.";
-            this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
-        }
-
-
-
-
     }
 
 
@@ -94,27 +87,41 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     {
         String errorMsg = "";
 
-        //Cannot assign a binary expression to a number. Check both sides of an assignment
-        if( (stmtLeft.startsWith("Number") && stmtRight.startsWith("ExprBinary")) ||
-            (stmtLeft.startsWith("ExprBinary") && stmtRight.startsWith(("Number"))))
+       if ( (stmtLeft.startsWith("Number")) )
         {
-            errorMsg = "Cannot assign a binary expression to a number!";
+            errorMsg = "The left-hand side of an assignment expression cannot be a number.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
-        else if(stmtLeft.startsWith("ExprBinary") && stmtRight.startsWith("ExprBinary"))
+
+        else if(stmtLeft.startsWith("ExprBinary"))
         {
-            errorMsg = "Cannot assign a binary expression to a binary expression!";
+            errorMsg = "The left-hand side of an assignment expression cannot be a binary expression.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
+        else if(stmtLeft.startsWith("ExprThis"))
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot be a 'this' reference.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+       else if(stmtLeft.startsWith("ExprNull"))
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot be null.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+        else if(stmtLeft.startsWith("ArrayLength"))
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot contain an array length.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+       else if(stmtLeft.startsWith("ExprUnary"))
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot contain a unary expression.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
         //cannot assign a number to a number
-        else if (stmtLeft.startsWith(("Number")) && (stmtRight.startsWith("Number")) )
-        {
-            errorMsg = "Cannot assign a number to a number";
-            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-        }
+
     }
 
-    //important case for 2D arrays?
     @Override
     public void case_StmtExpr(MJStmtExpr stmtExpr)
     {
