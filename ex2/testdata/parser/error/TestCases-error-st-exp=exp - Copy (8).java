@@ -6,7 +6,7 @@ class TestCaseserror {
     {
         int v;
         v=10;
-        2*3=4/5;
+       
 
 	false = 8;
 

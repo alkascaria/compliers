@@ -119,6 +119,11 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
         //cannot assign a number to a number
+        else if(stmtLeft.startsWith("BoolConst"))
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot contain a Boolean Constant.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
 
     }
 
