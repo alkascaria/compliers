@@ -19,5 +19,13 @@ class TestCaseserror {
         	a+1 = v; 
         }
 	
+	true = a;
+
+	false = 8;
+
+	this = 10;
+
+	null = a;
+	
     }
 }
