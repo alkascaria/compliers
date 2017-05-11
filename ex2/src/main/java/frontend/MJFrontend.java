@@ -65,8 +65,8 @@ public class MJFrontend {
 	{
 		MJInvalidStatement invalidStatement = new MJInvalidStatement();
 		invalidStatement.acceptProgram(value, frontend);
-		//update the list of syntax errors
-		//add all found errors
+		//update the list of current syntax errors:
+		//add all found errors to the instance variable syntaxErrors
 		for(int i = 0; i < invalidStatement.syntaxErrorsFound.size(); i++ )
 		{
 			this.syntaxErrors.addAll(invalidStatement.syntaxErrorsFound);
