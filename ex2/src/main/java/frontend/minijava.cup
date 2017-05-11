@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import frontend.SyntaxError;
+import frontend.MemberDeclarations;
 
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 class MiniJavaParser;
@@ -237,7 +238,7 @@ varDeclList ::= type:t ID:id varDeclList:varDList
         RESULT = varDList;
 
     :}
-    | COMMA type:t ID:id varDeclList:varDList           //8.	Grammer for ParamRest
+    | COMMA type:t ID:id varDeclList:varDList           /
     {:
          varDList.addFront(VarDecl(t, id));
          RESULT = varDList;
