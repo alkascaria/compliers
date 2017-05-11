@@ -4,6 +4,8 @@ import minijava.ast.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Daniele on 10/05/2017.
@@ -19,13 +21,12 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     public void acceptProgram(MJProgram program, MJFrontend frontend)
     {
         frontEndVar = frontend;
-        //body of main
         //TODO: other classes.
-
-        //Goto --> visit method for block
+        //Goto --> visit the main class' body.
         visit(program.getMainClass().getMainBody());
 
     }
+
 
     @Override public void visit(MJBlock block)
     {
@@ -35,21 +36,14 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
         }
     }
 
-
-    //Can contain 2d Array! prevent that
-    @Override public void visit(MJStmtExpr stmtExpr)
-    {
-
-
-    }
-
     //check its right and left-hand sides for arrays.
     @Override public void visit(MJStmtAssign stmtAssign)
     {
-        System.out.println("Visiting stmt assign");
-
-        stmtAssign.getRight().match(this);
+        System.out.println("Visiting stmt assign and checking its left and right-hand sides");
+        System.out.println(stmtAssign.getLeft().toString());
+        System.out.println(stmtAssign.getRight().toString());
         stmtAssign.getLeft().match(this);
+        stmtAssign.getRight().match(this);
     }
 
     //important case for 2D arrays
@@ -91,7 +85,8 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_Number(MJNumber number) {
+    public void case_Number(MJNumber number)
+    {
 
     }
 
@@ -209,7 +204,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_NewIntArray(MJNewIntArray newIntArray) {
+    public void case_NewIntArray(MJNewIntArray newIntArray)
+    {
+
 
     }
 
@@ -277,33 +274,23 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     @Override
     public void case_ArrayLookup(MJArrayLookup arrayLookup)
     {
-        System.out.println("In array lookup from assignment expr ");
-        String errorMsgArr = "2D Arrays are not supported in minijava.";
-        SyntaxError syntaxError = new SyntaxError(arrayLookup, errorMsgArr);
-        this.syntaxErrorsFound.add(syntaxError);
+       String arrayExpContent = arrayLookup.getArrayExpr().toString();
+       String arrayIndexContent = arrayLookup.getArrayIndex().toString();
 
+       //if it contains a NewIntArray and has an extra index, then it's a 2D array.
+       if(arrayExpContent.contains("NewIntArray") && arrayIndexContent.length() > 0)
+       {
+           SyntaxError syntaxError = new SyntaxError(arrayLookup, "2D arrays not supported in MiniJava.");
+           this.syntaxErrorsFound.add(syntaxError);
+       }
     }
 
     @Override
-    public void case_ExtendsNothing(MJExtendsNothing extendsNothing) {
+    public void case_ExtendsNothing(MJExtendsNothing extendsNothing)
+    {
 
     }
 
-    //ExtendsNothing
-    @Override public void visit(MJExtendsNothing mjExtendsNothing) {
-
-        if (mjExtendsNothing.getParent().getClass().toString().equals("minijava.ast.MJExtendsClassImpl"))
-        {
-            System.out.println("Extends found");
-            SyntaxError syntaxError = new SyntaxError(mjExtendsNothing.getParent(), "Error: Extends not supports in Minijava");
-
-            this.syntaxErrorsFound.add(syntaxError);
-
-        } else
-        {
-            mjExtendsNothing.getParent().accept(this);
-        }
-    }
 
 }
 
