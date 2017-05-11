@@ -12,14 +12,12 @@ import java.util.regex.Pattern;
  */
 
 //This is the visitor class
-public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJElement.MatcherVoid
-{
+public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJElement.MatcherVoid {
     MJFrontend frontEndVar;
 
     public List<SyntaxError> syntaxErrorsFound = new ArrayList<>();
 
-    public void acceptProgram(MJProgram program, MJFrontend frontend)
-    {
+    public void acceptProgram(MJProgram program, MJFrontend frontend) {
         frontEndVar = frontend;
         //visit the main class' body.
         visit(program.getMainClass().getMainBody());
@@ -28,17 +26,16 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
 
-    @Override public void visit(MJBlock block)
-    {
-        for (MJStatement i : block )
-        {
+    @Override
+    public void visit(MJBlock block) {
+        for (MJStatement i : block) {
             i.match(this);
         }
     }
 
     //check its right and left-hand sides for arrays.
-    @Override public void visit(MJStmtAssign stmtAssign)
-    {
+    @Override
+    public void visit(MJStmtAssign stmtAssign) {
         String stmtLeft = stmtAssign.getLeft().toString();
         String stmtRight = stmtAssign.getRight().toString();
 
@@ -48,65 +45,53 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
         stmtAssign.getRight().match(this);
     }
 
-    @Override public void visit(MJStmtWhile stmtWhile)
-    {
+    @Override
+    public void visit(MJStmtWhile stmtWhile) {
         stmtWhile.getCondition().match(this);
         stmtWhile.getLoopBody().match(this);
     }
 
-    public void visit(MJStmtIf stmtIf)
-    {
+    public void visit(MJStmtIf stmtIf) {
         stmtIf.getIfFalse().match(this);
         stmtIf.getIfTrue().match(this);
     }
 
-    public void visit(MJStmtExpr stmtExpr)
-    {
+    public void visit(MJStmtExpr stmtExpr) {
         String stmtExprContent = stmtExpr.toString();
         detectInvalidStmtExpr(stmtExpr);
 
         stmtExpr.getExpr().match(this);
     }
 
-    public void visit(MJMethodCall methodCall)
-    {
+    public void visit(MJMethodCall methodCall) {
         String methodName = methodCall.getReceiver().toString();
 
-        if(methodName.startsWith("Number"))
-        {
+        if (methodName.startsWith("Number")) {
 
             String errorMsg = "Cannot call a function on a number.";
             this.syntaxErrorsFound.add(new SyntaxError(methodCall, errorMsg));
         }
     }
 
-    public void visit(MJExprBinary exprBinary)
-    {
+    public void visit(MJExprBinary exprBinary) {
         detectInvalidExprBinary(exprBinary);
     }
 
-    public void detectInvalidExprBinary(MJExprBinary exprBinary)
-    {
+    public void detectInvalidExprBinary(MJExprBinary exprBinary) {
         String leftHandSide = exprBinary.getLeft().toString();
         String rightHandSide = exprBinary.getRight().toString();
         String operator = exprBinary.getOperator().toString();
 
-        if(leftHandSide.startsWith("ExprNull") || rightHandSide.startsWith("ExprNull"))
-        {
+        if (leftHandSide.startsWith("ExprNull") || rightHandSide.startsWith("ExprNull")) {
             String errorMsg = "Cannot perform binary operations on 'null' references";
             this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
-        }
-        else if(leftHandSide.startsWith("NewIntArray") || rightHandSide.startsWith("NewIntArray"))
-        {
+        } else if (leftHandSide.startsWith("NewIntArray") || rightHandSide.startsWith("NewIntArray")) {
             String errorMsg = "Cannot perform binary operations on integer arrays";
             this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
-        }
-        else if((leftHandSide.startsWith("BoolConst") || rightHandSide.startsWith("BoolConst")) && (!operator.startsWith("And"))) {
-          String errorMsg = "Cannot perform binary operations on boolean constants";
-        this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
-     }
-        else if(leftHandSide.startsWith("NewObject") && rightHandSide.startsWith(("NewObject")))
-        {
+        } else if ((leftHandSide.startsWith("BoolConst") || rightHandSide.startsWith("BoolConst")) && (!operator.startsWith("And"))) {
+            String errorMsg = "Cannot perform binary operations on boolean constants";
+            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+        } else if (leftHandSide.startsWith("NewObject") && rightHandSide.startsWith(("NewObject"))) {
             String errorMsg = "Cannot perform binary operations on an object's instantation.";
             this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
         }
@@ -114,66 +99,48 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
     }
 
-    public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
-    {
+    public void detectInvalidStmtExpr(MJStmtExpr stmtExpr) {
         String exprContent = stmtExpr.getExpr().toString();
 
-        if(  (!exprContent.startsWith("MethodCall")) && (!exprContent.startsWith("NewObject"))  )
-        {
+        if ((!exprContent.startsWith("MethodCall")) && (!exprContent.startsWith("NewObject"))) {
             String errorMsg = "Invalid stray expression. The only stray expressions allowed are for Method Call and new Object Creation.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
     }
 
 
-
-    public void detectInvalidAssignExpr(String stmtLeft, String stmtRight, MJStmtAssign stmtAssign)
-    {
+    public void detectInvalidAssignExpr(String stmtLeft, String stmtRight, MJStmtAssign stmtAssign) {
         String errorMsg = "";
 
-       if ( (stmtLeft.startsWith("Number")) )
-        {
+        if ((stmtLeft.startsWith("Number"))) {
             errorMsg = "The left-hand side of an assignment expression cannot be a number.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-        }
-
-        else if(stmtLeft.startsWith("ExprBinary"))
-        {
+        } else if (stmtLeft.startsWith("ExprBinary")) {
             errorMsg = "The left-hand side of an assignment expression cannot be a binary expression.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        } else if (stmtLeft.startsWith("ExprThis")) {
+            errorMsg = "The left-hand side of an assignment expression cannot be a 'this' reference.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        } else if (stmtLeft.startsWith("ExprNull")) {
+            errorMsg = "The left-hand side of an assignment expression cannot be null.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        } else if (stmtLeft.startsWith("ArrayLength")) {
+            errorMsg = "The left-hand side of an assignment expression cannot contain an array length.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        } else if (stmtLeft.startsWith("ExprUnary")) {
+            errorMsg = "The left-hand side of an assignment expression cannot contain a unary expression.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
-        else if(stmtLeft.startsWith("ExprThis"))
-       {
-           errorMsg = "The left-hand side of an assignment expression cannot be a 'this' reference.";
-           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-       }
-       else if(stmtLeft.startsWith("ExprNull"))
-       {
-           errorMsg = "The left-hand side of an assignment expression cannot be null.";
-           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-       }
-        else if(stmtLeft.startsWith("ArrayLength"))
-       {
-           errorMsg = "The left-hand side of an assignment expression cannot contain an array length.";
-           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-       }
-       else if(stmtLeft.startsWith("ExprUnary"))
-       {
-           errorMsg = "The left-hand side of an assignment expression cannot contain a unary expression.";
-           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-       }
         //cannot assign a number to a number
-        else if(stmtLeft.startsWith("BoolConst"))
-       {
-           errorMsg = "The left-hand side of an assignment expression cannot contain a Boolean Constant.";
-           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
-       }
+        else if (stmtLeft.startsWith("BoolConst")) {
+            errorMsg = "The left-hand side of an assignment expression cannot contain a Boolean Constant.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        }
 
     }
 
     @Override
-    public void case_StmtExpr(MJStmtExpr stmtExpr)
-    {
+    public void case_StmtExpr(MJStmtExpr stmtExpr) {
         visit(stmtExpr);
     }
 
@@ -208,8 +175,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_Number(MJNumber number)
-    {
+    public void case_Number(MJNumber number) {
 
     }
 
@@ -221,8 +187,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
     //other important case for 2D arrays
     @Override
-    public void case_StmtAssign(MJStmtAssign stmtAssign)
-    {
+    public void case_StmtAssign(MJStmtAssign stmtAssign) {
         visit(stmtAssign);
 
     }
@@ -248,8 +213,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_Block(MJBlock block)
-    {
+    public void case_Block(MJBlock block) {
         visit(block);
 
     }
@@ -275,14 +239,12 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_StmtReturn(MJStmtReturn stmtReturn)
-    {
+    public void case_StmtReturn(MJStmtReturn stmtReturn) {
 
     }
 
     @Override
-    public void case_StmtPrint(MJStmtPrint stmtPrint)
-    {
+    public void case_StmtPrint(MJStmtPrint stmtPrint) {
     }
 
     @Override
@@ -296,8 +258,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_StmtWhile(MJStmtWhile stmtWhile)
-    {
+    public void case_StmtWhile(MJStmtWhile stmtWhile) {
         visit(stmtWhile);
     }
 
@@ -323,14 +284,12 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
 
     @Override
-    public void case_VarDecl(MJVarDecl varDecl)
-    {
+    public void case_VarDecl(MJVarDecl varDecl) {
 
     }
 
     @Override
-    public void case_NewIntArray(MJNewIntArray newIntArray)
-    {
+    public void case_NewIntArray(MJNewIntArray newIntArray) {
 
 
     }
@@ -361,8 +320,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_ExprBinary(MJExprBinary exprBinary)
-    {
+    public void case_ExprBinary(MJExprBinary exprBinary) {
         visit(exprBinary);
     }
 
@@ -382,15 +340,13 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_MethodCall(MJMethodCall methodCall)
-    {
+    public void case_MethodCall(MJMethodCall methodCall) {
         visit(methodCall);
 
     }
 
     @Override
-    public void case_StmtIf(MJStmtIf stmtIf)
-    {
+    public void case_StmtIf(MJStmtIf stmtIf) {
         visit(stmtIf);
     }
 
@@ -400,22 +356,19 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_ArrayLookup(MJArrayLookup arrayLookup)
-    {
-       String arrayExpContent = arrayLookup.getArrayExpr().toString();
-       String arrayIndexContent = arrayLookup.getArrayIndex().toString();
+    public void case_ArrayLookup(MJArrayLookup arrayLookup) {
+        String arrayExpContent = arrayLookup.getArrayExpr().toString();
+        String arrayIndexContent = arrayLookup.getArrayIndex().toString();
 
-       //if it contains a NewIntArray and has an extra index, then it's a 2D array. Forbid it!
-       if(arrayExpContent.contains("NewIntArray") && arrayIndexContent.length() > 0)
-       {
-           String errorMsg = "2D arrays are not supported in MiniJava.";
-           this.syntaxErrorsFound.add(new SyntaxError(arrayLookup, errorMsg));
-       }
+        //if it contains a NewIntArray and has an extra index, then it's a 2D array. Forbid it!
+        if (arrayExpContent.contains("NewIntArray") && arrayIndexContent.length() > 0) {
+            String errorMsg = "2D arrays are not supported in MiniJava.";
+            this.syntaxErrorsFound.add(new SyntaxError(arrayLookup, errorMsg));
+        }
     }
 
     @Override
-    public void case_ExtendsNothing(MJExtendsNothing extendsNothing)
-    {
+    public void case_ExtendsNothing(MJExtendsNothing extendsNothing) {
 
     }
 
