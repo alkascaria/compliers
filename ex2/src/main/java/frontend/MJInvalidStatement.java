@@ -39,18 +39,70 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     //check its right and left-hand sides for arrays.
     @Override public void visit(MJStmtAssign stmtAssign)
     {
-        System.out.println("Visiting stmt assign and checking its left and right-hand sides");
-        System.out.println(stmtAssign.getLeft().toString());
-        System.out.println(stmtAssign.getRight().toString());
+        String stmtLeft = stmtAssign.getLeft().toString();
+        String stmtRight = stmtAssign.getRight().toString();
+
+        detectInvalidAssignExpr(stmtLeft, stmtRight, stmtAssign);
+
         stmtAssign.getLeft().match(this);
         stmtAssign.getRight().match(this);
     }
 
-    //important case for 2D arrays
+    @Override public void visit(MJStmtWhile stmtWhile)
+    {
+        stmtWhile.getCondition().match(this);
+        stmtWhile.getLoopBody().match(this);
+    }
+
+    public void visit(MJStmtIf stmtIf)
+    {
+        stmtIf.getIfFalse().match(this);
+        stmtIf.getIfTrue().match(this);
+    }
+
+    public void visit(MJStmtExpr stmtExpr)
+    {
+        String stmtExprContent = stmtExpr.getExpr().toString();
+        System.out.println(stmtExprContent);
+        detectInvalidStmtExpr(stmtExprContent, stmtExpr);
+    }
+
+    public void detectInvalidStmtExpr(String stmtExprContent, MJStmtExpr stmtExpr)
+    {
+        //prevent a statement from having a single exprBinary inside it.
+        if(stmtExprContent.startsWith("ExprBinary"))
+        {
+            String errorMsg = "Cannot accept a stray binary expression.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
+        }
+        else if(stmtExprContent.startsWith("FieldAccess"))
+        {
+            String errorMsg = "Cannot accept a stray binary expression.";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
+        }
+
+
+    }
+
+
+
+    public void detectInvalidAssignExpr(String stmtLeft, String stmtRight, MJStmtAssign stmtAssign)
+    {
+        String errorMsg = "";
+
+        //Check: cannot assign a binary expression to a number. Check both sides of an assignment
+        if( (stmtLeft.startsWith("Number") && stmtRight.startsWith("ExprBinary")) ||
+            (stmtLeft.startsWith("ExprBinary") && stmtRight.startsWith(("Number"))))
+        {
+            errorMsg = "Cannot assign a binary expression to a number!";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        }
+    }
+
+    //important case for 2D arrays?
     @Override
     public void case_StmtExpr(MJStmtExpr stmtExpr)
     {
-
         visit(stmtExpr);
     }
 
@@ -127,6 +179,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     @Override
     public void case_Block(MJBlock block)
     {
+        visit(block);
 
     }
 
@@ -174,6 +227,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     @Override
     public void case_StmtWhile(MJStmtWhile stmtWhile)
     {
+        visit(stmtWhile);
     }
 
     @Override
@@ -263,7 +317,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     @Override
     public void case_StmtIf(MJStmtIf stmtIf)
     {
-
+        visit(stmtIf);
     }
 
     @Override
@@ -277,11 +331,11 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
        String arrayExpContent = arrayLookup.getArrayExpr().toString();
        String arrayIndexContent = arrayLookup.getArrayIndex().toString();
 
-       //if it contains a NewIntArray and has an extra index, then it's a 2D array.
+       //if it contains a NewIntArray and has an extra index, then it's a 2D array. Forbid it!
        if(arrayExpContent.contains("NewIntArray") && arrayIndexContent.length() > 0)
        {
-           SyntaxError syntaxError = new SyntaxError(arrayLookup, "2D arrays not supported in MiniJava.");
-           this.syntaxErrorsFound.add(syntaxError);
+           String errorMsg = "2D arrays are not supported in MiniJava.";
+           this.syntaxErrorsFound.add(new SyntaxError(arrayLookup, errorMsg));
        }
     }
 

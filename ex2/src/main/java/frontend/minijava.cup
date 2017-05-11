@@ -238,7 +238,7 @@ varDeclList ::= type:t ID:id varDeclList:varDList
         RESULT = varDList;
 
     :}
-    | COMMA type:t ID:id varDeclList:varDList           /
+    | COMMA type:t ID:id varDeclList:varDList
     {:
          varDList.addFront(VarDecl(t, id));
          RESULT = varDList;
