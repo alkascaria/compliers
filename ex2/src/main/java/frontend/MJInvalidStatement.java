@@ -24,7 +24,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
         //TODO: other classes.
         //Goto --> visit the main class' body.
         visit(program.getMainClass().getMainBody());
-
+        visit(program.getClassDecls());
     }
 
 
@@ -75,9 +75,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
             String errorMsg = "Cannot accept a stray binary expression.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
-        else if(stmtExprContent.startsWith("FieldAccess"))
+        else if(stmtExprContent.startsWith("FieldAccess(VarUse"))
         {
-            String errorMsg = "Cannot accept a stray binary expression.";
+            String errorMsg = "Cannot accept a stray variable access.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
 
