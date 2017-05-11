@@ -21,9 +21,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     public void acceptProgram(MJProgram program, MJFrontend frontend)
     {
         frontEndVar = frontend;
-        //TODO: other classes.
-        //Goto --> visit the main class' body.
+        //visit the main class' body.
         visit(program.getMainClass().getMainBody());
+        //visit other classes too
         visit(program.getClassDecls());
     }
 
@@ -62,9 +62,11 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
     public void visit(MJStmtExpr stmtExpr)
     {
+        System.out.println("Checking in a stmtExpr");
         String stmtExprContent = stmtExpr.getExpr().toString();
         System.out.println(stmtExprContent);
         detectInvalidStmtExpr(stmtExprContent, stmtExpr);
+
     }
 
     public void detectInvalidStmtExpr(String stmtExprContent, MJStmtExpr stmtExpr)
@@ -82,6 +84,8 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
         }
 
 
+
+
     }
 
 
@@ -90,11 +94,22 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     {
         String errorMsg = "";
 
-        //Check: cannot assign a binary expression to a number. Check both sides of an assignment
+        //Cannot assign a binary expression to a number. Check both sides of an assignment
         if( (stmtLeft.startsWith("Number") && stmtRight.startsWith("ExprBinary")) ||
             (stmtLeft.startsWith("ExprBinary") && stmtRight.startsWith(("Number"))))
         {
             errorMsg = "Cannot assign a binary expression to a number!";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        }
+        else if(stmtLeft.startsWith("ExprBinary") && stmtRight.startsWith("ExprBinary"))
+        {
+            errorMsg = "Cannot assign a binary expression to a binary expression!";
+            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+        }
+        //cannot assign a number to a number
+        else if (stmtLeft.startsWith(("Number")) && (stmtRight.startsWith("Number")) )
+        {
+            errorMsg = "Cannot assign a number to a number";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
     }
