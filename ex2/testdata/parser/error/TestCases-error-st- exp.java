@@ -28,5 +28,7 @@ class TestCaseserror {
 	this;
 
 	null;
+
+	(a);
     }
 }
