@@ -89,6 +89,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     {
         String leftHandSide = exprBinary.getLeft().toString();
         String rightHandSide = exprBinary.getRight().toString();
+        String operator = exprBinary.getOperator().toString();
 
         if(leftHandSide.startsWith("ExprNull") || rightHandSide.startsWith("ExprNull"))
         {
@@ -100,16 +101,17 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
             String errorMsg = "Cannot perform binary operations on integer arrays";
             this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
         }
-        else if(leftHandSide.startsWith("BoolConst") || rightHandSide.startsWith("BoolConst"))
-        {
-            String errorMsg = "Cannot perform binary operations on boolean constants";
-            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
-        }
+        else if((leftHandSide.startsWith("BoolConst") || rightHandSide.startsWith("BoolConst")) && (!operator.startsWith("And"))) {
+          String errorMsg = "Cannot perform binary operations on boolean constants";
+        this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+     }
         else if(leftHandSide.startsWith("NewObject") && rightHandSide.startsWith(("NewObject")))
         {
             String errorMsg = "Cannot perform binary operations on an object's instantation.";
             this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
         }
+
+
     }
 
     public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
