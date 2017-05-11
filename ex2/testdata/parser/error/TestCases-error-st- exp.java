@@ -9,13 +9,21 @@ class TestCaseserror {
 
         v=10;    
 
-        !a;
+        a+b;
+
+	!a;
 
 	-v;
 
 	a[10];
 
 	a.length;
+
+	a.v;
+
+	1.v;
+
+	1.a();
 
 	true;
 
@@ -28,6 +36,8 @@ class TestCaseserror {
 	this;
 
 	null;
+
+	new int[1];
 
 	(a);
     }

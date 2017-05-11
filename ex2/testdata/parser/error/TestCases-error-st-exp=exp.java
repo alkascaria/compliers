@@ -6,6 +6,7 @@ class TestCaseserror {
     {
         int v;
         v=10;
+
         2*3=4/5;
 
 	b = a + new c();
@@ -26,6 +27,10 @@ class TestCaseserror {
 	this = 10;
 
 	null = a;
-	
+
+	!a = v;
+
+	-a = v;
+
     }
 }
