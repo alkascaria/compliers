@@ -62,12 +62,54 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
 
     public void visit(MJStmtExpr stmtExpr)
     {
-
         String stmtExprContent = stmtExpr.toString();
         detectInvalidStmtExpr(stmtExpr);
 
         stmtExpr.getExpr().match(this);
+    }
 
+    public void visit(MJMethodCall methodCall)
+    {
+        String methodName = methodCall.getReceiver().toString();
+
+        if(methodName.startsWith("Number"))
+        {
+
+            String errorMsg = "Cannot call a function on a number.";
+            this.syntaxErrorsFound.add(new SyntaxError(methodCall, errorMsg));
+        }
+    }
+
+    public void visit(MJExprBinary exprBinary)
+    {
+        detectInvalidExprBinary(exprBinary);
+    }
+
+    public void detectInvalidExprBinary(MJExprBinary exprBinary)
+    {
+        String leftHandSide = exprBinary.getLeft().toString();
+        String rightHandSide = exprBinary.getRight().toString();
+
+        if(leftHandSide.startsWith("ExprNull") || rightHandSide.startsWith("ExprNull"))
+        {
+            String errorMsg = "Cannot perform binary operations on 'null' references";
+            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+        }
+        else if(leftHandSide.startsWith("NewIntArray") || rightHandSide.startsWith("NewIntArray"))
+        {
+            String errorMsg = "Cannot perform binary operations on integer arrays";
+            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+        }
+        else if(leftHandSide.startsWith("BoolConst") || rightHandSide.startsWith("BoolConst"))
+        {
+            String errorMsg = "Cannot perform binary operations on boolean constants";
+            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+        }
+        else if(leftHandSide.startsWith("NewObject") && rightHandSide.startsWith(("NewObject")))
+        {
+            String errorMsg = "Cannot perform binary operations on an object's instantation.";
+            this.syntaxErrorsFound.add(new SyntaxError(exprBinary, errorMsg));
+        }
     }
 
     public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
@@ -317,8 +359,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_ExprBinary(MJExprBinary exprBinary) {
-
+    public void case_ExprBinary(MJExprBinary exprBinary)
+    {
+        visit(exprBinary);
     }
 
     @Override
@@ -337,7 +380,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor implements MJEl
     }
 
     @Override
-    public void case_MethodCall(MJMethodCall methodCall) {
+    public void case_MethodCall(MJMethodCall methodCall)
+    {
+        visit(methodCall);
 
     }
 
