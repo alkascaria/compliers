@@ -3,6 +3,6 @@
  */
 class TestCaseserror {
     public static void main(String[] args) {
-        v = false + true;
+        false + true = v;
     }
 }

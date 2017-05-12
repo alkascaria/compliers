@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
  */
 
 
-//TODO: matchers are not needed. just use relevant visit methods
-//TODO: Replace startsWith with instanceOf
 //This is the visitor class
 public class MJInvalidStatement extends MJElement.DefaultVisitor
 {
@@ -39,10 +37,8 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
     //check its right and left-hand sides for arrays.
     @Override public void visit(MJStmtAssign stmtAssign)
     {
-        String stmtLeft = stmtAssign.getLeft().toString();
-        String stmtRight = stmtAssign.getRight().toString();
 
-        detectInvalidAssignExpr(stmtLeft, stmtRight, stmtAssign);
+        detectInvalidAssignExpr(stmtAssign);
 
         stmtAssign.getLeft().accept(this);
         stmtAssign.getRight().accept(this);
@@ -62,7 +58,6 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
 
     @Override public void visit(MJStmtExpr stmtExpr)
     {
-        String stmtExprContent = stmtExpr.toString();
         detectInvalidStmtExpr(stmtExpr);
 
         stmtExpr.getExpr().accept(this);
@@ -72,7 +67,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
     {
         MJExpr receivingExpr = methodCall.getReceiver();
 
-        if(receivingExpr.getClass().isInstance("MJNumber"))
+        if(receivingExpr instanceof MJNumber)
         {
             String errorMsg = "Cannot call a function on a number.";
             this.syntaxErrorsFound.add(new SyntaxError(methodCall, errorMsg));
@@ -87,11 +82,8 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
     @Override
     public void visit(MJArrayLookup arrayLookup)
     {
-        String arrayExpContent = arrayLookup.getArrayExpr().toString();
-        String arrayIndexContent = arrayLookup.getArrayIndex().toString();
-
         //if it contains a NewIntArray and has an extra index, then it's a 2D array. Forbid it!
-        if(arrayExpContent.contains("NewIntArray") && arrayIndexContent.length() > 0)
+        if(arrayLookup.getArrayExpr() instanceof MJNewIntArray )
         {
             String errorMsg = "2D arrays are not supported in MiniJava.";
             this.syntaxErrorsFound.add(new SyntaxError(arrayLookup, errorMsg));
@@ -102,56 +94,64 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
 
     public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
     {
-        String exprContent = stmtExpr.getExpr().toString();
+        MJExpr exprInStatement = stmtExpr.getExpr();
 
-        if(  (!exprContent.startsWith("MethodCall")) && (!exprContent.startsWith("NewObject"))  )
+        if( (!(exprInStatement instanceof MJMethodCall)) && (!(exprInStatement instanceof MJNewObject)))
         {
             String errorMsg = "Invalid stray expression. The only stray expressions allowed are for Method Call and new Object Creation.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
+
+        //new A();
+        //this.a();
     }
 
 
 
-
-    public void detectInvalidAssignExpr(String stmtLeft, String stmtRight, MJStmtAssign stmtAssign)
+    public void detectInvalidAssignExpr(MJStmtAssign stmtAssign)
     {
+        MJExpr stmtLeft = stmtAssign.getLeft();
+        MJExpr stmtRight = stmtAssign.getRight();
         String errorMsg = "";
 
-
-       if ( (stmtLeft.startsWith("Number")) )
+       if (stmtLeft instanceof MJNumber)
         {
             errorMsg = "The left-hand side of an assignment expression cannot be a number.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
 
-        else if(stmtLeft.startsWith("ExprBinary"))
+        else if(stmtLeft instanceof MJExprBinary)
         {
             errorMsg = "The left-hand side of an assignment expression cannot be a binary expression.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
         }
-        else if(stmtLeft.startsWith("ExprThis"))
+        else if(stmtLeft instanceof MJExprThis)
        {
            errorMsg = "The left-hand side of an assignment expression cannot be a 'this' reference.";
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
-       else if(stmtLeft.startsWith("ExprNull"))
+       else if(stmtLeft instanceof MJExprNull)
        {
            errorMsg = "The left-hand side of an assignment expression cannot be null.";
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
-        else if(stmtLeft.startsWith("ArrayLength"))
+        else if(stmtLeft instanceof  MJArrayLength)
        {
            errorMsg = "The left-hand side of an assignment expression cannot contain an array length.";
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
-       else if(stmtLeft.startsWith("ExprUnary"))
+       else if(stmtLeft instanceof MJExprUnary)
        {
-           errorMsg = "The left-hand side of an assignment expression cannot contain a unary expression.";
+           errorMsg = "The left-hand side of an assignment expression cannot be preceded by a binary unary expression: - or !.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+       else if(stmtLeft instanceof MJNegate)
+       {
+           errorMsg = "The left-hand side of an assignment expression cannot contain a unary negation.";
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
         //cannot assign a number to a number
-        else if(stmtLeft.startsWith("BoolConst"))
+        else if(stmtLeft instanceof MJBoolConst)
        {
            errorMsg = "The left-hand side of an assignment expression cannot contain a Boolean Constant.";
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
