@@ -3,6 +3,6 @@
  */
 class TestCaseserror {
     public static void main(String[] args) {
-        b = a + new c();
+        new A()
     }
 }
