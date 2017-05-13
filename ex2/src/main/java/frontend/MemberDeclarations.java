@@ -3,6 +3,7 @@ package frontend;
 import minijava.ast.*;
 
 /**
+ *Adds memberDeclaration to Corresponding DeclLists
  * Created by Daniele on 10/05/2017.
  */
 public class MemberDeclarations implements MJMemberDecl.MatcherVoid
@@ -45,18 +46,31 @@ public class MemberDeclarations implements MJMemberDecl.MatcherVoid
     {
         return this.methodDeclList;
     }
-    
+
+    /**
+     * Adds member to correctList
+     * @param memberDecl(@code MJMemberDecl)
+     */
     public void addMemberToCorrectList(MJMemberDecl memberDecl)
     {
         memberDecl.match(this);
     }
 
+    /**
+     *Adds methods to methodList
+     * @param methodDecl(@code MJMemberDecl)
+     *
+     */
     @Override
     public void case_MethodDecl(MJMethodDecl methodDecl)
     {
         this.addMethodToMethodList(methodDecl);
     }
-
+    /**
+     * Add variable to variableList
+     * @param varDecl(@code MJVarDecl)
+     *
+     */
     @Override
     public void case_VarDecl(MJVarDecl varDecl)
     {
