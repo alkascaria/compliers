@@ -51,7 +51,12 @@ public class MJFrontend {
 		}
 	}
 
-	/** parses a MiniJava program from the given input string */
+    /**
+     * Parses a MiniJava program from the given input string
+     * @param input(@code String)
+     * @return MJProgram {@code StringReader(input)}
+     * @throws Exception
+     */
 	public MJProgram parseString(String input) throws Exception {
 		return parse(new StringReader(input));
 	}
@@ -64,9 +69,9 @@ public class MJFrontend {
 	 * @param value(@code MJProgram)
 	 * @param frontend(@code MJFrontend)
 	 * @throws Exception
-	 * 
+	 *
 	 */
-
+    
 	private void detectInvalidStatements(MJProgram value, MJFrontend frontend) throws Exception
 	{
 		MJInvalidStatement invalidStatement = new MJInvalidStatement();
@@ -78,7 +83,10 @@ public class MJFrontend {
 		}
 	}
 
-	/** get the syntax errors produced while parsing */
+	/**
+     * Gets the syntax errors produced while parsing
+     * @return syntax errors{@code syntaxErrors} returns list of syntax errors
+     */
 	public List<SyntaxError> getSyntaxErrors() {
 		return syntaxErrors;
 	}
