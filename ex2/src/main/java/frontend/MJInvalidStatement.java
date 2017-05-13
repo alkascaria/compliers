@@ -4,13 +4,13 @@ import minijava.ast.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 /**
+ * Checks for invalid statements.
  * Created by Daniele on 10/05/2017.
+ *
  */
-
 
 //This is the visitor class
 public class MJInvalidStatement extends MJElement.DefaultVisitor
@@ -26,7 +26,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
     }
 
     /**
-     *
+     *Accepts block of statements
      * @param block(@code MJBlock)
      *
      */
@@ -39,7 +39,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
     }
 
     /**
-     * checks invalid assignment.
+     * checks invalid assignment expression.
      * @param stmtAssign(@code MJStmtAssign)
      *
      */
@@ -52,7 +52,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         stmtAssign.getRight().accept(this);
     }
     /**
-     *
+     *Gets statement while condition and body
      * @param stmtWhile(@code MJStmtWhile)
      *
      */ 
@@ -62,7 +62,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         stmtWhile.getLoopBody().accept(this);
     }
     /**
-     *
+     *Gets true and false condition
      * @param stmtIf(@code MJStmtIf)
      *
      */
@@ -72,7 +72,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         stmtIf.getIfTrue().accept(this);
     }
     /**
-     *
+     *Checks statement expression is accepted or not
      * @param stmtExpr(@code MJStmtExpr)
      *
      */
@@ -83,7 +83,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         stmtExpr.getExpr().accept(this);
     }
     /**
-     *
+     *Checks if method call is valid
      * @param methodCall(@code MJMethodCall)
      *
      */
@@ -98,13 +98,17 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         }
     }
 
+    /**
+     *
+     * @param exprBinary(@code MJExprBinary)
+     */
     @Override  public void visit(MJExprBinary exprBinary)
     {
         //binary expressions' types checking is done in the type and name analysis
     }
     
-   /**
-     *
+    /**
+     *Checks for supported 2D array
      * @param arrayLookup(@code MJArrayLookup)
      *
      */
@@ -136,12 +140,9 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         }
     }
 
-
- /**
+     /**
      * Detects invalid assignments
-     * @param stmtLeft
-     * @param stmtRight
-     * @param stmtAssign
+     * @param stmtAssign(@code MJStmtAssign)
      *
      */
     public void detectInvalidAssignExpr(MJStmtAssign stmtAssign)
@@ -194,9 +195,6 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
        }
 
     }
-
-
-
 
 }
 
