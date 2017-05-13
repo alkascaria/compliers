@@ -4,13 +4,13 @@ import minijava.ast.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 /**
+ * Checks for invalid statements.
  * Created by Daniele on 10/05/2017.
+ *
  */
-
 
 //This is the visitor class
 public class MJInvalidStatement extends MJElement.DefaultVisitor
@@ -25,7 +25,11 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         program.accept(this);
     }
 
-
+    /**
+     *Accepts block of statements
+     * @param block(@code MJBlock)
+     *
+     */
     @Override public void visit(MJBlock block)
     {
         for (MJStatement i : block )
@@ -34,7 +38,11 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         }
     }
 
-    //check its right and left-hand sides for arrays.
+    /**
+     * checks invalid assignment expression.
+     * @param stmtAssign(@code MJStmtAssign)
+     *
+     */
     @Override public void visit(MJStmtAssign stmtAssign)
     {
 
@@ -43,26 +51,42 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         stmtAssign.getLeft().accept(this);
         stmtAssign.getRight().accept(this);
     }
-
+    /**
+     *Gets statement while condition and body
+     * @param stmtWhile(@code MJStmtWhile)
+     *
+     */ 
     @Override public void visit(MJStmtWhile stmtWhile)
     {
         stmtWhile.getCondition().accept(this);
         stmtWhile.getLoopBody().accept(this);
     }
-
+    /**
+     *Gets true and false condition
+     * @param stmtIf(@code MJStmtIf)
+     *
+     */
     @Override public void visit(MJStmtIf stmtIf)
     {
         stmtIf.getIfFalse().accept(this);
         stmtIf.getIfTrue().accept(this);
     }
-
+    /**
+     *Checks statement expression is accepted or not
+     * @param stmtExpr(@code MJStmtExpr)
+     *
+     */
     @Override public void visit(MJStmtExpr stmtExpr)
     {
         detectInvalidStmtExpr(stmtExpr);
 
         stmtExpr.getExpr().accept(this);
     }
-
+    /**
+     *Checks if method call is valid
+     * @param methodCall(@code MJMethodCall)
+     *
+     */
     @Override public void visit(MJMethodCall methodCall)
     {
         MJExpr receivingExpr = methodCall.getReceiver();
@@ -74,11 +98,20 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         }
     }
 
+    /**
+     *
+     * @param exprBinary(@code MJExprBinary)
+     */
     @Override  public void visit(MJExprBinary exprBinary)
     {
         //binary expressions' types checking is done in the type and name analysis
     }
-
+    
+    /**
+     *Checks for supported 2D array
+     * @param arrayLookup(@code MJArrayLookup)
+     *
+     */
     @Override
     public void visit(MJArrayLookup arrayLookup)
     {
@@ -90,8 +123,12 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
         }
     }
 
-    //this is not needed
-
+    /**
+     * Detects invalid stray Expression
+     * @param stmtExpr(@code MJStmtExpr)
+     *
+     */
+    //This is not needed
     public void detectInvalidStmtExpr(MJStmtExpr stmtExpr)
     {
         MJExpr exprInStatement = stmtExpr.getExpr();
@@ -101,13 +138,13 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
             String errorMsg = "Invalid stray expression. The only stray expressions allowed are for Method Call and new Object Creation.";
             this.syntaxErrorsFound.add(new SyntaxError(stmtExpr, errorMsg));
         }
-
-        //new A();
-        //this.a();
     }
 
-
-
+     /**
+     * Detects invalid assignments
+     * @param stmtAssign(@code MJStmtAssign)
+     *
+     */
     public void detectInvalidAssignExpr(MJStmtAssign stmtAssign)
     {
         MJExpr stmtLeft = stmtAssign.getLeft();
@@ -158,9 +195,6 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
        }
 
     }
-
-
-
 
 }
 
