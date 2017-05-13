@@ -57,23 +57,26 @@ public class MJFrontend {
 	}
 
 	/**
-	 * detects invalid statements and adds SyntaxErrors to
+	 * This is the visit method.
+	 * Detects invalid statements and adds SyntaxErrors to
+	 * Update the list of current syntax errors:
+	 * Add all found errors to the instance variable syntaxErrors
+	 * @param value(@code MJProgram)
+	 * @param frontend(@code MJFrontend)
+	 * @throws Exception
+	 * 
 	 */
 
-	//this is the visit method.
 	private void detectInvalidStatements(MJProgram value, MJFrontend frontend) throws Exception
 	{
 		MJInvalidStatement invalidStatement = new MJInvalidStatement();
 		invalidStatement.acceptProgram(value, frontend);
-		//update the list of current syntax errors:
-		//add all found errors to the instance variable syntaxErrors
+
 		for(int i = 0; i < invalidStatement.syntaxErrorsFound.size(); i++ )
 		{
 			this.syntaxErrors.addAll(invalidStatement.syntaxErrorsFound);
 		}
 	}
-
-
 
 	/** get the syntax errors produced while parsing */
 	public List<SyntaxError> getSyntaxErrors() {
