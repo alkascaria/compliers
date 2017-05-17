@@ -1,0 +1,92 @@
+package minijava.ast
+
+typeprefix: MJ
+
+abstract syntax:
+
+//done
+Program(MainClass mainClass, ClassDeclList classDecls)
+
+//done
+MainClass(String name, String argsName, Block mainBody)
+
+//done
+ClassDecl(String name, Extended extended, VarDeclList fields, MethodDeclList methods)
+
+//done
+Extended =
+    ExtendsNothing()
+  | ExtendsClass(String name)
+
+//done
+VarDecl(Type type, String name)
+
+//done
+MethodDecl(Type returnType, String name, VarDeclList formalParameters, Block methodBody)
+
+//done
+MemberDecl =
+    VarDecl
+  | MethodDecl
+
+//done
+Type =
+    TypeIntArray()
+  | TypeInt()
+  | TypeBool()
+  | TypeClass(String name)
+
+//done
+Statement =
+    Block
+  | StmtIf(Expr condition, Statement ifTrue, Statement ifFalse)
+  | StmtWhile(Expr condition, Statement loopBody)
+  | StmtReturn(Expr result)
+  | StmtPrint(Expr printed)
+  | VarDecl
+  | StmtExpr(Expr expr)
+  | StmtAssign(Expr left, Expr right)
+
+//done. TODO: disambiguate MethodCall and FieldAccess.
+Expr =
+    ExprBinary(Expr left, Operator operator, Expr right)
+  | ExprUnary(UnaryOperator unaryOperator, Expr expr)
+  | ArrayLookup(Expr arrayExpr, Expr arrayIndex)
+  | ArrayLength(Expr arrayExpr)
+  | FieldAccess(Expr receiver, String fieldName)
+  | MethodCall(Expr receiver, String methodName, ExprList arguments)
+  | BoolConst(boolean boolValue)
+  | VarUse(String varName)
+  | Number(int intValue)
+  | ExprThis()
+  | ExprNull()
+  | NewIntArray(Expr arraySize)
+  | NewObject(String className)
+
+//done
+Operator =
+    And()
+  | Plus()
+  | Minus()
+  | Times()
+  | Div()
+  | Less()
+  | Equals()
+
+//done
+UnaryOperator =
+    UnaryMinus()
+  | Negate()
+
+
+// List types
+ClassDeclList * ClassDecl
+VarDeclList * VarDecl
+MethodDeclList * MethodDecl
+Block * Statement
+ExprList * Expr
+
+attributes:
+
+"information about the source code"
+frontend.SourcePosition Element.sourcePosition
