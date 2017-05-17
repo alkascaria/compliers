@@ -194,6 +194,20 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
            this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
        }
 
+       else if(stmtLeft instanceof MJMethodCall){
+           errorMsg = "The left-hand side of an assignment expression cannot contain a Method Call.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+
+       else if(stmtLeft instanceof MJMethodDecl){
+           errorMsg = "The left-hand side of an assignment expression cannot contain a new Method Declaration.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+       else if(stmtLeft instanceof MJNewIntArray){
+           errorMsg = "The left-hand side of an assignment expression cannot contain a new int array decl.";
+           this.syntaxErrorsFound.add(new SyntaxError(stmtAssign, errorMsg));
+       }
+
     }
 
 }
