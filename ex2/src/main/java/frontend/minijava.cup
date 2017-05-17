@@ -111,7 +111,7 @@ non terminal MJUnaryOperator unaryOperator;
 non terminal MJTypeClass id;
 non terminal MJStmtIf stmtIf;
 non terminal MJStmtWhile stmtWhile;
-non terminal MJExpr expr;
+non terminal MJExpr expr, expr2;
 non terminal MJOperator operator;
 non terminal List<MJStatement> blockStatementsList;
 non terminal MJExprList exprsList;
@@ -120,7 +120,7 @@ non terminal MJMemberDecl memberDecl;
 non terminal MemberDeclarations memberDeclList;
 non terminal MJExtended extended;
 non terminal MJVarDeclList varDeclList;
-non terminal MJVarDeclList varDeclRestList;
+non terminal MJVarDeclList varDeclListRest;
 non terminal MJExtendsClass extendsClass;
 non terminal MJMethodDecl methodDecl;
 
@@ -174,7 +174,6 @@ classesDeclList ::= classDecl:classD  classesDeclList:classesList
   :}
   ;
 
-//TODO: Replace getClass stuff with a matcher.
 classDecl::= CLASS ID:className extended:ext LBRACE memberDeclList:memberDList RBRACE
 	{:
         RESULT = ClassDecl(className, ext, memberDList.getVarDeclList(), memberDList.getMethodDeclList());
@@ -205,7 +204,7 @@ memberDeclList ::=
         RESULT = new MemberDeclarations();
      :};
 
-memberDecl ::= varDecl:varD
+memberDecl ::= varDecl:varD SEMI
     {:
         System.out.println("Adding var d");
         RESULT = varD;
@@ -217,7 +216,7 @@ memberDecl ::= varDecl:varD
 
 //5.	Grammer for VarDecl
 
-varDecl ::= type:t ID:id SEMI
+varDecl ::= type:t ID:id
 {:
     RESULT = VarDecl(t,id);
 :};
@@ -232,22 +231,25 @@ methodDecl ::=  type:t ID:methodName LPAREN varDeclList:varDList RPAREN block:b
 //7.	Grammer for ParamList
 
 //paramList
-varDeclList ::= type:t ID:id varDeclList:varDList
+varDeclList ::= varDecl:v varDeclListRest:varDList
     {:
-        varDList.addFront(VarDecl(t, id));
+        varDList.addFront(v);
         RESULT = varDList;
 
-    :}
-    | COMMA type:t ID:id varDeclList:varDList
-    {:
-         varDList.addFront(VarDecl(t, id));
-         RESULT = varDList;
     :}
     //it is optional. so it can also be empty
     |
     {:
         RESULT = MJ.VarDeclList();
     :};
+
+varDeclListRest ::=
+        COMMA varDecl:v varDeclListRest:r
+            {: RESULT = r; r.addFront(v); :}
+      |
+            {: RESULT = MJ.VarDeclList(); :}
+      ;
+
 
 //9.	Grammer for Type
 
@@ -292,10 +294,10 @@ type ::= INT LBRACKET RBRACKET
         {:
              RESULT = s;
         :}
-        | varDecl:varD
-        {:
-             RESULT = varD;
-        :};
+        | type:t ID:n SEMI
+          {: RESULT = VarDecl(t, n);
+          :}
+         ;
 
 //12.	Grammer for BlockStatement
 
@@ -344,7 +346,16 @@ unaryOperator ::= MINUS
     :};
 
 
+//splitting expr declaration to handle problems with 2D-array creation
+
 expr ::=
+        NEW INT LBRACKET expr:size RBRACKET
+            {: RESULT = NewIntArray(size); :}
+      | expr2:e
+            {: RESULT = e; :}
+      ;
+
+expr2 ::=
      expr:exprLeft AND expr:exprRight
     {:
         RESULT = ExprBinary(exprLeft, And(), exprRight);
@@ -373,7 +384,6 @@ expr ::=
      {:
          RESULT = ExprBinary(exprLeft, Less(), exprRight);
      :}
-
     | unaryOperator:o expr:exprNeg
     {:
         RESULT = ExprUnary(o, exprNeg);
@@ -422,10 +432,10 @@ expr ::=
     {:
       RESULT = ExprNull();
     :}
-    | NEW INT LBRACKET expr:arraySize RBRACKET
-    {:
-      RESULT = NewIntArray(arraySize);
-    :}
+    //| NEW INT LBRACKET expr:arraySize RBRACKET
+    //{:
+    //  RESULT = NewIntArray(arraySize);
+    //:}
     | NEW ID:className LPAREN RPAREN
     {:
       RESULT =  NewObject(className);

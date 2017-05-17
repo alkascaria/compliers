@@ -89,13 +89,7 @@ public class MJInvalidStatement extends MJElement.DefaultVisitor
      */
     @Override public void visit(MJMethodCall methodCall)
     {
-        MJExpr receivingExpr = methodCall.getReceiver();
 
-        if(receivingExpr instanceof MJNumber)
-        {
-            String errorMsg = "Cannot call a function on a number.";
-            this.syntaxErrorsFound.add(new SyntaxError(methodCall, errorMsg));
-        }
     }
 
     /**
