@@ -13,13 +13,37 @@ public class Analysis {
         typeErrors.add(new TypeError(element, message));
     }
 
-    public Analysis(MJProgram prog) {
+    public Analysis(MJProgram prog)
+    {
         this.prog = prog;
     }
 
-    public void check() {
-        //TODO implement type checking here!
+
+
+    public void check()
+    {
+        this.checkClassNamesDefined();
+        //TODO implement type checking here as well!
     }
+
+
+    public void checkClassNamesDefined()
+    {
+        MJClassDeclList classDeclList = this.prog.getClassDecls();
+
+        //loop through all classes and check if they extend a valid class
+        for(int i = 0; i < classDeclList.size(); i++ )
+        {
+            MJClassDecl classDecl = classDeclList.get(i);
+            //get the class it extends, eventually
+            //classDecl.getExtended();
+
+        }
+
+    }
+
+
+
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);

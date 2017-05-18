@@ -3,6 +3,8 @@ package frontend;
 
 import minijava.ast.*;
 
+import analysis.*;
+
 import java.io.FileReader;
 import java.io.StringReader;
 import java.util.LinkedList;
@@ -22,9 +24,16 @@ public class Main {
 
         try (FileReader r = new FileReader(fileName)) {
             MJFrontend frontend = new MJFrontend();
+            //parse phase
             MJProgram prog = frontend.parse(r);
-
             System.out.println(prog);
+            //analysis phase: name + type checking.
+            //pass the parsed program to the analysis phase
+            Analysis analysis = new Analysis(prog);
+            analysis.check();
+
+
+
 
             frontend.getSyntaxErrors().forEach(System.out::println);
         }
