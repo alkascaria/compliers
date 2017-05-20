@@ -43,8 +43,6 @@ public class Analysis {
         UniqueFieldName();
         UniqueClassName();
         this.ExtendedClass();
-
-
     }
 
     public void ClassChecker()
@@ -71,6 +69,9 @@ public class Analysis {
     {
         MJClassDeclList classDeclList = this.prog.getClassDecls();
 
+        //pushing the main class
+        symboltable.push(prog.getMainClass());
+
         //loop through all classes and create a stack
         for (int i = 0; i < classDeclList.size(); i++) {
             MJClassDecl classDecl = classDeclList.get(i);
@@ -87,12 +88,17 @@ public class Analysis {
             String name = classDecl.getExtended().toString();
             String exte_class = name.substring(13, name.length() - 1);
 
-            //checking only if a class extends
-            if (!exte_class.isEmpty()) {
+            //check for main class
+            if (exte_class.contentEquals(prog.getMainClass().toString()))
+            {
+                this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' class" );
+            }
 
-                //check whether the extended class is declared
+            //checking only if a class extends
+            else if (!exte_class.isEmpty()) {
+                // check whether the extended class is declared
                 if (symboltable.search(exte_class) == -1) {
-                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' or donot exit");
+                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it donotot exit");
                 }
             }
         }
