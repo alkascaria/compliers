@@ -18,6 +18,9 @@ public class Analysis {
         this.prog = prog;
     }
 
+    //declaring a stack
+    Stack symboltable = new Stack();
+
     /*
     TODO check program
     Add errors like
@@ -39,8 +42,8 @@ public class Analysis {
         UniqueMethodParam();
         UniqueFieldName();
         UniqueClassName();
-        ExtendedClass();
-        this.checkClassNamesDefined();
+        this.ExtendedClass();
+
 
     }
 
@@ -66,30 +69,34 @@ public class Analysis {
 
     public void ExtendedClass()
     {
-        //TODO Extended class should not be main class.
-        //TODO Extended class should be declared.
-    }
-
-
-
-
-    public void checkClassNamesDefined()
-    {
         MJClassDeclList classDeclList = this.prog.getClassDecls();
 
-        //loop through all classes and check if they extend a valid class
-        for(int i = 0; i < classDeclList.size(); i++ )
-        {
+        //loop through all classes and create a stack
+        for (int i = 0; i < classDeclList.size(); i++) {
             MJClassDecl classDecl = classDeclList.get(i);
-            //get the class it extends, eventually
-            //classDecl.getExtended();
 
+            //pushing the class name into stack
+            symboltable.push(classDecl.getName());
         }
 
+        //checking the validity of the class
+        for (int i = 0; i < classDeclList.size(); i++) {
+            MJClassDecl classDecl = classDeclList.get(i);
+
+            //get the class it extends
+            String name = classDecl.getExtended().toString();
+            String exte_class = name.substring(13, name.length() - 1);
+
+            //checking only if a class extends
+            if (!exte_class.isEmpty()) {
+
+                //check whether the extended class is declared
+                if (symboltable.search(exte_class) == -1) {
+                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' or donot exit");
+                }
+            }
+        }
     }
-
-
-
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);

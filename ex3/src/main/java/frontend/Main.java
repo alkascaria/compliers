@@ -21,7 +21,6 @@ public class Main {
             fileName = new Scanner(System.in).nextLine();
         }
 
-
         try (FileReader r = new FileReader(fileName)) {
             MJFrontend frontend = new MJFrontend();
             //parse phase
@@ -32,10 +31,8 @@ public class Main {
             Analysis analysis = new Analysis(prog);
             analysis.check();
 
-
-
-
             frontend.getSyntaxErrors().forEach(System.out::println);
+            analysis.getTypeErrors().forEach(System.out::println);
         }
     }
 }
