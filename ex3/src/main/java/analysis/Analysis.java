@@ -43,6 +43,107 @@ public class Analysis {
         this.ExtendedClass();
     }
 
+
+    public void checkMethodProperlyOverriden()
+    {
+        //Build a Class Table
+        HashMap<String, MJElement> table = new HashMap<>();
+        table.put(prog.getMainClass().getName(), prog.getMainClass());
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            table.put(classDecl.getName(),classDecl);
+        }
+
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            if(classDecl.getExtended() != null) {
+
+                HashMap<String, MJMethodDecl> methodTable = new HashMap<>();
+                MJElement parent =  table.get(((MJExtendsClass) classDecl.getExtended()).getName());
+                if(parent instanceof MJClassDecl)
+                {
+                    for (MJMethodDecl methodDecl : ((MJClassDecl)parent).getMethods()) {
+                        methodTable.put(methodDecl.getName(), methodDecl);
+                    }
+
+
+                    //compare declaration of parent with child
+                    for(MJMethodDecl method : classDecl.getMethods())
+                    {
+                        if(methodTable.containsKey(method.getName())) {
+
+                            MJMethodDecl parentMethod = methodTable.get(method.getName());
+                            if(! isSubTypeOff(method.getReturnType(),parentMethod.getReturnType()))
+                            {
+                                typeErrors.add(new TypeError(method,"Invalid Return Type for Method; "+method.getName()));
+                            }
+                            if(method.getFormalParameters().size()!=parentMethod.getFormalParameters().size())
+                            {
+                                typeErrors.add(new TypeError(method,"Unmatched amount of params with parent for Method; "+method.getName()));
+                            }
+                            else
+                            {
+                                for(int i=0; i<method.getFormalParameters().size();i++)
+                                {
+                                    if(!(isSubTypeOff(method.getFormalParameters().get(i).getType(),
+                                            parentMethod.getFormalParameters().get(i).getType())))
+                                    {
+                                        typeErrors.add(new TypeError(method,"Invalid param Type for Method; "+method.getName()));
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    public boolean isSubTypeOff(MJType a, MJType b)
+    {
+        HashMap<String, MJClassDecl> table = new HashMap<>();
+        //table.put(prog.getMainClass().getName(), prog.getMainClass());
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            table.put(classDecl.getName(),classDecl);
+        }
+
+        if((a instanceof MJTypeClass) & (b instanceof MJTypeClass))
+        {
+            String classA = ((MJTypeClass) a).getName();
+            String classB = ((MJTypeClass) b).getName();
+            if (classA.compareTo(classB) == 0)
+                return true;
+
+            MJClassDecl clsA = table.get(classA);
+
+            MJExtendsClass tempClass = (MJExtendsClass) clsA.getExtended();
+            while (tempClass != null) {
+                if (tempClass.getName().compareTo(classB) == 0) {
+                    return true;
+                }
+
+                tempClass = (MJExtendsClass) (table.get(tempClass.getName()).getExtended());
+            }
+
+        }
+
+        else {
+            if(a.toString().compareTo(b.toString())==0)
+                return true;
+            else
+                return false;
+
+        }
+
+        return false;
+
+
+    }
+
     public void ClassChecker()
     {
         //CHECK CLASS EXIST or NOT
@@ -57,7 +158,7 @@ public class Analysis {
         //check if Extended Class Exist
         for(MJClassDecl classDecl : prog.getClassDecls())
         {
-            if(!table.containsKey(classDecl.getExtended()))
+            if(!table.containsKey(((MJExtendsClass) classDecl.getExtended()).getName()))
             {
                 typeErrors.add(new TypeError(classDecl, "Extended class "+classDecl.getExtended()+" does not exist"));
             }
