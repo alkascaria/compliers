@@ -50,7 +50,20 @@ public class Analysis {
 
     public void UniqueMethodParam()
     {
-        //TODO MethodParameter unique
+         //TODO MethodParameter unique
+        List<String> methodNameList = new ArrayList<>();
+        int counter = 0;
+        for (MJClassDecl classDecl : prog.getClassDecls()) {
+            List<MJMethodDecl> methodDeclList = classDecl.getMethods();
+            for (MJMethodDecl methodDecl: methodDeclList) {
+                methodNameList.add(methodDecl.getName());
+                counter ++;
+            }
+            if(counter > 0){
+                typeErrors.add(new TypeError(prog, "Method-parameter names should be unique."));
+            }
+            // Todo methods are correct overrides
+        }
     }
 
     public void UniqueFieldName()
