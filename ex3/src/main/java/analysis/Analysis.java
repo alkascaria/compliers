@@ -45,7 +45,23 @@ public class Analysis {
 
     public void ClassChecker()
     {
-        //TODO CHECK CLASS EXIST or NOT
+        //CHECK CLASS EXIST or NOT
+        //Build a Class Table
+        HashMap<String, MJElement> table = new HashMap<>();
+        table.put(prog.getMainClass().getName(), prog.getMainClass());
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            table.put(classDecl.getName(),classDecl);
+        }
+
+        //check if Extended Class Exist
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            if(!table.containsKey(classDecl.getExtended()))
+            {
+                typeErrors.add(new TypeError(classDecl, "Extended class "+classDecl.getExtended()+" does not exist"));
+            }
+        }
     }
 
     public void UniqueMethodParam()
