@@ -73,7 +73,8 @@ public class Analysis {
 
     public void UniqueClassName()
     {
-        HashMap<String, MJClassDecl> table = new HashMap<>();
+        HashMap<String, MJElement> table = new HashMap<>();
+        table.put(prog.getMainClass().getName(), prog.getMainClass());
         for(MJClassDecl classDecl : prog.getClassDecls())
         {
             if(table.containsKey(classDecl.getName()))
