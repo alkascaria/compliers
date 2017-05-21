@@ -73,7 +73,20 @@ public class Analysis {
 
     public void UniqueClassName()
     {
-        //Todo Unique Class Name
+        HashMap<String, MJClassDecl> table = new HashMap<>();
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            if(table.containsKey(classDecl.getName()))
+            {
+                //Collision Detected
+                typeErrors.add(new TypeError(classDecl, classDecl.getName() + "Already declared"));
+            }
+            else
+            {
+                table.put(classDecl.getName(), classDecl);
+            }
+        }
+
     }
 
     public void ExtendedClass()
