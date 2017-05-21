@@ -50,7 +50,6 @@ public class Analysis {
 
     public void UniqueMethodParam()
     {
-         //TODO MethodParameter unique
         List<String> methodNameList = new ArrayList<>();
         int counter = 0;
         for (MJClassDecl classDecl : prog.getClassDecls()) {
@@ -62,13 +61,23 @@ public class Analysis {
             if(counter > 0){
                 typeErrors.add(new TypeError(prog, "Method-parameter names should be unique."));
             }
-            // Todo methods are correct overrides
         }
     }
 
     public void UniqueFieldName()
     {
-        //TODO Unique Field Name
+        List<String> fieldNameList = new ArrayList<>();
+        int counter = 0;
+        for (MJClassDecl classDecl : prog.getClassDecls()) {
+            List<MJVarDecl> varDeclList = classDecl.getFields();
+            for (MJVarDecl varDecl: varDeclList) {
+                fieldNameList.add(varDecl.getName());
+                counter ++;
+            }
+            if(counter > 0){
+                typeErrors.add(new TypeError(prog, "Field names should be unique."));
+            }
+        }
     }
 
     public void UniqueClassName()
@@ -87,7 +96,6 @@ public class Analysis {
                 table.put(classDecl.getName(), classDecl);
             }
         }
-
     }
 
     public void ExtendedClass()
