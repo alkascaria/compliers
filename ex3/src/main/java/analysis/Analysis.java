@@ -18,8 +18,8 @@ public class Analysis {
         this.prog = prog;
     }
 
-    //declaring a stack
-    Stack symboltable = new Stack();
+    LinkedList loop = new LinkedList(); //for extended loop
+    Stack class_name = new Stack(); //for extented class declration
 
     /*
     TODO check program
@@ -27,8 +27,6 @@ public class Analysis {
     "Class already exist"
     "Class Name should be Unique"
     "MethodParameter unique"
-    "Extended class should not be main class."
-    "Extended class should be declared."
     "Field need to be unique"
     new errors("This program has type errors")
      */
@@ -68,37 +66,56 @@ public class Analysis {
     public void ExtendedClass()
     {
         MJClassDeclList classDeclList = this.prog.getClassDecls();
+        MJClassDecl classDecl;
 
-        //pushing the main class
-        symboltable.push(prog.getMainClass());
+        String name, exte_class;
 
         //loop through all classes and create a stack
         for (int i = 0; i < classDeclList.size(); i++) {
-            MJClassDecl classDecl = classDeclList.get(i);
+            classDecl = classDeclList.get(i);
+
+            //getting the extended classname
+            name = classDecl.getExtended().toString();
+            exte_class = name.substring(13, name.length() - 1);
 
             //pushing the class name into stack
-            symboltable.push(classDecl.getName());
+            class_name.push(classDecl.getName());
+
+            //check for loop in extended class
+            //creating a linked list in the form class->extended class
+            if (loop.isEmpty() || !loop.contains(classDecl.getName())) {
+                loop.add(classDecl.getName());
+                loop.add(exte_class);
+            } else if (loop.contains(classDecl.getName()) && !loop.contains(exte_class)) {
+                int j = loop.indexOf(classDecl.getName());
+                loop.add(j + 1, exte_class);
+            } else if (loop.contains(classDecl.getName()) && loop.contains(exte_class)) {
+                int index = loop.indexOf(classDecl.getName());
+                //check whether there is any loop present
+                for (int j = 0; j < index; j++) {
+                    if (exte_class.contentEquals(loop.get(j).toString())) {
+                        this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is forms a loop");
+                    }
+                }
+            }
         }
 
         //checking the validity of the class
         for (int i = 0; i < classDeclList.size(); i++) {
-            MJClassDecl classDecl = classDeclList.get(i);
+            classDecl = classDeclList.get(i);
 
             //get the class it extends
-            String name = classDecl.getExtended().toString();
-            String exte_class = name.substring(13, name.length() - 1);
-
-            //check for main class
-            if (exte_class.contentEquals(prog.getMainClass().toString()))
-            {
-                this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' class" );
-            }
+            name = classDecl.getExtended().toString();
+            exte_class = name.substring(13, name.length() - 1);
 
             //checking only if a class extends
-            else if (!exte_class.isEmpty()) {
-                // check whether the extended class is declared
-                if (symboltable.search(exte_class) == -1) {
-                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it donotot exit");
+            if (!exte_class.isEmpty()) {
+
+                //check whether the extended class is declared
+                if (class_name.search(exte_class) == -1) {
+                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' or donot exit");
+                }else if (exte_class.contentEquals(classDecl.getName())) {
+                    this.addError(classDecl.getExtended().getParent(), "A class cannot extend itself");
                 }
             }
         }
