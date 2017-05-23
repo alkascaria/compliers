@@ -20,18 +20,6 @@ public class Analysis {
     LinkedList loop = new LinkedList(); //for extended loop
     Stack class_name = new Stack(); //for extented class declration
 
-    /*
-    TODO check program
-    Add errors like
-    "Class already exist"
-    "Class Name should be Unique"
-    "MethodParameter unique"
-    "Field need to be unique"
-    new errors("This program has type errors")
-     */
-    /*
-     */
-
     public void check() {
         //TODO implement type checking here as well!
         UniqueMethodParam();
@@ -164,56 +152,65 @@ public class Analysis {
     public void ExtendedClass() {
         MJClassDeclList classDeclList = this.prog.getClassDecls();
         MJClassDecl classDecl;
+        MJExtended ext_class;
 
-        String name, exte_class;
+        String parent;
+
 
         //loop through all classes and create a stack
         for (int i = 0; i < classDeclList.size(); i++) {
             classDecl = classDeclList.get(i);
 
             //getting the extended classname
-            name = classDecl.getExtended().toString();
-            exte_class = name.substring(13, name.length() - 1);
+            ext_class = classDecl.getExtended();
 
-            //pushing the class name into stack
-            class_name.push(classDecl.getName());
+            if (ext_class.toString().contentEquals("ExtendsNothing")) {
+                class_name.push(classDecl.getName());
+            }
+            if (ext_class instanceof MJExtendsClass) {
+                parent = ((MJExtendsClass) ext_class).getName();
 
-            //check for loop in extended class
-            //creating a linked list in the form class->extended class
-            if (loop.isEmpty() || !loop.contains(classDecl.getName())) {
-                loop.push(exte_class);
-                loop.push(classDecl.getName());
-            } else if (loop.contains(classDecl.getName()) && !loop.contains(exte_class)) {
-                int j = loop.indexOf(classDecl.getName());
-                loop.add(j + 1, exte_class);
-            } else if (loop.contains(classDecl.getName()) && loop.contains(exte_class)) {
-                int index1 = loop.indexOf(classDecl.getName());
+                //pushing the class name into stack
+                class_name.push(classDecl.getName());
 
-                //check whether there is any loop present
-                for (int j = 0; j < index1; j++) {
-                    if (exte_class.contentEquals(loop.get(j).toString())) {
-                        this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it forms a loop");
+                //check for loop in extended class
+                //creating a linked list in the form class->extended class
+                if (loop.isEmpty() || !loop.contains(classDecl.getName())) {
+                    loop.push(parent);
+                    loop.push(classDecl.getName());
+                } else if (loop.contains(classDecl.getName()) && !loop.contains(parent)) {
+                    int j = loop.indexOf(classDecl.getName());
+                    loop.add(j + 1, parent);
+                } else if (loop.contains(classDecl.getName()) && loop.contains(parent)) {
+                    int index1 = loop.indexOf(classDecl.getName());
+
+                    //check whether there is any loop present
+                    for (int j = 0; j < index1; j++) {
+                        if (parent.equals(loop.get(j))) {
+                            this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it forms a loop");
+                        }
                     }
                 }
             }
-        }
 
+        }
         //checking the validity of the class
         for (int i = 0; i < classDeclList.size(); i++) {
             classDecl = classDeclList.get(i);
 
             //get the class it extends
-            name = classDecl.getExtended().toString();
-            exte_class = name.substring(13, name.length() - 1);
+            ext_class = classDecl.getExtended();
 
-            //checking only if a class extends
-            if (!exte_class.isEmpty()) {
+            if (ext_class instanceof MJExtendsClass) {
+                parent = ((MJExtendsClass) ext_class).getName();
 
                 //check whether the extended class is declared
-                if (class_name.search(exte_class) == -1) {
-                    this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it is a'Main' or donot exit");
-                } else if (exte_class.contentEquals(classDecl.getName())) {
+                if (class_name.search(parent) == -1) {
+                    this.addError(classDecl.getExtended().getParent(), "Parent not defined");
+                } else if (parent.equals(classDecl.getName())) {
                     this.addError(classDecl.getExtended().getParent(), "A class cannot extend itself");
+                } else if (parent.equals(prog.getMainClass().getName())) {
+                    this.addError(classDecl.getExtended().getParent(), "Parent is main class : main class cannot be extended");
                 }
             }
         }
