@@ -22,10 +22,12 @@ public class Analysis {
 
     public void check() {
         //TODO implement type checking here as well!
-        UniqueMethodParam();
+        //UniqueMethodParam();
         UniqueFieldName();
         UniqueClassName();
         this.ExtendedClass();
+        SymbolTable st = new SymbolTable(prog);
+        st.createST();
     }
 
 
