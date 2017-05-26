@@ -51,8 +51,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         if (hashMap.containsKey(mainClass.getName()))
             errors.add(new TypeError(mainClass, "Main class is already defined"));
         else
+            hashMap.put(mainClass.getName(), null);
 
-            Block(mainClass.getMainBody());     //call for the mainbody considering it as a block
+        Block(mainClass.getMainBody());     //call for the mainbody considering it as a block
     }
     //for other classes
 
@@ -70,6 +71,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     //considering it as a block
     public void Block(MJBlock block) {
         for (MJStatement statement : block) {
+            if (statement instanceof MJStmtAssign)   //assginment
+            {
+                hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
+            }
             if (statement instanceof MJVarDecl) {
                 if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {//variables
                     if (!varmethod.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
@@ -81,14 +86,21 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                 }
-            } else if (statement instanceof MJStmtAssign)   //assginment
-                hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
+            }
+        }
+
+        for (MJStatement statement : block) {
+            if (statement instanceof MJStmtAssign)   //Type check
+            {
+                typechecker tc = new typechecker(varmethod, varclass, hashMap);
+                tc.TCheck((MJStmtAssign) statement);
+                errors.addAll(tc.getErrors());
+            }
         }
         varmethod.clear();
     }
 
     //for each class
-
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
 
