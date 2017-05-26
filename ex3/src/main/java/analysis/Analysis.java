@@ -21,13 +21,11 @@ public class Analysis {
     Stack class_name = new Stack(); //for extented class declration
 
     public void check() {
-        //TODO implement type checking here as well!
-        //UniqueMethodParam();
-        UniqueFieldName();
-        UniqueClassName();
-        this.ExtendedClass();
+        ExtendedClass();
+
         SymbolTable st = new SymbolTable(prog);
         st.createST();
+        typeErrors.addAll(st.getErrors());
     }
 
 
@@ -123,53 +121,28 @@ public class Analysis {
         }
     }
 
-    public void UniqueFieldName() {
-        List<String> fieldNameList = new ArrayList<>();
-        int counter = 0;
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
-            List<MJVarDecl> varDeclList = classDecl.getFields();
-            for (MJVarDecl varDecl : varDeclList) {
-                fieldNameList.add(varDecl.getName());
-                counter++;
-            }
-            if (counter > 0) {
-                this.addError(prog, "Field names should be unique.");
-            }
-        }
-    }
-
-    public void UniqueClassName() {
-        HashMap<String, MJElement> table = new HashMap<>();
-        table.put(prog.getMainClass().getName(), prog.getMainClass());
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
-            if (table.containsKey(classDecl.getName())) {
-                //Collision Detected
-                typeErrors.add(new TypeError(classDecl, classDecl.getName() + "Already declared"));
-            } else {
-                table.put(classDecl.getName(), classDecl);
-            }
-        }
-    }
-
     public void ExtendedClass() {
+
         MJClassDeclList classDeclList = this.prog.getClassDecls();
         MJClassDecl classDecl;
         MJExtended ext_class;
 
         String parent;
 
-
         //loop through all classes and create a stack
         for (int i = 0; i < classDeclList.size(); i++) {
+
             classDecl = classDeclList.get(i);
 
             //getting the extended classname
             ext_class = classDecl.getExtended();
 
             if (ext_class.toString().contentEquals("ExtendsNothing")) {
+
                 class_name.push(classDecl.getName());
             }
             if (ext_class instanceof MJExtendsClass) {
+
                 parent = ((MJExtendsClass) ext_class).getName();
 
                 //pushing the class name into stack
@@ -208,7 +181,7 @@ public class Analysis {
 
                 //check whether the extended class is declared
                 if (class_name.search(parent) == -1) {
-                    this.addError(classDecl.getExtended().getParent(), "Parent not defined");
+                    addError(classDecl.getExtended().getParent(), "Parent not defined");
                 } else if (parent.equals(classDecl.getName())) {
                     this.addError(classDecl.getExtended().getParent(), "A class cannot extend itself");
                 } else if (parent.equals(prog.getMainClass().getName())) {
@@ -217,7 +190,6 @@ public class Analysis {
             }
         }
     }
-
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);

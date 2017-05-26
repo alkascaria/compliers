@@ -33,6 +33,7 @@ public class Main {
 
             frontend.getSyntaxErrors().forEach(System.out::println);
             analysis.getTypeErrors().forEach(System.out::println);
+
         }
     }
 }

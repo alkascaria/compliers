@@ -1,16 +1,15 @@
 
-/* In reference with
-http://alumni.cs.ucr.edu/~vladimir/cs152/assignments.html#A5
- */
-
 package analysis;
 
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
 import minijava.ast.*;
 
 import javax.lang.model.type.NullType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -18,121 +17,135 @@ import java.util.List;
  */
 public class SymbolTable extends MJElement.DefaultVisitor {
 
-    Object presentClass = null;
-    Object presentMethod = null;
+    //hashmaps
+    private LinkedHashMap<Object, Object> hashMap, varclass, varmethod;
 
-    private HashMap<Object, Object> hashMap;
     MJProgram program;
 
-    private List<TypeError> errors = new ArrayList<>();
+    public List<TypeError> errors = new ArrayList<>();
 
     public List<TypeError> getErrors() {
         return errors;
     }
 
     public SymbolTable(MJProgram program) {
-        hashMap = new HashMap<Object, Object>();
+
+        hashMap = new LinkedHashMap<Object, Object>();
+        varclass = new LinkedHashMap<Object, Object>();
+        varmethod = new LinkedHashMap<Object, Object>();
+
         this.program = program;
     }
 
     public void createST() {
         program.accept(this);
+
+        STMain(program.getMainClass());
+        STClass(program.getClassDecls());
         System.out.println("HasMap is " + hashMap);
     }
 
-    @Override
-    //main class
-    public void visit(MJMainClass main) {
-        if (!addClass(main.getName(), "Null")) {
-            errors.add(new TypeError(main, "Main class is already defined"));
-        }
-        presentClass = main.getName();
+    //for mainclass
+    public void STMain(MJMainClass mainClass) {
+
+        if (hashMap.containsKey(mainClass.getName()))
+            errors.add(new TypeError(mainClass, "Main class is already defined"));
+        else
+
+            Block(mainClass.getMainBody());     //call for the mainbody considering it as a block
     }
+    //for other classes
 
-    @Override
-    //for classl
-    public void visit(MJClassDecl classDecl) {
-        MJExtended ext_class = classDecl.getExtended();
+    public void STClass(MJClassDeclList classDeclList) {
+        MJClassDecl classDecl;
 
-        //classes which doonot have extends
-        if (ext_class.toString().contentEquals("ExtendsNothing")) {
-            if (!addClass(classDecl.getName(), "Null")) {
-                errors.add(new TypeError(classDecl, "Class is already defined"));
-            }
-        }
-        if (ext_class instanceof MJExtendsClass) {
-            if (!addClass(classDecl.getName(), (((MJExtendsClass) ext_class).getName())))
-                errors.add(new TypeError(classDecl, "Class is already defined"));
-        }
-        presentClass = classDecl.getName();
-    }
+        for (int i = 0; i < classDeclList.size(); i++) {
+            classDecl = classDeclList.get(i);
+            Class(classDecl);   //constructing st for a class
 
-    //adding the classes which have extends
-    public boolean addClass(String name, String parent) {
-        if (contains(name)) {
-            return false;
-        } else {
-            hashMap.put(name, parent);
-            return true;
+            varclass.clear();   //clearing the contents of scope of that class
         }
     }
 
-    public boolean contains(String name) {
-        return hashMap.containsKey(name);
-    }
-
-    @Override
-    public void visit(MJBlock block) {
-    }
-
-    //method declration
-    @Override
-    public void visit(MJMethodDecl methodDecl) {
-        System.out.println("in here");
-        if (addMethod(methodDecl.getName(), methodDecl.getReturnType())) {
-            errors.add(new TypeError(methodDecl, "method is already defined in "));
-        }
-        presentMethod = methodDecl.getName();
-        //parameter of method
-        for (MJVarDecl varDecl : methodDecl.getFormalParameters()) {
-            if (addMethod(varDecl.getName(), varDecl.getType())) {
-                errors.add(new TypeError(methodDecl, "parameter is already defined"));
-            }
-        }
-    }
-
-    //variable declration
-    @Override
-    public void visit(MJVarDecl varDecl) {
-        if (presentClass != null) {
-            if (presentMethod == null) {
-                if (addMethod(varDecl.getName(), varDecl.getType())) {
-                    errors.add(new TypeError(varDecl, varDecl.getName() + " is already defined"));
+    //considering it as a block
+    public void Block(MJBlock block) {
+        for (MJStatement statement : block) {
+            if (statement instanceof MJVarDecl) {
+                if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {//variables
+                    if (!varmethod.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
+                        System.out.println(hashMap.containsKey(((MJVarDecl) statement).getName()));
+                        varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                    } else
+                        this.errors.add(new TypeError(statement, "Variable declration should be unique"));
+                } else {
+                    varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                    hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                 }
-            } else if (addMethod(varDecl.getName(), varDecl.getType())) {
-                errors.add(new TypeError(varDecl, varDecl.getName() + " is already defined"));
+            } else if (statement instanceof MJStmtAssign)   //assginment
+                hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
+        }
+        varmethod.clear();
+    }
+
+    //for each class
+
+    public void Class(MJClassDecl classDecl) {
+        MJExtended extClass = classDecl.getExtended();
+
+        if (hashMap.containsKey(classDecl.getName()))
+            this.errors.add(new TypeError(classDecl, "Class is already defined"));
+        else {
+            if (extClass instanceof MJExtendsClass)
+                hashMap.put(classDecl.getName(), ((MJExtendsClass) extClass).getName());
+            else
+                hashMap.put(classDecl.getName(), null);
+
+            Varible(classDecl.getFields());
+            Method(classDecl.getMethods());
+        }
+    }
+
+    //methods
+    public void Method(MJMethodDeclList methodDeclList) {
+        MJMethodDecl methodDecl;
+
+        for (int i = 0; i < methodDeclList.size(); i++) {
+
+            methodDecl = methodDeclList.get(i);
+
+            if (hashMap.containsKey(methodDecl.getName()))
+                this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
+            else {
+                if (methodDecl instanceof MJMethodDecl) {
+                    hashMap.put(methodDecl.getName(), methodDecl.getReturnType());
+                    hashMap.put(methodDecl.getName(), methodDecl.getFormalParameters());
+                }
+
+                Block(methodDecl.getMethodBody());  //body of method
             }
+            varmethod.clear();  //clearing the scope of methods
         }
     }
 
+    //for variable
 
-    public Object getClass(String name) {
-        if (name == null) {
-            return null;
-        }
-        if (contains(name)) {
-            return hashMap.get(name);
-        } else
-            return null;
-    }
+    public void Varible(MJVarDeclList varDeclList) {
+        MJVarDecl varDecl;
 
-    //for adding method,parameters and variables
-    public boolean addMethod(String id, MJType param) {
-        if (contains(id)) {
-            return false;
-        } else {
-            hashMap.put(id, param);
-            return true;
+        for (int i = 0; i < varDeclList.size(); i++) {
+            varDecl = varDeclList.get(i);
+
+            if (varDecl instanceof MJVarDecl) {
+                if (hashMap.containsKey(varDecl.getName())) {
+                    if (!varclass.containsKey(varDecl.getName())) {
+                        varclass.put(varDecl.getName(), varDecl.getType());
+                    } else
+                        this.errors.add(new TypeError(varDecl, "Variable names should be unique"));
+                } else {
+                    hashMap.put(varDecl.getName(), varDecl.getType());
+                    varclass.put(varDecl.getName(), varDecl.getType());
+                }
+            }
         }
     }
 }
