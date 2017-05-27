@@ -24,10 +24,13 @@ public class Analysis {
 
         ExtendedClass();
 
-        UniqueMethodParams();
+        MethodParameterNames();
 
         SymbolTable st = new SymbolTable(prog);
         st.createST();
+
+        checkMethodOverriding();
+
         typeErrors.addAll(st.getErrors());
     }
 
@@ -35,7 +38,7 @@ public class Analysis {
     public void checkMethodProperlyOverriden() {
         //Build a Class Table
         HashMap<String, MJElement> table = new HashMap<>();
-        table.put(prog.getMainClass().getName(), prog.getMainClass());
+        //table.put(prog.getMainClass().getName(), prog.getMainClass());
         for (MJClassDecl classDecl : prog.getClassDecls()) {
             table.put(classDecl.getName(), classDecl);
         }
@@ -81,7 +84,8 @@ public class Analysis {
     public boolean isSubTypeOff(MJType a, MJType b) {
         HashMap<String, MJClassDecl> table = new HashMap<>();
         //table.put(prog.getMainClass().getName(), prog.getMainClass());
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
+        for (MJClassDecl classDecl : prog.getClassDecls())
+        {
             table.put(classDecl.getName(), classDecl);
         }
 
@@ -109,19 +113,12 @@ public class Analysis {
         return false;
     }
 
-    public void UniqueMethodParams() {
-        List<String> methodNameList = new ArrayList<>();
-        int counter = 0;
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
-            List<MJMethodDecl> methodDeclList = classDecl.getMethods();
-            for (MJMethodDecl methodDecl : methodDeclList) {
-                methodNameList.add(methodDecl.getName());
-                counter++;
-            }
-            if (counter > 0) {
-                this.addError(prog, "Method-parameter names should be unique.");
-            }
-        }
+
+    //check uniqueness of parameter names
+    public void MethodParameterNames()
+    {
+
+
     }
 
     public void ExtendedClass() {
@@ -193,6 +190,96 @@ public class Analysis {
             }
         }
     }
+
+    //1. create class table
+    //2. for classes extended by another class, create method table
+    //3. add parent methods to method table
+    //4. compare current class' methods with parent's methods
+
+    public void checkMethodOverriding()
+    {
+        //create class table
+        HashMap<String, MJElement> table = new HashMap<>();
+
+        String mainClassName = prog.getMainClass().getName();
+
+        //add main class to class table
+        //table.put(prog.getMainClass().getName(), prog.getMainClass());
+        //add all other classes to class table
+        for (MJClassDecl classDecl : prog.getClassDecls())
+        {
+            table.put(classDecl.getName(), classDecl);
+        }
+
+        //check all classes that DO EXTEND another class
+        for (MJClassDecl classDecl : prog.getClassDecls())
+        {
+            //if it does extend another class. Make sure this class is NOT the main class!
+
+            if ( classDecl != null && classDecl.getExtended() instanceof MJExtendsClass)
+            {
+                //create a method table
+                HashMap<String, MJMethodDecl> methodTable = new HashMap<>();
+                MJElement parent = table.get(((MJExtendsClass) classDecl.getExtended()).getName());
+
+                //add all methods of the parent to the method table
+                if (parent instanceof MJClassDecl && ((MJClassDecl) parent).getName() != mainClassName)
+                {
+                    for (MJMethodDecl methodDecl : ((MJClassDecl) parent).getMethods())
+                    {
+                        methodTable.put(methodDecl.getName(), methodDecl);
+                    }
+                }
+
+                //check if parent has current class' methods
+                for (MJMethodDecl method : classDecl.getMethods())
+                {
+                    //parent does have current class' method.
+                    if (methodTable.containsKey(method.getName()))
+                    {
+                        MJMethodDecl parentMethod = methodTable.get(method.getName());
+
+                       String returnTypePar = parentMethod.getReturnType().toString();
+                       String returnTypeCur = method.getReturnType().toString();
+
+                        //firstly, check if return types are subtypes of each other
+                        if (!isSubTypeOff(method.getReturnType(), parentMethod.getReturnType()))
+                        {
+                            this.addError(method, "A method overriding a parent's method must have the same type " +
+                                    "or be a subtype of the parent's type.");
+                        }
+                        //check if the amount of parameters is not the same
+                        if (method.getFormalParameters().size() != parentMethod.getFormalParameters().size())
+                        {
+                            this.addError(method, "Unmatched amount of params with parent for Method; " + method.getName());
+                        }
+                        //check if all parameters in the current method's signature are subtypes of the ones in the parent's method signature
+                        for (int i = 0; i < method.getFormalParameters().size(); i++)
+                        {
+                            if (!(isSubTypeOff(method.getFormalParameters().get(i).getType(), parentMethod.getFormalParameters().get(i).getType())))
+                            {
+                                this.addError(method, "Invalid param Type for Method; " + method.getName());
+
+                            }
+                        }
+
+
+                        //check if all parameters in the
+
+
+                        //check if the return type is the same
+
+                    }
+                }
+
+            }
+        }
+
+    }
+
+
+
+
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);
