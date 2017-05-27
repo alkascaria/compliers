@@ -47,15 +47,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
 
     //for mainclass
-    public void STMain(MJMainClass mainClass)
-    {
+    public void STMain(MJMainClass mainClass) {
 
-        if (hashMap.containsKey(mainClass.getName()))
-        {
+        if (hashMap.containsKey(mainClass.getName())) {
 
             errors.add(new TypeError(mainClass, "Main class is already defined"));
-        }
-        else {
+        } else {
             hashMap.put(mainClass.getName(), null);
         }
         Block(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
@@ -74,40 +71,29 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     //considering it as a block
-    public void Block(MJBlock block, String mainArgs)
-    {
+    public void Block(MJBlock block, String mainArgs) {
         for (MJStatement statement : block) {
             if (statement instanceof MJStmtAssign)   //assginment
             {
                 hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
             if (statement instanceof MJVarDecl) {
-                if ((hashMap.containsKey(((MJVarDecl) statement).getName())))
-                {
+                if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {
                     //variables
-                    if (!varmethod.containsKey(((MJVarDecl) statement).getName()))
-                    {    //diff. btw local and global
+                    if (!varmethod.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
                         System.out.println(hashMap.containsKey(((MJVarDecl) statement).getName()));
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    }
-                    else
-                        {
+                    } else {
                         this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
                     }
-                }
-                else
-                {
+                } else {
                     //checking if already defined with String[] type as argument of main
-                    if(mainArgs.length() > 0)
-                    {
-                       String varName = (((MJVarDecl) statement).getName());
-                       if(varName.equals(mainArgs))
-                       {
+                    if (mainArgs.length() > 0) {
+                        String varName = (((MJVarDecl) statement).getName());
+                        if (varName.equals(mainArgs)) {
                             this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
-                       }
-                    }
-                    else
-                    {
+                        }
+                    } else {
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                         hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     }
@@ -120,12 +106,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
 
         for (MJStatement statement : block) {
+            typechecker tc = new typechecker(varmethod, varclass, hashMap);
             if (statement instanceof MJStmtAssign)   //Type check
-            {
-                typechecker tc = new typechecker(varmethod, varclass, hashMap);
-                tc.TCheck((MJStmtAssign) statement);
-                errors.addAll(tc.getErrors());
-            }
+                tc.CheckStmtassg((MJStmtAssign) statement);
+            if (statement instanceof MJStmtPrint)
+                tc.CheckSOP((MJStmtPrint) statement);
+            errors.addAll(tc.getErrors());
         }
         varmethod.clear();
 
