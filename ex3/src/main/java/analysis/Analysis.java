@@ -35,51 +35,7 @@ public class Analysis {
     }
 
 
-    public void checkMethodProperlyOverriden() {
-        //Build a Class Table
-        HashMap<String, MJElement> table = new HashMap<>();
-        //table.put(prog.getMainClass().getName(), prog.getMainClass());
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
-            table.put(classDecl.getName(), classDecl);
-        }
 
-        for (MJClassDecl classDecl : prog.getClassDecls()) {
-            if (classDecl.getExtended() != null) {
-
-                HashMap<String, MJMethodDecl> methodTable = new HashMap<>();
-                MJElement parent = table.get(((MJExtendsClass) classDecl.getExtended()).getName());
-                if (parent instanceof MJClassDecl) {
-                    for (MJMethodDecl methodDecl : ((MJClassDecl) parent).getMethods()) {
-                        methodTable.put(methodDecl.getName(), methodDecl);
-                    }
-
-                    //compare declaration of parent with child
-                    for (MJMethodDecl method : classDecl.getMethods()) {
-                        if (methodTable.containsKey(method.getName())) {
-                            MJMethodDecl parentMethod = methodTable.get(method.getName());
-                            if (!isSubTypeOff(method.getReturnType(), parentMethod.getReturnType())) {
-                                this.addError(method, "Invalid Return Type for Method; " + method.getName());
-                            }
-                            if (method.getFormalParameters().size() != parentMethod.getFormalParameters().size()) {
-                                this.addError(method, "Unmatched amount of params with parent for Method; " + method.getName());
-                                ;
-                            } else {
-                                for (int i = 0; i < method.getFormalParameters().size(); i++) {
-                                    if (!(isSubTypeOff(method.getFormalParameters().get(i).getType(),
-                                            parentMethod.getFormalParameters().get(i).getType()))) {
-                                        this.addError(method, "Invalid param Type for Method; " + method.getName());
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
-
-        }
-    }
 
     public boolean isSubTypeOff(MJType a, MJType b) {
         HashMap<String, MJClassDecl> table = new HashMap<>();
@@ -117,8 +73,34 @@ public class Analysis {
     //check uniqueness of parameter names
     public void MethodParameterNames()
     {
+        //loop through all classes
+        for(MJClassDecl classDecl : this.prog.getClassDecls())
+        {
+            //loop through all methods in the classDecl
+            for(MJMethodDecl methodDecl : classDecl.getMethods())
+            {
+                //create hash map for all parameters' names.
+                HashMap<String, MJType> parametersList = new HashMap<>();
 
+                //firstly, populate the hashmap
+                for(MJVarDecl varDecl : methodDecl.getFormalParameters())
+                {
+                    //if it's there already, then we got a problem.
+                    if(parametersList.containsKey(varDecl.getName()))
+                    {
+                        //problem: parameter already there.
+                        this.addError(varDecl, "Parameter names must be unique.");
+                    }
+                    //else add it
+                    else
+                    {
+                        parametersList.put(varDecl.getName(), varDecl.getType());
+                    }
+                }
 
+            }
+
+        }
     }
 
     public void ExtendedClass() {
@@ -194,7 +176,7 @@ public class Analysis {
     //1. create class table
     //2. for classes extended by another class, create method table
     //3. add parent methods to method table
-    //4. compare current class' methods with parent's methods
+    //4. compare current class' methods with parent's methods and check if methods are overridden correctly
 
     public void checkMethodOverriding()
     {
@@ -251,23 +233,16 @@ public class Analysis {
                         //check if the amount of parameters is not the same
                         if (method.getFormalParameters().size() != parentMethod.getFormalParameters().size())
                         {
-                            this.addError(method, "Unmatched amount of params with parent for Method; " + method.getName());
+                            this.addError(method, "Methods overriding must have the same amount of parameters of their parents");
                         }
                         //check if all parameters in the current method's signature are subtypes of the ones in the parent's method signature
                         for (int i = 0; i < method.getFormalParameters().size(); i++)
                         {
                             if (!(isSubTypeOff(method.getFormalParameters().get(i).getType(), parentMethod.getFormalParameters().get(i).getType())))
                             {
-                                this.addError(method, "Invalid param Type for Method; " + method.getName());
-
+                                this.addError(method, "All parameters in methods overriding parent's methods must have the same type or be subtypes");
                             }
                         }
-
-
-                        //check if all parameters in the
-
-
-                        //check if the return type is the same
 
                     }
                 }
