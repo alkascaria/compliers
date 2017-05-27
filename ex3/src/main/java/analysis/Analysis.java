@@ -34,7 +34,35 @@ public class Analysis {
 
         checkMethodOverriding();
 
+        checkMethodUniqueness();
+
         typeErrors.addAll(st.getErrors());
+    }
+
+    public void checkMethodUniqueness()
+    {
+        HashMap<String, MJType> hashMethods = new HashMap<>();
+
+       //loop through all class declarations
+        for(MJClassDecl classDecl : prog.getClassDecls())
+        {
+            //loop through all methods in the class
+            for(MJMethodDecl methodDecl : classDecl.getMethods())
+            {
+                //if not in the hash, then add it
+                if(!(hashMethods.containsKey(methodDecl.getName())))
+                {
+                    hashMethods.put(methodDecl.getName(), methodDecl.getReturnType());
+                }
+                //it's there already.
+                else
+                {
+                    this.addError(methodDecl, "Method declarations must be unique. Minijava does not support method overloading either.");
+                }
+            }
+
+            hashMethods.clear();
+        }
     }
 
 
