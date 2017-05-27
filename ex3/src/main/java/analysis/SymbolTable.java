@@ -92,7 +92,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                         String varName = (((MJVarDecl) statement).getName());
                         if (varName.equals(mainArgs)) {
                             this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
-                        }
+                        } else
+                            hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     } else {
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                         hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
@@ -143,9 +144,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
             methodDecl = methodDeclList.get(i);
 
-            if (hashMap.containsKey(methodDecl.getName()))
-                this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
-            else {
+            if (hashMap.containsKey(methodDecl.getName())) {
+                if (varclass.containsKey(methodDecl.getName()))
+                    this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
+            } else {
                 if (methodDecl instanceof MJMethodDecl) {
                     hashMap.put(methodDecl.getName(), methodDecl.getReturnType());
                     hashMap.put(methodDecl.getName(), methodDecl.getFormalParameters());
