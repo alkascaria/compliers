@@ -45,15 +45,20 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         System.out.println("HasMap is " + hashMap);
     }
 
+
     //for mainclass
-    public void STMain(MJMainClass mainClass) {
+    public void STMain(MJMainClass mainClass)
+    {
 
         if (hashMap.containsKey(mainClass.getName()))
-            errors.add(new TypeError(mainClass, "Main class is already defined"));
-        else
-            hashMap.put(mainClass.getName(), null);
+        {
 
-        Block(mainClass.getMainBody());     //call for the mainbody considering it as a block
+            errors.add(new TypeError(mainClass, "Main class is already defined"));
+        }
+        else {
+            hashMap.put(mainClass.getName(), null);
+        }
+        Block(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
     }
     //for other classes
 
@@ -69,24 +74,49 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     //considering it as a block
-    public void Block(MJBlock block) {
+    public void Block(MJBlock block, String mainArgs)
+    {
         for (MJStatement statement : block) {
             if (statement instanceof MJStmtAssign)   //assginment
             {
                 hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
             if (statement instanceof MJVarDecl) {
-                if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {//variables
-                    if (!varmethod.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
+                if ((hashMap.containsKey(((MJVarDecl) statement).getName())))
+                {
+                    //variables
+                    if (!varmethod.containsKey(((MJVarDecl) statement).getName()))
+                    {    //diff. btw local and global
                         System.out.println(hashMap.containsKey(((MJVarDecl) statement).getName()));
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    } else
+                    }
+                    else
+                        {
                         this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
-                } else {
-                    varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                    }
+                }
+                else
+                {
+                    //checking if already defined with String[] type as argument of main
+                    if(mainArgs.length() > 0)
+                    {
+                       String varName = (((MJVarDecl) statement).getName());
+                       if(varName.equals(mainArgs))
+                       {
+                            this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
+                       }
+                    }
+                    else
+                    {
+                        varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                        hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                    }
+
+
                 }
             }
+
+            //checking if the main args doesn't get redefined somewhere
         }
 
         for (MJStatement statement : block) {
@@ -98,6 +128,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
         varmethod.clear();
+
     }
 
     //for each class
@@ -134,7 +165,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     hashMap.put(methodDecl.getName(), methodDecl.getFormalParameters());
                 }
 
-                Block(methodDecl.getMethodBody());  //body of method
+                Block(methodDecl.getMethodBody(), "");  //body of method
             }
             varmethod.clear();  //clearing the scope of methods
         }
@@ -162,6 +193,5 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
     }
-
 
 }
