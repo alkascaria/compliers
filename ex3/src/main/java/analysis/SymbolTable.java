@@ -81,7 +81,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                         System.out.println(hashMap.containsKey(((MJVarDecl) statement).getName()));
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     } else
-                        this.errors.add(new TypeError(statement, "Variable declration should be unique"));
+                        this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
                 } else {
                     varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
@@ -108,6 +108,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             this.errors.add(new TypeError(classDecl, "Class is already defined"));
         else {
             if (extClass instanceof MJExtendsClass)
+                //ClassName, ExtendedClass
                 hashMap.put(classDecl.getName(), ((MJExtendsClass) extClass).getName());
             else
                 hashMap.put(classDecl.getName(), null);
@@ -139,6 +140,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
+    //TODO: specify what variables are: parameters or fields?
     //for variable
 
     public void Varible(MJVarDeclList varDeclList) {
@@ -157,6 +159,24 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     hashMap.put(varDecl.getName(), varDecl.getType());
                     varclass.put(varDecl.getName(), varDecl.getType());
                 }
+            }
+        }
+    }
+
+    //TODO: extend for main class too.
+    public void MethodParams(MJClassDeclList classDeclList) {
+        int counter = 0;
+        List<String> methodNameList = new ArrayList<>();
+
+
+        for (MJClassDecl classDecl : classDeclList) {
+            List<MJMethodDecl> methodDeclList = classDecl.getMethods();
+            for (MJMethodDecl methodDecl : methodDeclList) {
+                methodNameList.add(methodDecl.getName());
+                counter++;
+            }
+            if (counter > 0) {
+                this.errors.add(new TypeError(classDecl, "Method-parameter names should be unique."));
             }
         }
     }

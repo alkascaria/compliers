@@ -21,7 +21,10 @@ public class Analysis {
     Stack class_name = new Stack(); //for extented class declration
 
     public void check() {
+
         ExtendedClass();
+
+        UniqueMethodParams();
 
         SymbolTable st = new SymbolTable(prog);
         st.createST();
@@ -106,7 +109,7 @@ public class Analysis {
         return false;
     }
 
-    public void UniqueMethodParam() {
+    public void UniqueMethodParams() {
         List<String> methodNameList = new ArrayList<>();
         int counter = 0;
         for (MJClassDecl classDecl : prog.getClassDecls()) {
