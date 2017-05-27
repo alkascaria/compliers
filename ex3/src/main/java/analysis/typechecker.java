@@ -33,11 +33,24 @@ public class typechecker {
             if (!(type instanceof MJTypeInt)) {     //SOP only allows int... so check for that
                 this.errors.add(new TypeError(stmtPrint, "System.out.println can only print an integer"));
             }
-        } else if (stmtPrint.getPrinted() instanceof MJArrayLength) {
-        } else if (!(stmtPrint.getPrinted() instanceof MJNumber)) {     //SOP can have a constant number
+        } else if (stmtPrint.getPrinted() instanceof MJArrayLength)
+        {
+
+        }else if (stmtPrint.getPrinted() instanceof  MJDiv)
+        {
+
+        }else if (stmtPrint.getPrinted() instanceof  MJUnaryMinus){
+
+        }
+        else if (stmtPrint.getPrinted() instanceof  MJExprBinary){
+
+        }
+        else if (!(stmtPrint.getPrinted() instanceof MJNumber)) {
+            //SOP can have a constant number
             this.errors.add(new TypeError(stmtPrint, "System.out.println can only print an integer"));
         }
     }
+
     //Finding out whether the variable is declared and its type
     MJType CheckType(MJVarUse variable) {
         MJType type = null;
@@ -80,7 +93,7 @@ public class typechecker {
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Minus"));
             }else if(type instanceof MJDiv) {
                 if (!(stmtAssign instanceof MJVarUse))
-                    this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Minus"));
+                    this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Div"));
             }
         }
     }
