@@ -78,6 +78,9 @@ public class typechecker {
             }else if(type instanceof MJUnaryMinus) {
                 if (!(stmtAssign instanceof MJVarUse))
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Minus"));
+            }else if(type instanceof MJDiv) {
+                if (!(stmtAssign instanceof MJVarUse))
+                    this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Minus"));
             }
         }
     }
