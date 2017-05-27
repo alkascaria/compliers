@@ -72,6 +72,10 @@ public class typechecker {
             }else if(type instanceof  MJExprBinary){
                 if(!(stmtAssign instanceof MJVarUse))
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of Expr Binary"));
-        }
+        }else if(type instanceof MJTypeIntArray) {
+                if (!(stmtAssign instanceof MJNewIntArray))
+                    this.errors.add(new TypeError(stmtAssign, "Variable assignment should be be Array Int"));
+            }
     }
+}
 }
