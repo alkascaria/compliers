@@ -113,7 +113,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             else
                 hashMap.put(classDecl.getName(), null);
 
-            Varible(classDecl.getFields());
+            Field(classDecl.getFields());
             Method(classDecl.getMethods());
         }
     }
@@ -143,7 +143,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     //TODO: specify what variables are: parameters or fields?
     //for variable
 
-    public void Varible(MJVarDeclList varDeclList) {
+    public void Field(MJVarDeclList varDeclList) {
         MJVarDecl varDecl;
 
         for (int i = 0; i < varDeclList.size(); i++) {
@@ -154,7 +154,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     if (!varclass.containsKey(varDecl.getName())) {
                         varclass.put(varDecl.getName(), varDecl.getType());
                     } else
-                        this.errors.add(new TypeError(varDecl, "Variable names should be unique"));
+                        this.errors.add(new TypeError(varDecl, "Field names should be unique"));
                 } else {
                     hashMap.put(varDecl.getName(), varDecl.getType());
                     varclass.put(varDecl.getName(), varDecl.getType());
@@ -163,21 +163,5 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    //TODO: extend for main class too.
-    public void MethodParams(MJClassDeclList classDeclList) {
-        int counter = 0;
-        List<String> methodNameList = new ArrayList<>();
 
-
-        for (MJClassDecl classDecl : classDeclList) {
-            List<MJMethodDecl> methodDeclList = classDecl.getMethods();
-            for (MJMethodDecl methodDecl : methodDeclList) {
-                methodNameList.add(methodDecl.getName());
-                counter++;
-            }
-            if (counter > 0) {
-                this.errors.add(new TypeError(classDecl, "Method-parameter names should be unique."));
-            }
-        }
-    }
 }
