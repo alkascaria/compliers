@@ -69,7 +69,9 @@ public class typechecker {
             } else if (type instanceof MJTypeBool) {
                 if (!(stmtAssign instanceof MJBoolConst))
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type boolean"));
-            }
+            }else if(type instanceof  MJExprBinary){
+                if(!(stmtAssign instanceof MJVarUse))
+                    this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of Expr Binary"));
         }
     }
 }
