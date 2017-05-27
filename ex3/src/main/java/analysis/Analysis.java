@@ -13,8 +13,11 @@ public class Analysis {
         typeErrors.add(new TypeError(element, message));
     }
 
-    public Analysis(MJProgram prog) {
+    public Analysis(MJProgram prog)
+    {
+
         this.prog = prog;
+        StaticMethods staticMethods = new StaticMethods(prog);
     }
 
     LinkedList loop = new LinkedList(); //for extended loop
@@ -37,56 +40,7 @@ public class Analysis {
 
 
 
-    public boolean isSubTypeOff(MJType a, MJType b)
-    {
-        //create hashmap with all classes
-        HashMap<String, MJClassDecl> table = new HashMap<>();
 
-        //populate hashmap
-        for (MJClassDecl classDecl : prog.getClassDecls())
-        {
-            table.put(classDecl.getName(), classDecl);
-        }
-
-        if ((a instanceof MJTypeClass) & (b instanceof MJTypeClass))
-        {
-            String classA = ((MJTypeClass) a).getName();
-            String classB = ((MJTypeClass) b).getName();
-            if (classA.compareTo(classB) == 0)
-                return true;
-
-            MJClassDecl clsA = table.get(classA);
-
-            if(clsA.getExtended() instanceof MJExtendsClass)
-            {
-                MJExtendsClass tempClass = (MJExtendsClass) clsA.getExtended();
-
-                while (tempClass != null)
-                {
-                    if (tempClass.getName().compareTo(classB) == 0)
-                    {
-                        return true;
-                    }
-
-                    if(table.get(tempClass.getName()).getExtended() instanceof MJExtendsClass)
-                    {
-                        tempClass = (MJExtendsClass) table.get(tempClass.getName()).getExtended();
-                    }
-                }
-            }
-
-
-
-        }
-        else
-            {
-            if (a.toString().compareTo(b.toString()) == 0)
-                return true;
-            else
-                return false;
-        }
-        return false;
-    }
 
 
     //check uniqueness of parameter names
@@ -244,7 +198,7 @@ public class Analysis {
                        String returnTypeCur = method.getReturnType().toString();
 
                         //firstly, check if return types are subtypes of each other
-                        if (!isSubTypeOff(method.getReturnType(), parentMethod.getReturnType()))
+                        if (!StaticMethods.isSubTypeOff(method.getReturnType(), parentMethod.getReturnType()))
                         {
                             this.addError(method, "A method overriding a parent's method must have the same type " +
                                     "or be a subtype of the parent's type.");
@@ -257,7 +211,7 @@ public class Analysis {
                         //check if all parameters in the current method's signature are subtypes of the ones in the parent's method signature
                         for (int i = 0; i < method.getFormalParameters().size(); i++)
                         {
-                            if (!(isSubTypeOff(method.getFormalParameters().get(i).getType(), parentMethod.getFormalParameters().get(i).getType())))
+                            if (!(StaticMethods.isSubTypeOff(method.getFormalParameters().get(i).getType(), parentMethod.getFormalParameters().get(i).getType())))
                             {
                                 this.addError(method, "All parameters in methods overriding parent's methods must have the same type or be subtypes");
                             }

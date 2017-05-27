@@ -1,5 +1,6 @@
 package analysis;
 
+import frontend.SourcePosition;
 import minijava.ast.*;
 
 import java.util.ArrayList;
@@ -78,4 +79,33 @@ public class typechecker {
             }
         }
     }
+
+    //check if subtyping
+    void CheckReturn(MJStmtReturn stmtReturn, MJMethodDecl methodDecl)
+    {
+        //return type in signature.
+        MJType returnType = methodDecl.getReturnType();
+        System.out.println(returnType);
+
+        if(stmtReturn.getResult() instanceof MJNewObject)
+        {
+            MJNewObject newObj = (MJNewObject) stmtReturn.getResult();
+            MJType typeObj = new MJTypeClassImpl(newObj.getClassName());
+            boolean validSubType = StaticMethods.isSubTypeOff(returnType, typeObj);
+
+            if(validSubType == false)
+            {
+                this.errors.add(new TypeError(newObj, "Return statement is not a subtype of method's return type "));
+            }
+            //check if returnType doesn't extend newObj
+
+
+        }
+
+    }
+
+
+
+
+
 }
