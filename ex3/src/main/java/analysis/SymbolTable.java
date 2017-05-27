@@ -55,7 +55,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         } else {
             hashMap.put(mainClass.getName(), null);
         }
-        Block(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
+        Block(mainClass.getMainBody(), mainClass.getArgsName(), null);     //call for the mainbody considering it as a block
     }
     //for other classes
 
@@ -70,8 +70,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    //considering it as a block
-    public void Block(MJBlock block, String mainArgs) {
+    //block: block of code found between {}
+    //mainArgs: arguments in the main method
+    //typeReturn: type of the function where the block is in
+    public void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl) {
         for (MJStatement statement : block) {
             if (statement instanceof MJStmtAssign)   //assginment
             {
@@ -112,6 +114,11 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                 tc.CheckStmtassg((MJStmtAssign) statement);
             if (statement instanceof MJStmtPrint)
                 tc.CheckSOP((MJStmtPrint) statement);
+            if (statement instanceof MJStmtReturn)
+            {
+                tc.CheckReturn((MJStmtReturn)statement, methodDecl);
+            }
+
             errors.addAll(tc.getErrors());
         }
         varmethod.clear();
@@ -153,13 +160,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     hashMap.put(methodDecl.getName(), methodDecl.getFormalParameters());
                 }
 
-                Block(methodDecl.getMethodBody(), "");  //body of method
+                Block(methodDecl.getMethodBody(), "", methodDecl);  //body of method
             }
             varmethod.clear();  //clearing the scope of methods
         }
     }
 
-    //TODO: specify what variables are: parameters or fields?
     //for variable
 
     public void Field(MJVarDeclList varDeclList) {
