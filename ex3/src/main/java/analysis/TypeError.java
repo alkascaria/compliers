@@ -4,14 +4,13 @@ import frontend.SourcePosition;
 import minijava.ast.MJElement;
 
 /**
- * This class deals with error messages.
- * Has methods to return position, error message.
+ *
  */
 public class TypeError extends RuntimeException {
     private SourcePosition source;
 
     /**
-     * sets position of error
+     *
      * @param message(@code String)
      * @param line(@code int)
      * @param column(@code int)
@@ -22,7 +21,7 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     * gets position and parent element
+     *
      * @param element(@code MJElement)
      * @param message(@code String)
      */
@@ -37,9 +36,9 @@ public class TypeError extends RuntimeException {
         }
     }
 
-     /**
-     * Gets the Line Number
-     * @return the value (@code source.getLine())
+    /**
+     *
+     * @return
      */
     public int getLine()
     {
@@ -47,17 +46,17 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     * Gets the Column
-     * @return the value(@code source.getColumn())
+     *
+     * @return
      */
     public int getColumn()
     {
         return source.getColumn();
     }
 
-     /**
-     * returns error statement
-     * @return the Value ("Error in line"+ @code getLine()+ ":" + getColumn() + ": " + getMessage())
+    /**
+     *
+     * @return
      */
     @Override
     public String toString()
@@ -66,9 +65,8 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     * returns length of column
-     * @return the value (@code source.getLine() == source.getEndLine())?(@code source.getEndColumn() - source.getColumn():5)
      *
+     * @return
      */
     public int getLength() {
         if (source.getLine() == source.getEndLine()) {
@@ -78,7 +76,7 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     * Gets sourcePosition
+     *
      * @return (@code source)
      */
     public SourcePosition getSource()
