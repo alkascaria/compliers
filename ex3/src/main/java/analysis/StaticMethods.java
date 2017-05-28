@@ -39,15 +39,19 @@ public class StaticMethods
             table.put(classDecl.getName(), classDecl);
         }
 
+        //check if valid instances
         if ((a instanceof MJTypeClass) & (b instanceof MJTypeClass))
         {
+            //get their names and check if equal already (e.g: int and int)
             String classA = ((MJTypeClass) a).getName();
             String classB = ((MJTypeClass) b).getName();
             if (classA.compareTo(classB) == 0)
                 return true;
 
+
             MJClassDecl clsA = table.get(classA);
 
+            //check for parents here
             if(clsA.getExtended() instanceof MJExtendsClass)
             {
                 MJExtendsClass tempClass = (MJExtendsClass) clsA.getExtended();

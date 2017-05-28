@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static minijava.ast.MJ.TypeClass;
+
 /**
  * Created by alka on 5/23/2017.
  */
@@ -46,6 +48,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
         STMain(program.getMainClass());
         STClass(program.getClassDecls());
+<<<<<<< HEAD
+=======
+        System.out.println("HasMap is " + hashMap);
+        System.out.println("Classmap is " + varclass);
+        System.out.println("Methodmap is " + varmethod);
+>>>>>>> origin/master
     }
 
     /**
@@ -182,12 +190,72 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         //
         if (exprStmt instanceof MJMethodCall) {
             //check for a method with the same name
+<<<<<<< HEAD
             MJMethodCall methodCall = (MJMethodCall) exprStmt;
 
             //TODO:, check if the receiver was defined and the method belongs to that class.
             if (!(this.map.containsKey(methodCall.getMethodName()))) {
                 this.errors.add(new TypeError(exprStmt, "Calling an undefined method"));
             }
+=======
+            MJMethodCall methodCall = (MJMethodCall)exprStmt;
+            //TODO:, check if the receiver was defined and the method belongs to that class.
+
+            if(!(this.hashMap.containsKey(methodCall.getMethodName())))
+            {
+                this.errors.add(new TypeError(exprStmt, "Calling an undefined method name"));
+            }
+            //method found somewhere. now check if the parameters correspond
+            else
+            {
+                //check if all parameters passed are subtypes of the ones in the declaration
+                if(this.hashMap.get(methodCall.getMethodName()) != null)
+                {
+                    MJVarDeclList varDeclList =  (MJVarDeclList) this.hashMap.get(methodCall.getMethodName());
+
+                    if(varDeclList != null)
+                    {
+                        //loop through all of them and check if subtype
+                        for(MJVarDecl varDeclMethod : varDeclList)
+                        {
+                            if(varDeclMethod != null) {
+
+
+                                for (MJExpr exprArg : methodCall.getArguments()) {
+
+                                    System.out.println(exprArg.toString());
+
+                                    if (exprArg != null && exprArg instanceof MJVarUse ) {
+
+                                        typechecker tc = new typechecker(varmethod, varclass, hashMap);
+                                        //type of the method name's parameter
+                                        MJType typeMethod = varDeclMethod.getType();
+                                        //type of the corresponding method call's passed parameter
+                                        MJVarUse varUse = (MJVarUse)exprArg;
+                                        MJType typeParam = tc.CheckType(varUse);
+
+                                        if(varUse != null && typeParam != null && typeMethod != null)
+                                        {
+                                            boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
+                                            //if a single one is not subtype, then raise an error already
+                                            if (isSubType == false ) {
+                                                this.errors.add(new TypeError(exprArg, "Method's parameters must be subtypes of method's declaration's arguments."));
+                                            }
+                                        }
+
+
+
+                                    }
+
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+>>>>>>> origin/master
         }
     }
 
@@ -201,7 +269,13 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             //now check if a class exists if with the name declared
             MJNewObject newObj = (MJNewObject) exprStmt;
 
+<<<<<<< HEAD
             if (!(this.map.containsKey(newObj.getClassName()))) {
+=======
+
+            if(!(this.hashMap.containsKey(newObj.getClassName())))
+            {
+>>>>>>> origin/master
                 this.errors.add(new TypeError(statement, "Class declaration not found"));
             }
         }
@@ -244,8 +318,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             else if (methodDecl instanceof MJMethodDecl) {
                 hash_class.put(methodDecl.getName(), methodDecl.getReturnType());
             }
+<<<<<<< HEAD
 
             Block(methodDecl.getMethodBody());  //body of method
+=======
+           // varmethod.clear();  //clearing the scope of methods
+>>>>>>> origin/master
         }
         // varmethod.clear();  //clearing the scope of methods
     }
