@@ -5,7 +5,11 @@ import minijava.ast.*;
 import java.util.*;
 
 /**
- *
+ * Adds errors
+ * Symbol table error
+ * Check method, parameter uniqueness
+ * Create Class table
+ * Checks inheritance loop
  */
 public class Analysis {
 
@@ -121,7 +125,7 @@ public class Analysis {
     }
 
     /**
-     *
+     * The ExtendClass check for inheritance loop as well as whether the extended class is declared 
      */
     public void ExtendedClass() {
 
