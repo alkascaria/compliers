@@ -212,7 +212,17 @@ public class typechecker {
         {
             //return type in signature.
             MJType returnType = methodDecl.getReturnType();
-            System.out.println(returnType);
+
+            //check if the return variable is declared
+            if(stmtReturn.getResult() instanceof MJVarUse)
+            {
+                MJVarUse varUse = (MJVarUse)stmtReturn.getResult();
+                //check if declared.
+                if(!(this.hashMap.containsKey(varUse)))
+                {
+                    this.errors.add(new TypeError(varUse, "Returning an undeclared variable is not allowed."));
+                }
+            }
 
             if (stmtReturn.getResult() instanceof MJNewObject) {
                 MJNewObject newObj = (MJNewObject) stmtReturn.getResult();
