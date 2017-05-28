@@ -5,7 +5,11 @@ import minijava.ast.*;
 import java.util.*;
 
 /**
- *
+ * Adds errors
+ * Symbol table error
+ * Check method, parameter uniqueness
+ * Create Class table
+ * Checks inheritance loop
  */
 public class Analysis {
 
@@ -13,7 +17,7 @@ public class Analysis {
     private List<TypeError> typeErrors = new ArrayList<>();
 
     /**
-     *
+     * Adds error to error list
      * @param element(@code MJElement)
      * @param message(@code String)
      */
@@ -23,7 +27,7 @@ public class Analysis {
     }
 
     /**
-     *
+     * Initializes MJProgram and Staticmethods
      * @param prog(@code MJProgram)
      *
      */
@@ -35,8 +39,8 @@ public class Analysis {
     LinkedList loop = new LinkedList(); //for extended loop
     Stack class_name = new Stack(); //for extented class declration
 
-    /**
-     *
+   /**
+     * Checks and adds symbol table errors to error list
      */
     public void check() {
 
@@ -124,7 +128,7 @@ public class Analysis {
     }
 
     /**
-     *
+     * The ExtendClass check for inheritance loop as well as whether the extended class is declared 
      */
     public void ExtendedClass() {
 
@@ -196,7 +200,7 @@ public class Analysis {
         }
     }
 
-    /**
+   /**
      * create class table
      * for classes extended by another class, create method table
      * add parent methods to method table
@@ -276,8 +280,8 @@ System.out.println(mainClassName);
     }
 
     /**
-     *
-     * @return typeErrors{@code new ArrayList<>(typeErrors)}
+     * Gets type Error
+     * @return typeErrors {@code new ArrayList<>(typeErrors)}
      */
 
     public List<TypeError> getTypeErrors() {
