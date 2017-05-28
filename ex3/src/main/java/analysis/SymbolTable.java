@@ -18,7 +18,7 @@ import java.util.List;
 public class SymbolTable extends MJElement.DefaultVisitor {
 
     //hashmaps
-    private LinkedHashMap<Object, Object> hashMap, varclass, varmethod;
+    private LinkedHashMap<Object, Object> hash_main, hash_class, hash_method, map;
 
     MJProgram program;
 
@@ -29,14 +29,14 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
      * @param program(@code MJProgram)
      */
     public SymbolTable(MJProgram program) {
 
-        hashMap = new LinkedHashMap<Object, Object>();
-        varclass = new LinkedHashMap<Object, Object>();
-        varmethod = new LinkedHashMap<Object, Object>();
+        hash_main = new LinkedHashMap<Object, Object>();
+        hash_class = new LinkedHashMap<Object, Object>();
+        hash_method = new LinkedHashMap<Object, Object>();
+        map = new LinkedHashMap<Object, Object>();
 
         this.program = program;
     }
@@ -46,28 +46,23 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
         STMain(program.getMainClass());
         STClass(program.getClassDecls());
-        System.out.println("HasMap is " + hashMap);
     }
 
     /**
-     *
      * @param mainClass(@code MJMainClass)
      */
     //for mainclass
     public void STMain(MJMainClass mainClass) {
-
-        if (hashMap.containsKey(mainClass.getName())) {
-
+        if (hash_main.containsKey(mainClass.getName())) {
             errors.add(new TypeError(mainClass, "Main class is already defined"));
         } else {
-            hashMap.put(mainClass.getName(), null);
+            hash_main.put(mainClass.getName(), null);
         }
-        Block(mainClass.getMainBody(), mainClass.getArgsName(), null);     //call for the mainbody considering it as a block
+        Block_main(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
     }
     //for other classes
 
     /**
-     *
      * @param classDeclList(@code MJClassDeclList)
      */
     public void STClass(MJClassDeclList classDeclList) {
@@ -77,7 +72,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             classDecl = classDeclList.get(i);
             Class(classDecl);   //constructing st for a class
 
-            varclass.clear();   //clearing the contents of scope of that class
+            hash_class.clear();   //clearing the contents of scope of that class
         }
     }
 
@@ -85,66 +80,47 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     //typeReturn: type of the function where the block is in
 
     /**
-     *
      * @param block(@code MJBlock) block of code found between {}
-     * @param mainArgs(@ String) arguments in the main method
-     * @param methodDecl(@ MJMethodDecl)
+     * @param mainArgs(@  String) arguments in the main method
      */
-    public void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl)
-    {
-        for (MJStatement statement : block)
-        {
-            System.out.println(statement.getClass());
 
+    public void Block_main(MJBlock block, String mainArgs) {
+        for (MJStatement statement : block) {
             if (statement != null && statement instanceof MJStmtAssign)   //assginment
             {
-                hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
+
+                hash_main.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
 
             //checking for existence of class to be instantiated
-            if(statement instanceof  MJStmtExpr)
-            {
-                CheckExistenceClassInstantiation((MJStmtExpr)statement);
-                CheckCallMethodExistence((MJStmtExpr)statement);
-            }
+            else if (statement instanceof MJStmtExpr) {
 
-            if (statement instanceof MJVarDecl) {
-                if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {
+                CheckExistenceClassInstantiation((MJStmtExpr) statement, hash_main);
+                CheckCallMethodExistence((MJStmtExpr) statement, hash_main);
+            } else if (statement instanceof MJVarDecl) {
+                if ((hash_main.containsKey(((MJVarDecl) statement).getName()))) {
                     //variables
-                    if (!varmethod.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
-                        System.out.println(hashMap.containsKey(((MJVarDecl) statement).getName()));
-                        varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    } else {
-                        this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
-                    }
-                } else {
+                    this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
+                } else if (mainArgs.length() > 0) {
                     //checking if already defined with String[] type as argument of main
-                    if (mainArgs.length() > 0)
-                    {
-                        String varName = (((MJVarDecl) statement).getName());
-                        if (varName.equals(mainArgs)) {
-                            this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
-                        } else
-                            hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-
-                        //we're in the main. make sure
+                    String varName = (((MJVarDecl) statement).getName());
+                    if (varName.equals(mainArgs)) {
+                        this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
                     }
-                    else {
-                        varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                        hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    }
-                }
+                    //we're in the main. make sure
+                } else
+                    hash_main.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
             }
             //checking if the main args doesn't get redefined somewhere
         }
         for (MJStatement statement : block) {
-            typechecker tc = new typechecker(varmethod, varclass, hashMap);
+            typechecker tc = new typechecker(hash_method, hash_class, hash_main);
             if (statement instanceof MJStmtAssign)   //Type check
                 tc.CheckStmtassg((MJStmtAssign) statement);
             else if (statement instanceof MJStmtPrint)
                 tc.CheckSOP((MJStmtPrint) statement);
             else if (statement instanceof MJStmtReturn) {
-                tc.CheckReturn((MJStmtReturn) statement, methodDecl, mainArgs);
+                tc.CheckReturn((MJStmtReturn) statement, null, mainArgs);
             }
             //Checking whether while condition is a boolean
             else if (statement instanceof MJStmtWhile)
@@ -153,74 +129,99 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                 tc.checkif((MJStmtIf) statement);
             errors.addAll(tc.getErrors());
         }
-        varmethod.clear();
+    }
 
+    void Block(MJBlock block) {
+        for (MJStatement statement : block) {
+            if (statement != null && statement instanceof MJStmtAssign)   //assginment
+            {
+                hash_method.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
+            }
+
+            //checking for existence of class to be instantiated
+            if (statement instanceof MJStmtExpr) {
+                CheckExistenceClassInstantiation((MJStmtExpr) statement, hash_method);
+                CheckCallMethodExistence((MJStmtExpr) statement, hash_method);
+            }
+
+            if (statement instanceof MJVarDecl) {
+                //variables
+                if (!hash_method.containsKey(((MJVarDecl) statement).getName())) {    //diff. btw local and global
+                    hash_method.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
+                } else {
+                    this.errors.add(new TypeError(statement, "Variable declaration should be unique"));
+                }
+            }
+        }
+        //checking if the main args doesn't get redefined somewhere
+
+        for (MJStatement statement : block)
+
+        {
+            typechecker tc = new typechecker(hash_method, hash_class, hash_main);
+            if (statement instanceof MJStmtAssign)   //Type check
+                tc.CheckStmtassg((MJStmtAssign) statement);
+            else if (statement instanceof MJStmtPrint)
+                tc.CheckSOP((MJStmtPrint) statement);
+                //Checking whether while condition is a boolean
+            else if (statement instanceof MJStmtWhile)
+                tc.checkwhile((MJStmtWhile) statement);
+            else if (statement instanceof MJStmtIf)
+                tc.checkif((MJStmtIf) statement);
+            errors.addAll(tc.getErrors());
+        }
+        hash_method.clear();
     }
 
     /**
-     *
      * @param statement(@code MJStmtExpr)
      */
-    public void CheckCallMethodExistence(MJStmtExpr statement)
-    {
+    public void CheckCallMethodExistence(MJStmtExpr statement, LinkedHashMap map) {
         MJStmtExpr stmtExpr = statement;
         MJExpr exprStmt = stmtExpr.getExpr();
         //
-        if (exprStmt instanceof MJMethodCall)
-        {
+        if (exprStmt instanceof MJMethodCall) {
             //check for a method with the same name
-            System.out.println(hashMap.toString());
-            MJMethodCall methodCall = (MJMethodCall)exprStmt;
+            MJMethodCall methodCall = (MJMethodCall) exprStmt;
 
             //TODO:, check if the receiver was defined and the method belongs to that class.
-            if(!(this.hashMap.containsKey(methodCall.getMethodName())))
-            {
+            if (!(this.map.containsKey(methodCall.getMethodName()))) {
                 this.errors.add(new TypeError(exprStmt, "Calling an undefined method"));
             }
-
-
         }
     }
 
-
     /**
-     *
      * @param statement(@code MJStmtExpr)
      */
-    public void CheckExistenceClassInstantiation(MJStmtExpr statement)
-    {
+    public void CheckExistenceClassInstantiation(MJStmtExpr statement, LinkedHashMap map) {
         MJStmtExpr stmtExpr = statement;
         MJExpr exprStmt = stmtExpr.getExpr();
-        if(exprStmt instanceof MJNewObject)
-        {
+        if (exprStmt instanceof MJNewObject) {
             //now check if a class exists if with the name declared
             MJNewObject newObj = (MJNewObject) exprStmt;
 
-            System.out.println(newObj.getClassName());
-
-            if(!(this.hashMap.containsKey(newObj.getClassName())))
-            {
+            if (!(this.map.containsKey(newObj.getClassName()))) {
                 this.errors.add(new TypeError(statement, "Class declaration not found"));
             }
         }
     }
 
     /**
-     *
      * @param classDecl(@code MJClassDecl)
      */
-    //for each class
+//for each class
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
 
-        if (hashMap.containsKey(classDecl.getName()))
+        if (hash_main.containsKey(classDecl.getName()))
             this.errors.add(new TypeError(classDecl, "Class is already defined"));
         else {
             if (extClass instanceof MJExtendsClass)
                 //ClassName, ExtendedClass
-                hashMap.put(classDecl.getName(), ((MJExtendsClass) extClass).getName());
+                hash_main.put(classDecl.getName(), ((MJExtendsClass) extClass).getName());
             else
-                hashMap.put(classDecl.getName(), null);
+                hash_main.put(classDecl.getName(), null);
 
             Field(classDecl.getFields());
             Method(classDecl.getMethods());
@@ -228,10 +229,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
      * @param methodDeclList(@code MJMethodDeclList)
      */
-    //methods
+//methods
     public void Method(MJMethodDeclList methodDeclList) {
         MJMethodDecl methodDecl;
 
@@ -239,28 +239,21 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
             methodDecl = methodDeclList.get(i);
 
-            if (hashMap.containsKey(methodDecl.getName())) {
-                if (varclass.containsKey(methodDecl.getName()))
-                    this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
-            } else {
-                if (methodDecl instanceof MJMethodDecl) {
-                    hashMap.put(methodDecl.getName(), methodDecl.getReturnType());
-                    hashMap.put(methodDecl.getName(), methodDecl.getFormalParameters());
-                }
-
-                Block(methodDecl.getMethodBody(), "", methodDecl);  //body of method
+            if (hash_class.containsKey(methodDecl.getName()))
+                this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
+            else if (methodDecl instanceof MJMethodDecl) {
+                hash_class.put(methodDecl.getName(), methodDecl.getReturnType());
             }
-            System.out.println(hashMap.toString());
-           // varmethod.clear();  //clearing the scope of methods
+
+            Block(methodDecl.getMethodBody());  //body of method
         }
+        // varmethod.clear();  //clearing the scope of methods
     }
 
     /**
-     *
      * @param varDeclList(@code MJVarDeclList)
      */
-    //for variable
-
+//for variable
     public void Field(MJVarDeclList varDeclList) {
         MJVarDecl varDecl;
 
@@ -268,15 +261,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             varDecl = varDeclList.get(i);
 
             if (varDecl instanceof MJVarDecl) {
-                if (hashMap.containsKey(varDecl.getName())) {
-                    if (!varclass.containsKey(varDecl.getName())) {
-                        varclass.put(varDecl.getName(), varDecl.getType());
-                    } else
-                        this.errors.add(new TypeError(varDecl, "Field names should be unique"));
-                } else {
-                    hashMap.put(varDecl.getName(), varDecl.getType());
-                    varclass.put(varDecl.getName(), varDecl.getType());
-                }
+                if (!hash_class.containsKey(varDecl.getName())) {
+                    hash_class.put(varDecl.getName(), varDecl.getType());
+                } else
+                    this.errors.add(new TypeError(varDecl, "Field names should be unique"));
             }
         }
     }

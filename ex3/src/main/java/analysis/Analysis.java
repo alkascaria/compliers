@@ -48,6 +48,9 @@ public class Analysis {
         SymbolTable st = new SymbolTable(prog);
         st.createST();
 
+     //   Handlenew handlenew  = new Handlenew(prog);
+       // handlenew.stack();
+
         checkMethodOverriding();
 
         checkMethodUniqueness();
@@ -207,7 +210,7 @@ public class Analysis {
         HashMap<String, MJElement> table = new HashMap<>();
 
         String mainClassName = prog.getMainClass().getName();
-
+System.out.println(mainClassName);
         //add main class to class table
         //table.put(prog.getMainClass().getName(), prog.getMainClass());
         //add all other classes to class table
@@ -215,7 +218,6 @@ public class Analysis {
         {
             table.put(classDecl.getName(), classDecl);
         }
-
         //check all classes that DO EXTEND another class
         for (MJClassDecl classDecl : prog.getClassDecls())
         {
@@ -269,7 +271,6 @@ public class Analysis {
 
                     }
                 }
-
             }
         }
 
