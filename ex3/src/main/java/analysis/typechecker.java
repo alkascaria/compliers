@@ -195,20 +195,35 @@ public class typechecker {
 
     //check if subtyping
 
-    void CheckReturn(MJStmtReturn stmtReturn, MJMethodDecl methodDecl) {
-        //return type in signature.
-        MJType returnType = methodDecl.getReturnType();
-        System.out.println(returnType);
+    void CheckReturn(MJStmtReturn stmtReturn, MJMethodDecl methodDecl, String mainArgs)
+    {
 
-        if (stmtReturn.getResult() instanceof MJNewObject) {
-            MJNewObject newObj = (MJNewObject) stmtReturn.getResult();
-            MJType typeObj = TypeClass(newObj.getClassName());
-            boolean validSubType = StaticMethods.isSubTypeOff(returnType, typeObj);
+        //if in main method and found a return statement...
+        //found a return statement in the main
+         if(stmtReturn instanceof MJStmtReturn && mainArgs.length() > 0)
+         {
+            this.errors.add(new TypeError(stmtReturn, "Return statements are not allowed in the main method."));
 
-            if (validSubType == false) {
-                this.errors.add(new TypeError(newObj, "Return statement is not a subtype of method's return type "));
+         }
+
+        //make sure it's not a an invalid signature method (as in main)
+        if(methodDecl != null )
+        {
+            //return type in signature.
+            MJType returnType = methodDecl.getReturnType();
+            System.out.println(returnType);
+
+            if (stmtReturn.getResult() instanceof MJNewObject) {
+                MJNewObject newObj = (MJNewObject) stmtReturn.getResult();
+                MJType typeObj = TypeClass(newObj.getClassName());
+                boolean validSubType = StaticMethods.isSubTypeOff(returnType, typeObj);
+
+                if (validSubType == false) {
+                    this.errors.add(new TypeError(newObj, "Return statement is not a subtype of method's return type "));
+                }
+                //check if returnType doesn't extend newObj
             }
-            //check if returnType doesn't extend newObj
         }
+
     }
 }

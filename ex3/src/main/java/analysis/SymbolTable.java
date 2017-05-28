@@ -78,6 +78,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             {
                 hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
+
+
+
             if (statement instanceof MJVarDecl) {
                 if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {
                     //variables
@@ -89,13 +92,17 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     }
                 } else {
                     //checking if already defined with String[] type as argument of main
-                    if (mainArgs.length() > 0) {
+                    if (mainArgs.length() > 0)
+                    {
                         String varName = (((MJVarDecl) statement).getName());
                         if (varName.equals(mainArgs)) {
                             this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
                         } else
                             hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
-                    } else {
+
+                        //we're in the main. make sure
+                    }
+                    else {
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                         hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     }
@@ -109,8 +116,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                 tc.CheckStmtassg((MJStmtAssign) statement);
             else if (statement instanceof MJStmtPrint)
                 tc.CheckSOP((MJStmtPrint) statement);
-            else if (statement instanceof MJStmtReturn)
-                tc.CheckReturn((MJStmtReturn)statement, methodDecl);
+            else if (statement instanceof MJStmtReturn) {
+                tc.CheckReturn((MJStmtReturn) statement, methodDecl, mainArgs);
+            }
             //Checking whether while condition is a boolean
             else if (statement instanceof MJStmtWhile)
                 tc.checkwhile((MJStmtWhile) statement);
