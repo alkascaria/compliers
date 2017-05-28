@@ -5,11 +5,7 @@ import minijava.ast.*;
 import java.util.*;
 
 /**
- * Adds errors
- * Symbol table error
- * Check method, parameter uniqueness
- * Create Class table
- * Checks inheritance loop
+ *
  */
 public class Analysis {
 
@@ -17,7 +13,7 @@ public class Analysis {
     private List<TypeError> typeErrors = new ArrayList<>();
 
     /**
-     * Adds error to error list
+     *
      * @param element(@code MJElement)
      * @param message(@code String)
      */
@@ -27,20 +23,21 @@ public class Analysis {
     }
 
     /**
-     * Initializes MJProgram and Staticmethods
+     *
      * @param prog(@code MJProgram)
      *
      */
     public Analysis(MJProgram prog)
     {
         this.prog = prog;
+        StaticMethods staticMethods = new StaticMethods(prog);
     }
 
     LinkedList loop = new LinkedList(); //for extended loop
     Stack class_name = new Stack(); //for extented class declration
 
-   /**
-     * Checks and adds symbol table errors to error list
+    /**
+     *
      */
     public void check() {
 
@@ -50,6 +47,9 @@ public class Analysis {
 
         SymbolTable st = new SymbolTable(prog);
         st.createST();
+
+     //   Handlenew handlenew  = new Handlenew(prog);
+       // handlenew.stack();
 
         checkMethodOverriding();
 
@@ -125,7 +125,7 @@ public class Analysis {
     }
 
     /**
-     * The ExtendClass check for inheritance loop as well as whether the extended class is declared 
+     *
      */
     public void ExtendedClass() {
 
@@ -168,7 +168,7 @@ public class Analysis {
                     //check whether there is any loop present
                     for (int j = 0; j < index1; j++) {
                         if (parent.equals(loop.get(j))) {
-                            this.addError(classDecl.getExtended().getParent(), "The class cannot be extended as it forms circular reference.");
+                            this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it forms a loop");
                         }
                     }
                 }
@@ -197,7 +197,7 @@ public class Analysis {
         }
     }
 
-   /**
+    /**
      * create class table
      * for classes extended by another class, create method table
      * add parent methods to method table
@@ -210,7 +210,7 @@ public class Analysis {
         HashMap<String, MJElement> table = new HashMap<>();
 
         String mainClassName = prog.getMainClass().getName();
-
+System.out.println(mainClassName);
         //add main class to class table
         //table.put(prog.getMainClass().getName(), prog.getMainClass());
         //add all other classes to class table
@@ -218,7 +218,6 @@ public class Analysis {
         {
             table.put(classDecl.getName(), classDecl);
         }
-
         //check all classes that DO EXTEND another class
         for (MJClassDecl classDecl : prog.getClassDecls())
         {
@@ -272,15 +271,14 @@ public class Analysis {
 
                     }
                 }
-
             }
         }
 
     }
 
     /**
-     * Gets type Error
-     * @return typeErrors {@code new ArrayList<>(typeErrors)}
+     *
+     * @return typeErrors{@code new ArrayList<>(typeErrors)}
      */
 
     public List<TypeError> getTypeErrors() {

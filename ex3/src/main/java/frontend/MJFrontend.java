@@ -22,11 +22,8 @@ public class MJFrontend {
 	private List<SyntaxError> syntaxErrors = new ArrayList<>();
 
 	/**
-     * Checks if object is a type of other object
-     * @param a(@code MJType)
-     * @param b(@code MJType)
-     * @return the Value(@code a.toString().compareTo(b.toString()||(@code classA.compareTo(classB))||(tempClass.getName().compareTo(classB))?(@true): @false
-     */
+	 * parses a MiniJava program from a Reader
+	 */
 	public MJProgram parse(Reader in) throws Exception {
 		ComplexSymbolFactory sf = new MJSymbolFactory();
 		Lexer lexer = new Lexer(sf, in);
