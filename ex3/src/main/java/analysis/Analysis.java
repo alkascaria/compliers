@@ -30,7 +30,6 @@ public class Analysis {
     public Analysis(MJProgram prog)
     {
         this.prog = prog;
-        StaticMethods staticMethods = new StaticMethods(prog);
     }
 
     LinkedList loop = new LinkedList(); //for extended loop
@@ -165,7 +164,7 @@ public class Analysis {
                     //check whether there is any loop present
                     for (int j = 0; j < index1; j++) {
                         if (parent.equals(loop.get(j))) {
-                            this.addError(classDecl.getExtended().getParent(), "The class cannot be extented as it forms a loop");
+                            this.addError(classDecl.getExtended().getParent(), "The class cannot be extended as it forms circular reference.");
                         }
                     }
                 }
