@@ -193,23 +193,37 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                         //loop through all of them and check if subtype
                         for(MJVarDecl varDeclMethod : varDeclList)
                         {
-                            for(MJExpr exprArg : methodCall.getArguments())
-                            {
-                                if(exprArg instanceof MJVarUse)
-                                {
-                                    typechecker tc = new typechecker(varmethod, varclass, hashMap);
-                                    //type of the method name's parameter
-                                    MJType typeMethod = varDeclMethod.getType();
-                                    //type of the corresponding method call's passed parameter
-                                    MJType typeParam = tc.CheckType((MJVarUse)exprArg);
+                            if(varDeclMethod != null) {
 
-                                    boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
-                                    //if a single one is not subtype, then raise an error already
-                                    if(isSubType == false)
-                                    {
-                                        this.errors.add(new TypeError(typeParam, "Method's parameters must be subtypes of method's declaration's arguments."));
+
+                                for (MJExpr exprArg : methodCall.getArguments()) {
+
+                                    System.out.println(exprArg.toString());
+
+                                    if (exprArg != null && exprArg instanceof MJVarUse ) {
+
+                                        typechecker tc = new typechecker(varmethod, varclass, hashMap);
+                                        //type of the method name's parameter
+                                        MJType typeMethod = varDeclMethod.getType();
+                                        //type of the corresponding method call's passed parameter
+                                        MJVarUse varUse = (MJVarUse)exprArg;
+                                        MJType typeParam = tc.CheckType(varUse);
+
+                                        if(varUse != null && typeParam != null && typeMethod != null)
+                                        {
+                                            boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
+                                            //if a single one is not subtype, then raise an error already
+                                            if (isSubType == false ) {
+                                                this.errors.add(new TypeError(exprArg, "Method's parameters must be subtypes of method's declaration's arguments."));
+                                            }
+                                        }
+
+
+
                                     }
+
                                 }
+
 
                             }
                         }
