@@ -96,7 +96,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             else if (statement instanceof MJStmtExpr) {
 
                 CheckExistenceClassInstantiation((MJStmtExpr) statement, hash_main);
-                CheckCallMethodExistence((MJStmtExpr) statement, hash_main);
+                CheckCallMethodExistence((MJStmtExpr) statement);
             } else if (statement instanceof MJVarDecl) {
                 if ((hash_main.containsKey(((MJVarDecl) statement).getName()))) {
                     //variables
@@ -141,7 +141,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             //checking for existence of class to be instantiated
             if (statement instanceof MJStmtExpr) {
                 CheckExistenceClassInstantiation((MJStmtExpr) statement, hash_method);
-                CheckCallMethodExistence((MJStmtExpr) statement, hash_method);
+                CheckCallMethodExistence((MJStmtExpr) statement);
             }
 
             if (statement instanceof MJVarDecl) {
@@ -176,6 +176,79 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     /**
      * @param statement(@code MJStmtExpr)
      */
+
+    public void CheckCallMethodExistence(MJStmtExpr statement)
+    {
+        MJStmtExpr stmtExpr = statement;
+        MJExpr exprStmt = stmtExpr.getExpr();
+        //
+        if (exprStmt instanceof MJMethodCall)
+        {
+            //check for a method with the same name
+            MJMethodCall methodCall = (MJMethodCall)exprStmt;
+            //TODO:, check if the receiver was defined and the method belongs to that class.
+
+            if(!(this.map.containsKey(methodCall.getMethodName())))
+            {
+                this.errors.add(new TypeError(exprStmt, "Calling an undefined method name"));
+            }
+            //method found somewhere. now check if the parameters correspond
+            else
+            {
+                //check if all parameters passed are subtypes of the ones in the declaration
+                if(this.map.get(methodCall.getMethodName()) != null)
+                {
+                    MJVarDeclList varDeclList =  (MJVarDeclList) this.map.get(methodCall.getMethodName());
+
+                    if(varDeclList != null)
+                    {
+                        //loop through all of them and check if subtype
+                        for(MJVarDecl varDeclMethod : varDeclList)
+                        {
+                            if(varDeclMethod != null) {
+
+
+                                for (MJExpr exprArg : methodCall.getArguments()) {
+
+                                    System.out.println(exprArg.toString());
+
+                                    if (exprArg != null && exprArg instanceof MJVarUse ) {
+
+
+                                        typechecker tc = new typechecker(hash_method, hash_class, hash_main);
+                                        //type of the method name's parameter
+                                        MJType typeMethod = varDeclMethod.getType();
+                                        //type of the corresponding method call's passed parameter
+                                        MJVarUse varUse = (MJVarUse)exprArg;
+                                        MJType typeParam = tc.CheckType(varUse);
+
+                                        if(varUse != null && typeParam != null && typeMethod != null)
+                                        {
+                                            boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
+                                            //if a single one is not subtype, then raise an error already
+                                            if (isSubType == false ) {
+                                                this.errors.add(new TypeError(exprArg, "Method's parameters must be subtypes of method's declaration's arguments."));
+                                            }
+                                        }
+
+
+
+                                    }
+
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+
+
     public void CheckCallMethodExistence(MJStmtExpr statement, LinkedHashMap map) {
         MJStmtExpr stmtExpr = statement;
         MJExpr exprStmt = stmtExpr.getExpr();
@@ -190,6 +263,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
     }
+
+    */
 
     /**
      * @param statement(@code MJStmtExpr)
@@ -268,4 +343,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
     }
+
+
+
+
 }
