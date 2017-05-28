@@ -15,7 +15,6 @@ public class Analysis {
 
     public Analysis(MJProgram prog)
     {
-
         this.prog = prog;
         StaticMethods staticMethods = new StaticMethods(prog);
     }
@@ -64,12 +63,6 @@ public class Analysis {
             hashMethods.clear();
         }
     }
-
-
-
-
-
-
 
     //check uniqueness of parameter names
     public void MethodParameterNames()
@@ -252,10 +245,6 @@ public class Analysis {
         }
 
     }
-
-
-
-
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);

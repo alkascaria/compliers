@@ -45,7 +45,6 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         System.out.println("HasMap is " + hashMap);
     }
 
-
     //for mainclass
     public void STMain(MJMainClass mainClass) {
 
@@ -100,25 +99,23 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                         varmethod.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                         hashMap.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     }
-
-
                 }
             }
-
             //checking if the main args doesn't get redefined somewhere
         }
-
         for (MJStatement statement : block) {
             typechecker tc = new typechecker(varmethod, varclass, hashMap);
             if (statement instanceof MJStmtAssign)   //Type check
                 tc.CheckStmtassg((MJStmtAssign) statement);
-            if (statement instanceof MJStmtPrint)
+            else if (statement instanceof MJStmtPrint)
                 tc.CheckSOP((MJStmtPrint) statement);
-            if (statement instanceof MJStmtReturn)
-            {
+            else if (statement instanceof MJStmtReturn)
                 tc.CheckReturn((MJStmtReturn)statement, methodDecl);
-            }
-
+            //Checking whether while condition is a boolean
+            else if (statement instanceof MJStmtWhile)
+                tc.checkwhile((MJStmtWhile) statement);
+            else if (statement instanceof MJStmtIf)
+                tc.checkif((MJStmtIf) statement);
             errors.addAll(tc.getErrors());
         }
         varmethod.clear();
@@ -187,5 +184,4 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
     }
-
 }
