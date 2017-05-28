@@ -72,12 +72,24 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     //block: block of code found between {}
     //mainArgs: arguments in the main method
     //typeReturn: type of the function where the block is in
-    public void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl) {
-        for (MJStatement statement : block) {
-            if (statement instanceof MJStmtAssign)   //assginment
+    public void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl)
+    {
+        for (MJStatement statement : block)
+        {
+            System.out.println(statement.getClass());
+
+            if (statement != null && statement instanceof MJStmtAssign)   //assginment
             {
                 hashMap.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
+
+            //checking for existence of class to be instantiated
+            if(statement instanceof  MJStmtExpr)
+            {
+                CheckExistenceClassInstantiation((MJStmtExpr)statement);
+                CheckCallMethodExistence((MJStmtExpr)statement);
+            }
+
 
 
 
@@ -130,6 +142,47 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
     }
 
+    public void CheckCallMethodExistence(MJStmtExpr statement)
+    {
+        MJStmtExpr stmtExpr = statement;
+        MJExpr exprStmt = stmtExpr.getExpr();
+        //
+        if (exprStmt instanceof MJMethodCall)
+        {
+            //check for a method with the same name
+            System.out.println(hashMap.toString());
+            MJMethodCall methodCall = (MJMethodCall)exprStmt;
+
+            //TODO:, check if the receiver was defined and the method belongs to that class.
+            if(!(this.hashMap.containsKey(methodCall.getMethodName())))
+            {
+                this.errors.add(new TypeError(exprStmt, "Calling an undefined method"));
+            }
+
+
+        }
+    }
+
+
+
+    public void CheckExistenceClassInstantiation(MJStmtExpr statement)
+    {
+        MJStmtExpr stmtExpr = statement;
+        MJExpr exprStmt = stmtExpr.getExpr();
+        if(exprStmt instanceof MJNewObject)
+        {
+            //now check if a class exists if with the name declared
+            MJNewObject newObj = (MJNewObject) exprStmt;
+
+            System.out.println(newObj.getClassName());
+
+            if(!(this.hashMap.containsKey(newObj.getClassName())))
+            {
+                this.errors.add(new TypeError(statement, "Class declaration not found"));
+            }
+        }
+    }
+
     //for each class
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
@@ -167,7 +220,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
                 Block(methodDecl.getMethodBody(), "", methodDecl);  //body of method
             }
-            varmethod.clear();  //clearing the scope of methods
+            System.out.println(hashMap.toString());
+           // varmethod.clear();  //clearing the scope of methods
         }
     }
 

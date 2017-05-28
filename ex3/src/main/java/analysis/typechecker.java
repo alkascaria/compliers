@@ -147,8 +147,10 @@ public class typechecker {
                 return true;
             else
                 return false;
-        } else
+        }
+        else {
             return false;
+        }
 
     }
 
@@ -203,7 +205,6 @@ public class typechecker {
          if(stmtReturn instanceof MJStmtReturn && mainArgs.length() > 0)
          {
             this.errors.add(new TypeError(stmtReturn, "Return statements are not allowed in the main method."));
-
          }
 
         //make sure it's not a an invalid signature method (as in main)
