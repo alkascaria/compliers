@@ -4,15 +4,29 @@ import minijava.ast.*;
 
 import java.util.*;
 
+/**
+ *
+ */
 public class Analysis {
 
     private final MJProgram prog;
     private List<TypeError> typeErrors = new ArrayList<>();
 
-    public void addError(MJElement element, String message) {
+    /**
+     *
+     * @param element(@code MJElement)
+     * @param message(@code String)
+     */
+    public void addError(MJElement element, String message)
+    {
         typeErrors.add(new TypeError(element, message));
     }
 
+    /**
+     *
+     * @param prog(@code MJProgram)
+     *
+     */
     public Analysis(MJProgram prog)
     {
         this.prog = prog;
@@ -22,6 +36,9 @@ public class Analysis {
     LinkedList loop = new LinkedList(); //for extended loop
     Stack class_name = new Stack(); //for extented class declration
 
+    /**
+     *
+     */
     public void check() {
 
         ExtendedClass();
@@ -38,6 +55,11 @@ public class Analysis {
         typeErrors.addAll(st.getErrors());
     }
 
+
+    /**
+     * Check method Uniqueness
+     *
+     */
     public void checkMethodUniqueness()
     {
         HashMap<String, MJType> hashMethods = new HashMap<>();
@@ -64,7 +86,9 @@ public class Analysis {
         }
     }
 
-    //check uniqueness of parameter names
+    /**
+     * check uniqueness of parameter names
+     */
     public void MethodParameterNames()
     {
         //loop through all classes
@@ -97,6 +121,9 @@ public class Analysis {
         }
     }
 
+    /**
+     *
+     */
     public void ExtendedClass() {
 
         MJClassDeclList classDeclList = this.prog.getClassDecls();
@@ -167,11 +194,13 @@ public class Analysis {
         }
     }
 
-    //1. create class table
-    //2. for classes extended by another class, create method table
-    //3. add parent methods to method table
-    //4. compare current class' methods with parent's methods and check if methods are overridden correctly
-
+    /**
+     * create class table
+     * for classes extended by another class, create method table
+     * add parent methods to method table
+     * compare current class' methods with parent's methods and check if methods are overridden correctly
+     *
+     */
     public void checkMethodOverriding()
     {
         //create class table
@@ -245,6 +274,11 @@ public class Analysis {
         }
 
     }
+
+    /**
+     *
+     * @return typeErrors{@code new ArrayList<>(typeErrors)}
+     */
 
     public List<TypeError> getTypeErrors() {
         return new ArrayList<>(typeErrors);

@@ -12,13 +12,22 @@ public class StaticMethods
 
     public static MJProgram prog;
 
+    /**
+     *
+     * @param program(@code MJProgram)
+     */
     public StaticMethods(MJProgram program)
     {
         this.prog = program;
 
     }
 
-
+    /**
+     *
+     * @param a(@code MJType)
+     * @param b(@code MJType)
+     * @return
+     */
     public static boolean isSubTypeOff(MJType a, MJType b)
     {
         //create hashmap with all classes
