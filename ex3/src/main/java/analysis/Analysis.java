@@ -13,7 +13,7 @@ public class Analysis {
     private List<TypeError> typeErrors = new ArrayList<>();
 
     /**
-     *
+     * Adds error to error list
      * @param element(@code MJElement)
      * @param message(@code String)
      */
@@ -23,7 +23,7 @@ public class Analysis {
     }
 
     /**
-     *
+     * Initializes MJProgram and Staticmethods
      * @param prog(@code MJProgram)
      *
      */
@@ -35,8 +35,8 @@ public class Analysis {
     LinkedList loop = new LinkedList(); //for extended loop
     Stack class_name = new Stack(); //for extented class declration
 
-    /**
-     *
+   /**
+     * Checks and adds symbol table errors to error list
      */
     public void check() {
 
@@ -193,7 +193,7 @@ public class Analysis {
         }
     }
 
-    /**
+   /**
      * create class table
      * for classes extended by another class, create method table
      * add parent methods to method table
@@ -275,8 +275,8 @@ public class Analysis {
     }
 
     /**
-     *
-     * @return typeErrors{@code new ArrayList<>(typeErrors)}
+     * Gets type Error
+     * @return typeErrors {@code new ArrayList<>(typeErrors)}
      */
 
     public List<TypeError> getTypeErrors() {
