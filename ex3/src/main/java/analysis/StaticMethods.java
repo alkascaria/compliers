@@ -5,7 +5,9 @@ import minijava.ast.*;
 import java.util.HashMap;
 
 /**
+ * This class checks if MJType is a subtype of other
  * Created by Daniele on 27/05/2017.
+ *
  */
 public class StaticMethods
 {
@@ -13,7 +15,7 @@ public class StaticMethods
     public static MJProgram prog;
 
     /**
-     *
+     * Sets MJProgram
      * @param program(@code MJProgram)
      */
     public StaticMethods(MJProgram program)
@@ -22,11 +24,11 @@ public class StaticMethods
 
     }
 
-    /**
-     *
+     /**
+     * Checks if object is a type of other object
      * @param a(@code MJType)
      * @param b(@code MJType)
-     * @return
+     * @return the Value(@code a.toString().compareTo(b.toString()||(@code classA.compareTo(classB))||(tempClass.getName().compareTo(classB))?(@true): @false
      */
     public static boolean isSubTypeOff(MJType a, MJType b)
     {

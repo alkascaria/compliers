@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
+ * Creating Symbol Table
  * Created by alka on 5/23/2017.
  */
 public class SymbolTable extends MJElement.DefaultVisitor {
@@ -29,6 +30,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
+     *
      * @param program(@code MJProgram)
      */
     public SymbolTable(MJProgram program) {
@@ -40,7 +42,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
         this.program = program;
     }
-
+    /**
+     * Create Symbol Table
+     */
     public void createST() {
         program.accept(this);
 
@@ -48,10 +52,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         STClass(program.getClassDecls());
     }
 
-    /**
+   /**
+     * Symbol Table for Main Class
      * @param mainClass(@code MJMainClass)
      */
-    //for mainclass
     public void STMain(MJMainClass mainClass) {
         if (hash_main.containsKey(mainClass.getName())) {
             errors.add(new TypeError(mainClass, "Main class is already defined"));
@@ -60,9 +64,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
         Block_main(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
     }
-    //for other classes
-
-    /**
+     /**
+     * Symbol Table for other classes
      * @param classDeclList(@code MJClassDeclList)
      */
     public void STClass(MJClassDeclList classDeclList) {
@@ -77,11 +80,11 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
 
-    //typeReturn: type of the function where the block is in
-
-    /**
+     /**
+     * Type of the function where the block is in
      * @param block(@code MJBlock) block of code found between {}
-     * @param mainArgs(@  String) arguments in the main method
+     * @param mainArgs(@ String) arguments in the main method
+     * @param methodDecl(@ MJMethodDecl)
      */
 
     public void Block_main(MJBlock block, String mainArgs) {
@@ -130,7 +133,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             errors.addAll(tc.getErrors());
         }
     }
-
+    /**
+     * Check Method Existence
+     * @param statement(@code MJStmtExpr)
+     */
     void Block(MJBlock block) {
         for (MJStatement statement : block) {
             if (statement != null && statement instanceof MJStmtAssign)   //assginment
@@ -174,6 +180,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
+     * Check Class Instance
      * @param statement(@code MJStmtExpr)
      */
 
@@ -214,7 +221,6 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
                                     if (exprArg != null && exprArg instanceof MJVarUse ) {
 
-
                                         typechecker tc = new typechecker(hash_method, hash_class, hash_main);
                                         //type of the method name's parameter
                                         MJType typeMethod = varDeclMethod.getType();
@@ -231,12 +237,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                                             }
                                         }
 
-
-
                                     }
 
                                 }
-
 
                             }
                         }
@@ -246,27 +249,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    /*
-
-
-    public void CheckCallMethodExistence(MJStmtExpr statement, LinkedHashMap map) {
-        MJStmtExpr stmtExpr = statement;
-        MJExpr exprStmt = stmtExpr.getExpr();
-        //
-        if (exprStmt instanceof MJMethodCall) {
-            //check for a method with the same name
-            MJMethodCall methodCall = (MJMethodCall) exprStmt;
-
-            //TODO:, check if the receiver was defined and the method belongs to that class.
-            if (!(this.map.containsKey(methodCall.getMethodName()))) {
-                this.errors.add(new TypeError(exprStmt, "Calling an undefined method"));
-            }
-        }
-    }
-
-    */
-
-    /**
+   /**
+     * Check Class Instance
      * @param statement(@code MJStmtExpr)
      */
     public void CheckExistenceClassInstantiation(MJStmtExpr statement, LinkedHashMap map) {
@@ -283,9 +267,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
+     * For each class
      * @param classDecl(@code MJClassDecl)
      */
-//for each class
+
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
 
@@ -303,10 +288,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    /**
+   /**
+     * For Methods
      * @param methodDeclList(@code MJMethodDeclList)
      */
-//methods
     public void Method(MJMethodDeclList methodDeclList) {
         MJMethodDecl methodDecl;
 
@@ -322,13 +307,12 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
             Block(methodDecl.getMethodBody());  //body of method
         }
-        // varmethod.clear();  //clearing the scope of methods
     }
 
     /**
+     * For variable
      * @param varDeclList(@code MJVarDeclList)
      */
-//for variable
     public void Field(MJVarDeclList varDeclList) {
         MJVarDecl varDecl;
 

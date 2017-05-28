@@ -3,14 +3,16 @@ package analysis;
 import frontend.SourcePosition;
 import minijava.ast.MJElement;
 
+
 /**
- *
+ * This class deals with error messages.
+ * Has methods to return position, error message.
  */
 public class TypeError extends RuntimeException {
     private SourcePosition source;
 
     /**
-     *
+     * sets position of error
      * @param message(@code String)
      * @param line(@code int)
      * @param column(@code int)
@@ -20,8 +22,8 @@ public class TypeError extends RuntimeException {
         this.source = new SourcePosition("", line, column, line, column);
     }
 
-    /**
-     *
+     /**
+     * gets position and parent element
      * @param element(@code MJElement)
      * @param message(@code String)
      */
@@ -36,9 +38,9 @@ public class TypeError extends RuntimeException {
         }
     }
 
-    /**
-     *
-     * @return
+   /**
+     * Gets the Line Number
+     * @return the value (@code source.getLine())
      */
     public int getLine()
     {
@@ -46,8 +48,8 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     *
-     * @return
+     * Get the Column
+     * @return the value(@code source.getColumn())
      */
     public int getColumn()
     {
@@ -55,18 +57,18 @@ public class TypeError extends RuntimeException {
     }
 
     /**
-     *
-     * @return
+     * returns error statement
+     * @return the Value ("Error in line"+ @code getLine()+ ":" + getColumn() + ": " + getMessage())
      */
     @Override
     public String toString()
     {
         return "Error in line " + getLine() + ":" + getColumn() + ": " + getMessage();
     }
-
     /**
+     * returns length of column
+     * @return the value (@code source.getLine() == source.getEndLine())?(@code source.getEndColumn() - source.getColumn():5)
      *
-     * @return
      */
     public int getLength() {
         if (source.getLine() == source.getEndLine()) {
@@ -74,9 +76,8 @@ public class TypeError extends RuntimeException {
         }
         return 5;
     }
-
-    /**
-     *
+   /**
+     * Gets sourcePosition
      * @return (@code source)
      */
     public SourcePosition getSource()

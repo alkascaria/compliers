@@ -12,7 +12,10 @@ public class Handlenew {
     MJProgram program;
 
     Stack name = new Stack();   //stack for storing the class declrations and method declrations
-
+    /**
+     *
+     * @param program(@code MJProgram)
+     */
     public Handlenew(MJProgram program) {
         this.program = program;
         parse_program(program);
@@ -40,11 +43,17 @@ public class Handlenew {
             }
         }
     }
-
+    /**
+     * Parse MJProgram
+     * @param program(@code MJProgram)
+     */
     void parse_program(MJProgram program) {
         parse_Block(program.getMainClass().getMainBody());
     }
-
+    /**
+     * Parse Block
+     * @param method_body(@code MJBlock)
+     */
     void parse_Block(MJBlock method_body) {
         for (MJStatement statement : method_body) {
         }
