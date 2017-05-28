@@ -3,14 +3,28 @@ package analysis;
 import frontend.SourcePosition;
 import minijava.ast.MJElement;
 
+/**
+ *
+ */
 public class TypeError extends RuntimeException {
     private SourcePosition source;
 
+    /**
+     *
+     * @param message(@code String)
+     * @param line(@code int)
+     * @param column(@code int)
+     */
     public TypeError(String message, int line, int column) {
         super(message);
         this.source = new SourcePosition("", line, column, line, column);
     }
 
+    /**
+     *
+     * @param element(@code MJElement)
+     * @param message(@code String)
+     */
     public TypeError(MJElement element, String message) {
         super(message);
         while (element != null) {
@@ -22,19 +36,38 @@ public class TypeError extends RuntimeException {
         }
     }
 
-    public int getLine() {
+    /**
+     *
+     * @return
+     */
+    public int getLine()
+    {
         return source.getLine();
     }
 
-    public int getColumn() {
+    /**
+     *
+     * @return
+     */
+    public int getColumn()
+    {
         return source.getColumn();
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "Error in line " + getLine() + ":" + getColumn() + ": " + getMessage();
     }
 
+    /**
+     *
+     * @return
+     */
     public int getLength() {
         if (source.getLine() == source.getEndLine()) {
             return source.getEndColumn() - source.getColumn();
@@ -42,7 +75,12 @@ public class TypeError extends RuntimeException {
         return 5;
     }
 
-    public SourcePosition getSource() {
+    /**
+     *
+     * @return (@code source)
+     */
+    public SourcePosition getSource()
+    {
         return source;
     }
 }

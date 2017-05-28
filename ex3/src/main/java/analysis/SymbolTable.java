@@ -28,6 +28,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         return errors;
     }
 
+    /**
+     *
+     * @param program(@code MJProgram)
+     */
     public SymbolTable(MJProgram program) {
 
         hashMap = new LinkedHashMap<Object, Object>();
@@ -45,6 +49,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         System.out.println("HasMap is " + hashMap);
     }
 
+    /**
+     *
+     * @param mainClass(@code MJMainClass)
+     */
     //for mainclass
     public void STMain(MJMainClass mainClass) {
 
@@ -58,6 +66,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
     //for other classes
 
+    /**
+     *
+     * @param classDeclList(@code MJClassDeclList)
+     */
     public void STClass(MJClassDeclList classDeclList) {
         MJClassDecl classDecl;
 
@@ -69,9 +81,15 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    //block: block of code found between {}
-    //mainArgs: arguments in the main method
+
     //typeReturn: type of the function where the block is in
+
+    /**
+     *
+     * @param block(@code MJBlock) block of code found between {}
+     * @param mainArgs(@ String) arguments in the main method
+     * @param methodDecl(@ MJMethodDecl)
+     */
     public void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl)
     {
         for (MJStatement statement : block)
@@ -89,9 +107,6 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                 CheckExistenceClassInstantiation((MJStmtExpr)statement);
                 CheckCallMethodExistence((MJStmtExpr)statement);
             }
-
-
-
 
             if (statement instanceof MJVarDecl) {
                 if ((hashMap.containsKey(((MJVarDecl) statement).getName()))) {
@@ -142,6 +157,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
     }
 
+    /**
+     *
+     * @param statement(@code MJStmtExpr)
+     */
     public void CheckCallMethodExistence(MJStmtExpr statement)
     {
         MJStmtExpr stmtExpr = statement;
@@ -164,7 +183,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
 
-
+    /**
+     *
+     * @param statement(@code MJStmtExpr)
+     */
     public void CheckExistenceClassInstantiation(MJStmtExpr statement)
     {
         MJStmtExpr stmtExpr = statement;
@@ -183,6 +205,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
+    /**
+     *
+     * @param classDecl(@code MJClassDecl)
+     */
     //for each class
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
@@ -201,6 +227,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
+    /**
+     *
+     * @param methodDeclList(@code MJMethodDeclList)
+     */
     //methods
     public void Method(MJMethodDeclList methodDeclList) {
         MJMethodDecl methodDecl;
@@ -225,6 +255,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
+    /**
+     *
+     * @param varDeclList(@code MJVarDeclList)
+     */
     //for variable
 
     public void Field(MJVarDeclList varDeclList) {
