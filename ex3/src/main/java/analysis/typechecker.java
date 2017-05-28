@@ -16,8 +16,9 @@ import static minijava.ast.MJ.TypeClass;
 public class typechecker {
 
     private LinkedHashMap<Object, Object> hash_main, hash_method, hash_class;
-   /**
+    /**
      * Gets Error
+     *
      * @return errors(@code errors)
      */
     public List<TypeError> errors = new ArrayList<>();
@@ -25,19 +26,23 @@ public class typechecker {
     public List<TypeError> getErrors() {
         return errors;
     }
+
     /**
      * Initializes variables
-     * @param varmethod(@code LinkedHashMap)
-     * @param varclass(@code LinkedHashMap)
-     * @param hashMap(@code LinkedHashMap)
+     *
+     * @param hash_method(@code LinkedHashMap)
+     * @param hash_class(@code LinkedHashMap)
+     * @param hash_main(@code LinkedHashMap)
      */
     public typechecker(LinkedHashMap hash_method, LinkedHashMap hash_class, LinkedHashMap hash_main) {
         this.hash_method = hash_method;
         this.hash_class = hash_class;
         this.hash_main = hash_main;
     }
+
     /**
      * Checks if condition in while is of type boolean
+     *
      * @param stmtWhile(@code MJStmtWhile)
      */
     void checkwhile(MJStmtWhile stmtWhile) {
@@ -47,8 +52,10 @@ public class typechecker {
         } else
             this.errors.add(new TypeError(stmtWhile, "The condition of while should be of type boolean"));
     }
+
     /**
      * Checks if condition in if is of type boolean
+     *
      * @param stmtIf(@code MJStmtIf)
      */
     void checkif(MJStmtIf stmtIf) {
@@ -59,8 +66,10 @@ public class typechecker {
             this.errors.add(new TypeError(stmtIf, "The condition of if should be of type boolean"));
 
     }
+
     /**
      * Checks if MJStmtPrint prints only integer
+     *
      * @param stmtPrint(@code MJStmtPrint)
      */
     void CheckSOP(MJStmtPrint stmtPrint) {
@@ -73,13 +82,15 @@ public class typechecker {
             }
         } else if (stmtPrint.getPrinted() instanceof MJArrayLength) {
 
-        }else if (!(stmtPrint.getPrinted() instanceof MJNumber)) {
+        } else if (!(stmtPrint.getPrinted() instanceof MJNumber)) {
             //SOP can have a constant number
             this.errors.add(new TypeError(stmtPrint, "System.out.println can only print an integer"));
         }
     }
+
     /**
      * Finding out whether the variable is declared and its type
+     *
      * @param variable(@code MJVarUse)
      * @return (@code type)
      */
@@ -95,8 +106,10 @@ public class typechecker {
             this.errors.add(new TypeError(variable, "Variable is not declared"));
         return type;
     }
+
     /**
      * Checks Statement assignment
+     *
      * @param stmtAssign(@code MJStmtAssign)
      */
     void CheckStmtassg(MJStmtAssign stmtAssign) {
@@ -113,8 +126,10 @@ public class typechecker {
             CheckExpr_ofassf(type, stmtAssign.getLeft());
         }
     }
+
     /**
      * Check Expression
+     *
      * @param type(@code MJType)
      * @param stmtAssign(@code MJExpr)
      */
@@ -125,7 +140,7 @@ public class typechecker {
                     if (!(check_exprbinary((MJExprBinary) stmtAssign)))
                         this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type int"));
                 } else if (stmtAssign instanceof MJExprUnary) {
-                    check_Expruniary((MJExprUnary) stmtAssign);
+                    check_Expruniary((MJExprUnary) stmtAssign, type);
                 } else if (!(stmtAssign instanceof MJNumber))
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type int"));
             } else if (type instanceof MJTypeBool) {
@@ -133,8 +148,7 @@ public class typechecker {
                     if (!(check_exprbinary((MJExprBinary) stmtAssign)))
                         this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type int"));
                 } else if (stmtAssign instanceof MJExprUnary) {
-
-                    if (!(check_Expruniary((MJExprUnary) stmtAssign)))
+                    if (!(check_Expruniary((MJExprUnary) stmtAssign, type)))
                         this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type boolean"));
                 } else if (!(stmtAssign instanceof MJBoolConst))
                     this.errors.add(new TypeError(stmtAssign, "Variable assignment should be of type boolean"));
@@ -153,15 +167,15 @@ public class typechecker {
         }
 
     }
+
     /**
      * Checks Expression Binary
+     *
      * @param exprBinary(@code MJExprBinary)
      * @return (@code (exprBinary.getLeft() instanceof MJNumber) && ((exprBinary.getRight()) instanceof MJNumber))
      * || @code  (exprBinary.getLeft() instanceof MJTypeInt) && ((exprBinary.getRight()) instanceof MJTypeInt)
      * || @code (exprBinary.getLeft() instanceof MJTypeBool) && ((exprBinary.getRight()) instanceof MJTypeBool)
      * || @code (exprBinary.getLeft() instanceof MJVarUse) && ((exprBinary.getRight()) instanceof MJVarUse)? @true:@false
-     *
-     *
      */
     Boolean check_exprbinary(MJExprBinary exprBinary) {
         if ((exprBinary.getLeft() instanceof MJNumber) && ((exprBinary.getRight()) instanceof MJNumber))
@@ -180,53 +194,66 @@ public class typechecker {
         }
 
     }
+
     /**
      * Checking unarray operators
+     *
      * @param exprUnary(@code MJExprUnary)
      * @return value(@code Value)
      */
-    Boolean check_Expruniary(MJExprUnary exprUnary) {
+    Boolean check_Expruniary(MJExprUnary exprUnary, MJType type1) {
         Boolean value = null;
+        if (type1 instanceof MJTypeInt || type1 instanceof MJNumber) {
+            if (exprUnary.getUnaryOperator() instanceof MJUnaryMinus) {
 
-        if (exprUnary.getUnaryOperator() instanceof MJUnaryMinus) {
-
-            if (exprUnary.getExpr() instanceof MJNumber) {
-                value = true;
-            } else if ((exprUnary.getExpr() instanceof MJTypeInt))
-                value = true;
-            else if (exprUnary.getExpr() instanceof MJVarUse) {
-                value = true;
-                MJType type = CheckType((MJVarUse) exprUnary.getExpr());
-                if (type instanceof MJTypeBool)
+                if (exprUnary.getExpr() instanceof MJNumber) {
                     value = true;
-                else if (type instanceof MJBoolConst)
+                } else if ((exprUnary.getExpr() instanceof MJTypeInt))
                     value = true;
-                else
+                else if (exprUnary.getExpr() instanceof MJVarUse) {
+                    value = true;
+                    MJType type = CheckType((MJVarUse) exprUnary.getExpr());
+                    if (type instanceof MJTypeBool)
+                        value = true;
+                    else if (type instanceof MJBoolConst)
+                        value = true;
+                    else
+                        value = false;
+                } else
                     value = false;
-            } else
-                value = false;
-        } else if (exprUnary.getUnaryOperator() instanceof MJNegate) {
-            if (exprUnary.getExpr() instanceof MJBoolConst) {
-                value = true;
-            } else if (exprUnary.getExpr() instanceof MJTypeInt) {
-                value = true;
-            } else if (exprUnary.getExpr() instanceof MJVarUse) {
-                value = true;
-                MJType type = CheckType((MJVarUse) exprUnary.getExpr());
-                if (type instanceof MJTypeBool)
+            }
+            else
+                value=false;
+        } else if (type1 instanceof MJTypeBool || type1 instanceof MJBoolConst){
+            if (exprUnary.getUnaryOperator() instanceof MJNegate) {
+                if (exprUnary.getExpr() instanceof MJBoolConst) {
                     value = true;
-                else if (type instanceof MJBoolConst)
+                } else if (exprUnary.getExpr() instanceof MJTypeInt) {
                     value = true;
-                else
+                } else if (exprUnary.getExpr() instanceof MJVarUse) {
+                    value = true;
+                    MJType type = CheckType((MJVarUse) exprUnary.getExpr());
+                    if (type instanceof MJTypeBool)
+                        value = true;
+                    else if (type instanceof MJBoolConst)
+                        value = true;
+                    else
+                        value = false;
+                } else
                     value = false;
-            } else
-                value = false;
+            }
+            else
+                value=false;
         }
+        else
+            value = false;
+        System.out.println(value);
         return value;
     }
 
     /**
      * check if subtyping
+     *
      * @param stmtReturn(@code MJStmtReturn)
      * @param methodDecl(@code MJMethodDecl)
      * @param mainArgs(@code String)

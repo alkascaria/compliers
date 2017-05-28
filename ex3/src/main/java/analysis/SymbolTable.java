@@ -1,14 +1,9 @@
 
 package analysis;
 
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Multimap;
 import minijava.ast.*;
 
-import javax.lang.model.type.NullType;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -30,7 +25,6 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
      * @param program(@code MJProgram)
      */
     public SymbolTable(MJProgram program) {
@@ -42,6 +36,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
         this.program = program;
     }
+
     /**
      * Create Symbol Table
      */
@@ -52,8 +47,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         STClass(program.getClassDecls());
     }
 
-   /**
+    /**
      * Symbol Table for Main Class
+     *
      * @param mainClass(@code MJMainClass)
      */
     public void STMain(MJMainClass mainClass) {
@@ -64,8 +60,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
         Block_main(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
     }
-     /**
+
+    /**
      * Symbol Table for other classes
+     *
      * @param classDeclList(@code MJClassDeclList)
      */
     public void STClass(MJClassDeclList classDeclList) {
@@ -80,10 +78,11 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
 
-     /**
+    /**
      * Type of the function where the block is in
+     *
      * @param block(@code MJBlock) block of code found between {}
-     * @param mainArgs(@ String) arguments in the main method
+     * @param mainArgs(@   String) arguments in the main method
      * @param methodDecl(@ MJMethodDecl)
      */
 
@@ -109,7 +108,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                     String varName = (((MJVarDecl) statement).getName());
                     if (varName.equals(mainArgs)) {
                         this.errors.add(new TypeError(statement, "Variable already defined in main method's argumets"));
-                    }
+                    } else
+                        hash_main.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
                     //we're in the main. make sure
                 } else
                     hash_main.put(((MJVarDecl) statement).getName(), ((MJVarDecl) statement).getType());
@@ -133,8 +133,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             errors.addAll(tc.getErrors());
         }
     }
+
     /**
      * Check Method Existence
+     *
      * @param statement(@code MJStmtExpr)
      */
     void Block(MJBlock block) {
@@ -181,58 +183,51 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
     /**
      * Check Class Instance
+     *
      * @param statement(@code MJStmtExpr)
      */
 
-    public void CheckCallMethodExistence(MJStmtExpr statement)
-    {
+    public void CheckCallMethodExistence(MJStmtExpr statement) {
         MJStmtExpr stmtExpr = statement;
         MJExpr exprStmt = stmtExpr.getExpr();
         //
-        if (exprStmt instanceof MJMethodCall)
-        {
+        if (exprStmt instanceof MJMethodCall) {
             //check for a method with the same name
-            MJMethodCall methodCall = (MJMethodCall)exprStmt;
+            MJMethodCall methodCall = (MJMethodCall) exprStmt;
             //TODO:, check if the receiver was defined and the method belongs to that class.
 
-            if(!(this.map.containsKey(methodCall.getMethodName())))
-            {
+            if (!(this.map.containsKey(methodCall.getMethodName()))) {
                 this.errors.add(new TypeError(exprStmt, "Calling an undefined method name"));
             }
             //method found somewhere. now check if the parameters correspond
-            else
-            {
+            else {
                 //check if all parameters passed are subtypes of the ones in the declaration
-                if(this.map.get(methodCall.getMethodName()) != null)
-                {
-                    MJVarDeclList varDeclList =  (MJVarDeclList) this.map.get(methodCall.getMethodName());
+                if (this.map.get(methodCall.getMethodName()) != null) {
+                    MJVarDeclList varDeclList = (MJVarDeclList) this.map.get(methodCall.getMethodName());
 
-                    if(varDeclList != null)
-                    {
+                    if (varDeclList != null) {
                         //loop through all of them and check if subtype
-                        for(MJVarDecl varDeclMethod : varDeclList)
-                        {
-                            if(varDeclMethod != null) {
+                        for (MJVarDecl varDeclMethod : varDeclList) {
+                            if (varDeclMethod != null) {
 
 
                                 for (MJExpr exprArg : methodCall.getArguments()) {
 
                                     System.out.println(exprArg.toString());
 
-                                    if (exprArg != null && exprArg instanceof MJVarUse ) {
+                                    if (exprArg != null && exprArg instanceof MJVarUse) {
 
                                         typechecker tc = new typechecker(hash_method, hash_class, hash_main);
                                         //type of the method name's parameter
                                         MJType typeMethod = varDeclMethod.getType();
                                         //type of the corresponding method call's passed parameter
-                                        MJVarUse varUse = (MJVarUse)exprArg;
+                                        MJVarUse varUse = (MJVarUse) exprArg;
                                         MJType typeParam = tc.CheckType(varUse);
 
-                                        if(varUse != null && typeParam != null && typeMethod != null)
-                                        {
+                                        if (varUse != null && typeParam != null && typeMethod != null) {
                                             boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
                                             //if a single one is not subtype, then raise an error already
-                                            if (isSubType == false ) {
+                                            if (isSubType == false) {
                                                 this.errors.add(new TypeError(exprArg, "Method's parameters must be subtypes of method's declaration's arguments."));
                                             }
                                         }
@@ -249,8 +244,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-   /**
+    /**
      * Check Class Instance
+     *
      * @param statement(@code MJStmtExpr)
      */
     public void CheckExistenceClassInstantiation(MJStmtExpr statement, LinkedHashMap map) {
@@ -268,6 +264,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
     /**
      * For each class
+     *
      * @param classDecl(@code MJClassDecl)
      */
 
@@ -288,8 +285,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-   /**
+    /**
      * For Methods
+     *
      * @param methodDeclList(@code MJMethodDeclList)
      */
     public void Method(MJMethodDeclList methodDeclList) {
@@ -311,6 +309,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
     /**
      * For variable
+     *
      * @param varDeclList(@code MJVarDeclList)
      */
     public void Field(MJVarDeclList varDeclList) {
@@ -327,8 +326,6 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             }
         }
     }
-
-
 
 
 }

@@ -13,6 +13,7 @@ public class TypeError extends RuntimeException {
 
     /**
      * sets position of error
+     *
      * @param message(@code String)
      * @param line(@code int)
      * @param column(@code int)
@@ -22,15 +23,16 @@ public class TypeError extends RuntimeException {
         this.source = new SourcePosition("", line, column, line, column);
     }
 
-     /**
+    /**
      * gets position and parent element
+     *
      * @param element(@code MJElement)
      * @param message(@code String)
      */
     public TypeError(MJElement element, String message) {
         super(message);
         while (element != null) {
-        this.source = element.getSourcePosition();
+            this.source = element.getSourcePosition();
             if (this.source != null) {
                 break;
             }
@@ -38,37 +40,38 @@ public class TypeError extends RuntimeException {
         }
     }
 
-   /**
+    /**
      * Gets the Line Number
+     *
      * @return the value (@code source.getLine())
      */
-    public int getLine()
-    {
+    public int getLine() {
         return source.getLine();
     }
 
     /**
      * Get the Column
+     *
      * @return the value(@code source.getColumn())
      */
-    public int getColumn()
-    {
+    public int getColumn() {
         return source.getColumn();
     }
 
     /**
      * returns error statement
+     *
      * @return the Value ("Error in line"+ @code getLine()+ ":" + getColumn() + ": " + getMessage())
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "Error in line " + getLine() + ":" + getColumn() + ": " + getMessage();
     }
+
     /**
      * returns length of column
-     * @return the value (@code source.getLine() == source.getEndLine())?(@code source.getEndColumn() - source.getColumn():5)
      *
+     * @return the value (@code source.getLine() == source.getEndLine())?(@code source.getEndColumn() - source.getColumn():5)
      */
     public int getLength() {
         if (source.getLine() == source.getEndLine()) {
@@ -76,12 +79,13 @@ public class TypeError extends RuntimeException {
         }
         return 5;
     }
-   /**
+
+    /**
      * Gets sourcePosition
+     *
      * @return (@code source)
      */
-    public SourcePosition getSource()
-    {
+    public SourcePosition getSource() {
         return source;
     }
 }
