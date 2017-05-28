@@ -10,24 +10,36 @@ import java.util.List;
 import static minijava.ast.MJ.TypeClass;
 
 /**
+ * Type Checker
  * Created by alka on 5/27/2017.
  */
 public class typechecker {
 
     private LinkedHashMap<Object, Object> hashMap, varclass, varmethod;
-
+    /**
+     * Gets Error
+     * @return errors(@code errors)
+     */
     public List<TypeError> errors = new ArrayList<>();
 
     public List<TypeError> getErrors() {
         return errors;
     }
-
+    /**
+     * Initializes variables
+     * @param varmethod(@code LinkedHashMap)
+     * @param varclass(@code LinkedHashMap)
+     * @param hashMap(@code LinkedHashMap)
+     */
     public typechecker(LinkedHashMap varmethod, LinkedHashMap varclass, LinkedHashMap hashMap) {
         this.varmethod = varmethod;
         this.varclass = varclass;
         this.hashMap = hashMap;
     }
-
+    /**
+     * Checks if condition in while is of type boolean
+     * @param stmtWhile(@code MJStmtWhile)
+     */
     void checkwhile(MJStmtWhile stmtWhile) {
         //checking whether the condition of while is of type boolean
         if ((stmtWhile.getCondition() instanceof MJTypeBool)) {
@@ -35,7 +47,10 @@ public class typechecker {
         } else
             this.errors.add(new TypeError(stmtWhile, "The condition of while should be of type boolean"));
     }
-
+    /**
+     * Checks if condition in if is of type boolean
+     * @param stmtIf(@code MJStmtIf)
+     */
     void checkif(MJStmtIf stmtIf) {
         //checking whether condition of if is of type boolean
         if ((stmtIf.getCondition() instanceof MJTypeBool)) {
@@ -44,7 +59,10 @@ public class typechecker {
             this.errors.add(new TypeError(stmtIf, "The condition of if should be of type boolean"));
 
     }
-
+    /**
+     * Checks if MJStmtPrint prints only integer
+     * @param stmtPrint(@code MJStmtPrint)
+     */
     void CheckSOP(MJStmtPrint stmtPrint) {
         MJType type = null;
         if (stmtPrint.getPrinted() instanceof MJVarUse) {   //checking whether its of varuse
@@ -66,8 +84,12 @@ public class typechecker {
             this.errors.add(new TypeError(stmtPrint, "System.out.println can only print an integer"));
         }
     }
-
-    //Finding out whether the variable is declared and its type
+    /**
+     * Finding out whether the variable is declared and its type
+     * @param variable(@code MJVarUse)
+     * @return (@code type)
+     */
+    
     MJType CheckType(MJVarUse variable) {
         MJType type = null;
         if (varmethod.containsKey(variable.getVarName())) // looking in local method
@@ -80,7 +102,10 @@ public class typechecker {
             this.errors.add(new TypeError(variable, "Variable is not declared"));
         return type;
     }
-
+    /**
+     * Checks Statement assignment
+     * @param stmtAssign(@code MJStmtAssign)
+     */
     void CheckStmtassg(MJStmtAssign stmtAssign) {
         MJType type = null;
         if (stmtAssign.getLeft() instanceof MJVarUse) {
@@ -96,7 +121,11 @@ public class typechecker {
             CheckExpr_ofassf(type, stmtAssign.getLeft());
         }
     }
-
+    /**
+     * Check Expression
+     * @param type(@code MJType)
+     * @param stmtAssign(@code MJExpr)
+     */
     void CheckExpr_ofassf(MJType type, MJExpr stmtAssign) {
         if (type instanceof MJType) {
             System.out.println(type);
@@ -134,7 +163,16 @@ public class typechecker {
         }
 
     }
-
+    /**
+     * Checks Expression Binary
+     * @param exprBinary(@code MJExprBinary)
+     * @return (@code (exprBinary.getLeft() instanceof MJNumber) && ((exprBinary.getRight()) instanceof MJNumber))
+     * || @code  (exprBinary.getLeft() instanceof MJTypeInt) && ((exprBinary.getRight()) instanceof MJTypeInt)
+     * || @code (exprBinary.getLeft() instanceof MJTypeBool) && ((exprBinary.getRight()) instanceof MJTypeBool)
+     * || @code (exprBinary.getLeft() instanceof MJVarUse) && ((exprBinary.getRight()) instanceof MJVarUse)? @true:@false
+     *
+     *
+     */
     Boolean check_exprbinary(MJExprBinary exprBinary) {
         if ((exprBinary.getLeft() instanceof MJNumber) && ((exprBinary.getRight()) instanceof MJNumber))
             return true;
@@ -153,7 +191,11 @@ public class typechecker {
         }
 
     }
-
+    /**
+     * Checking unarray operators
+     * @param exprUnary(@code MJExprUnary)
+     * @return value(@code Value)
+     */
     Boolean check_Expruniary(MJExprUnary exprUnary) {
         Boolean value = null;
 
@@ -195,7 +237,12 @@ public class typechecker {
         return value;
     }
 
-    //check if subtyping
+    /**
+     * check if subtyping
+     * @param stmtReturn(@code MJStmtReturn)
+     * @param methodDecl(@code MJMethodDecl)
+     * @param mainArgs(@code String)
+     */
 
     void CheckReturn(MJStmtReturn stmtReturn, MJMethodDecl methodDecl, String mainArgs)
     {
