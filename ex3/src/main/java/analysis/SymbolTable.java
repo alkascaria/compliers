@@ -12,9 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static minijava.ast.MJ.TypeClass;
-
 /**
+ * Creating Symbol Table
  * Created by alka on 5/23/2017.
  */
 public class SymbolTable extends MJElement.DefaultVisitor {
@@ -43,21 +42,21 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         this.program = program;
     }
 
+    /**
+     * Create Symbol Table
+     */
     public void createST() {
         program.accept(this);
 
         STMain(program.getMainClass());
         STClass(program.getClassDecls());
         System.out.println("HasMap is " + hashMap);
-        System.out.println("Classmap is " + varclass);
-        System.out.println("Methodmap is " + varmethod);
     }
 
     /**
-     *
+     * Symbol Table for Main Class
      * @param mainClass(@code MJMainClass)
      */
-    //for mainclass
     public void STMain(MJMainClass mainClass) {
 
         if (hashMap.containsKey(mainClass.getName())) {
@@ -68,10 +67,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
         Block(mainClass.getMainBody(), mainClass.getArgsName(), null);     //call for the mainbody considering it as a block
     }
-    //for other classes
 
     /**
-     *
+     * Symbol Table for other classes
      * @param classDeclList(@code MJClassDeclList)
      */
     public void STClass(MJClassDeclList classDeclList) {
@@ -85,11 +83,8 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-
-    //typeReturn: type of the function where the block is in
-
     /**
-     *
+     * Type of the function where the block is in
      * @param block(@code MJBlock) block of code found between {}
      * @param mainArgs(@ String) arguments in the main method
      * @param methodDecl(@ MJMethodDecl)
@@ -162,7 +157,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
+     * Check Method Existence
      * @param statement(@code MJStmtExpr)
      */
     public void CheckCallMethodExistence(MJStmtExpr statement)
@@ -173,69 +168,20 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         if (exprStmt instanceof MJMethodCall)
         {
             //check for a method with the same name
+            System.out.println(hashMap.toString());
             MJMethodCall methodCall = (MJMethodCall)exprStmt;
-            //TODO:, check if the receiver was defined and the method belongs to that class.
 
+            //TODO:, check if the receiver was defined and the method belongs to that class.
             if(!(this.hashMap.containsKey(methodCall.getMethodName())))
             {
-                this.errors.add(new TypeError(exprStmt, "Calling an undefined method name"));
+                this.errors.add(new TypeError(exprStmt, "Calling an undefined method"));
             }
-            //method found somewhere. now check if the parameters correspond
-            else
-            {
-                //check if all parameters passed are subtypes of the ones in the declaration
-                if(this.hashMap.get(methodCall.getMethodName()) != null)
-                {
-                    MJVarDeclList varDeclList =  (MJVarDeclList) this.hashMap.get(methodCall.getMethodName());
-
-                    if(varDeclList != null)
-                    {
-                        //loop through all of them and check if subtype
-                        for(MJVarDecl varDeclMethod : varDeclList)
-                        {
-                            if(varDeclMethod != null) {
-
-
-                                for (MJExpr exprArg : methodCall.getArguments()) {
-
-                                    System.out.println(exprArg.toString());
-
-                                    if (exprArg != null && exprArg instanceof MJVarUse ) {
-
-                                        typechecker tc = new typechecker(varmethod, varclass, hashMap);
-                                        //type of the method name's parameter
-                                        MJType typeMethod = varDeclMethod.getType();
-                                        //type of the corresponding method call's passed parameter
-                                        MJVarUse varUse = (MJVarUse)exprArg;
-                                        MJType typeParam = tc.CheckType(varUse);
-
-                                        if(varUse != null && typeParam != null && typeMethod != null)
-                                        {
-                                            boolean isSubType = StaticMethods.isSubTypeOff(typeParam, typeMethod);
-                                            //if a single one is not subtype, then raise an error already
-                                            if (isSubType == false ) {
-                                                this.errors.add(new TypeError(exprArg, "Method's parameters must be subtypes of method's declaration's arguments."));
-                                            }
-                                        }
-
-
-
-                                    }
-
-                                }
-
-
-                            }
-                        }
-                    }
-                }
-            }
+            
         }
     }
 
-
     /**
-     *
+     * Check Class Instance
      * @param statement(@code MJStmtExpr)
      */
     public void CheckExistenceClassInstantiation(MJStmtExpr statement)
@@ -247,6 +193,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             //now check if a class exists if with the name declared
             MJNewObject newObj = (MJNewObject) exprStmt;
 
+            System.out.println(newObj.getClassName());
 
             if(!(this.hashMap.containsKey(newObj.getClassName())))
             {
@@ -256,10 +203,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
+     * For each class
      * @param classDecl(@code MJClassDecl)
      */
-    //for each class
     public void Class(MJClassDecl classDecl) {
         MJExtended extClass = classDecl.getExtended();
 
@@ -278,10 +224,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
+     * For Methods
      * @param methodDeclList(@code MJMethodDeclList)
      */
-    //methods
+
     public void Method(MJMethodDeclList methodDeclList) {
         MJMethodDecl methodDecl;
 
@@ -300,15 +246,15 @@ public class SymbolTable extends MJElement.DefaultVisitor {
 
                 Block(methodDecl.getMethodBody(), "", methodDecl);  //body of method
             }
+            System.out.println(hashMap.toString());
            // varmethod.clear();  //clearing the scope of methods
         }
     }
 
     /**
-     *
+     * For variable
      * @param varDeclList(@code MJVarDeclList)
      */
-    //for variable
 
     public void Field(MJVarDeclList varDeclList) {
         MJVarDecl varDecl;
