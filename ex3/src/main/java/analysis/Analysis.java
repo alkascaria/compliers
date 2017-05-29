@@ -51,9 +51,6 @@ public class Analysis {
         SymbolTable st = new SymbolTable(prog);
         st.createST();
 
-        //   Handlenew handlenew  = new Handlenew(prog);
-        // handlenew.stack();
-
         checkMethodOverriding();
 
         checkMethodUniqueness();
