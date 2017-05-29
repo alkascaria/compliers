@@ -104,8 +104,7 @@ The constructed type and name analyzer is thoroughly commented with Javadoc and 
  \item \textbf{Uniqueness of Class names, Methods' names, Fields' names and Parameter names in methods }
  \item \textbf{Type representation and subtyping checking}: Types are represented in a symbol table. We also wrote a method 'SubTypeOff' that checks if a type is a subtype of another type \cite{Joseff}.
  \item \textbf{Method overriding}: Methods with the same names as methods defined in the parent are checked for overriding, ensuring the signatures correspond to one another. 
- \item \textbf{Type checking and full name analysis}: We implemented type and name checking for local variables, global variables and fields for the following types: int, boolean, int[]. We also implemented type checking for the following operations: if, while, System.out.println, binary and unary assignment expressions, return statements, method calls and method declarations and class instantiation. \\
-With respect to the next phase, we provide analysis information concerning types through a stack.
+ \item \textbf{Type checking and full name analysis}: We implemented type and name checking for local variables, global variables and fields for the following types: int, boolean, int[]. We also implemented type checking for the following operations: if, while, System.out.println, binary and unary assignment expressions, return statements, method calls and method declarations and class instantiation. With respect to the next phase, we provide analysis information concerning types through a stack.
  
 \end{itemize}
 
@@ -126,7 +125,8 @@ We ensured that the return type and all parameters' types of a method overriding
 \subsection*{Task 4 - Name and Type Analysis}
 Type checking was implemented in the class 'typechecker', where we check for the type rules provided in the assignment's description. Analogously to exercise 2, we made use of matchers for identifying the proper cases to check in statements (e.g: MJReturn or MJWhile). \\
 Name analysis was implemented in the symbol table: when a new identifier (either as a local variable or as a field) occurs, the hash corresponding to the scope (hash\_class, hash\_method or hash\_main) is checked for that identifier, raising appropriate errors in case the latter is not defined. 
-
+\subsection*{Theory}
+Please see files 'Theory\_4.jpg' and 'Theory\_5.jpg' in 'ex3' folder.
 
 
 
