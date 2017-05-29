@@ -58,7 +58,9 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         } else {
             hash_main.put(mainClass.getName(), null);
         }
-        Block_main(mainClass.getMainBody(), mainClass.getArgsName());     //call for the mainbody considering it as a block
+        MJBlock block = mainClass.getMainBody();
+
+        Block_main(mainClass.getMainBody(), mainClass.getArgsName(), null);     //call for the mainbody considering it as a block
     }
 
     /**
@@ -86,11 +88,10 @@ public class SymbolTable extends MJElement.DefaultVisitor {
      * @param methodDecl(@ MJMethodDecl)
      */
 
-    public void Block_main(MJBlock block, String mainArgs) {
+    public void Block_main(MJBlock block, String mainArgs, MJMethodDecl methodDecl) {
         for (MJStatement statement : block) {
             if (statement != null && statement instanceof MJStmtAssign)   //assginment
             {
-
                 hash_main.put(((MJStmtAssign) statement).getLeft(), ((MJStmtAssign) statement).getRight());
             }
 
@@ -123,7 +124,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
             else if (statement instanceof MJStmtPrint)
                 tc.CheckSOP((MJStmtPrint) statement);
             else if (statement instanceof MJStmtReturn) {
-                tc.CheckReturn((MJStmtReturn) statement, null, mainArgs);
+                tc.CheckReturn((MJStmtReturn) statement, methodDecl, mainArgs);
             }
             //Checking whether while condition is a boolean
             else if (statement instanceof MJStmtWhile)
@@ -134,12 +135,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
         }
     }
 
-    /**
-     * Check Method Existence
-     *
-     * @param statement(@code MJStmtExpr)
-     */
-    void Block(MJBlock block) {
+    void Block(MJBlock block, String mainArgs, MJMethodDecl methodDecl) {
         for (MJStatement statement : block) {
             if (statement != null && statement instanceof MJStmtAssign)   //assginment
             {
@@ -176,10 +172,14 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                 tc.checkwhile((MJStmtWhile) statement);
             else if (statement instanceof MJStmtIf)
                 tc.checkif((MJStmtIf) statement);
+            else if (statement instanceof MJStmtReturn) {
+                tc.checkreturn_methods((MJStmtReturn) statement, methodDecl);
+            }
             errors.addAll(tc.getErrors());
         }
         hash_method.clear();
     }
+
 
     /**
      * Check Class Instance
@@ -209,12 +209,7 @@ public class SymbolTable extends MJElement.DefaultVisitor {
                         //loop through all of them and check if subtype
                         for (MJVarDecl varDeclMethod : varDeclList) {
                             if (varDeclMethod != null) {
-
-
                                 for (MJExpr exprArg : methodCall.getArguments()) {
-
-                                    System.out.println(exprArg.toString());
-
                                     if (exprArg != null && exprArg instanceof MJVarUse) {
 
                                         typechecker tc = new typechecker(hash_method, hash_class, hash_main);
@@ -293,17 +288,18 @@ public class SymbolTable extends MJElement.DefaultVisitor {
     public void Method(MJMethodDeclList methodDeclList) {
         MJMethodDecl methodDecl;
 
+
         for (int i = 0; i < methodDeclList.size(); i++) {
 
             methodDecl = methodDeclList.get(i);
-
+            System.out.println(hash_class);
             if (hash_class.containsKey(methodDecl.getName()))
                 this.errors.add(new TypeError(methodDecl, "Method names should be unique"));
             else if (methodDecl instanceof MJMethodDecl) {
                 hash_class.put(methodDecl.getName(), methodDecl.getReturnType());
             }
 
-            Block(methodDecl.getMethodBody());  //body of method
+            Block(methodDecl.getMethodBody(), null, methodDecl);  //body of method
         }
     }
 

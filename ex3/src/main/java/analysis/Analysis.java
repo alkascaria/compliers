@@ -199,7 +199,6 @@ public class Analysis {
         HashMap<String, MJElement> table = new HashMap<>();
 
         String mainClassName = prog.getMainClass().getName();
-        System.out.println(mainClassName);
         //add main class to class table
         //table.put(prog.getMainClass().getName(), prog.getMainClass());
         //add all other classes to class table
