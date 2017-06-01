@@ -2,6 +2,7 @@ package minillvm.analysis;
 
 import minillvm.ast.*;
 
+
 public class Typechecker {
 	public static Type calculateType(ConstBool constBool) {
 		return Ast.TypeBool();
