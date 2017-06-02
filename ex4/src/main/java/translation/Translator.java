@@ -69,5 +69,45 @@ public class Translator extends MJElement.DefaultVisitor  {
 		this.curBlock.add(print);
 	}
 
+	/** Variable --> parameter declaration
+	 * @param varDecl
+	 */
+	//TODO: replace instanceof with matcher
+	@Override public void visit(MJVarDecl varDecl)
+	{
+		MJType typeVar = varDecl.getType();
+		String typeName = varDecl.getName();
+		Parameter parameter;
+		if(typeVar instanceof MJTypeInt)
+		{
+			parameter = Parameter(TypeInt(), typeName);
+		}
+		else if(typeVar instanceof MJTypeBool)
+		{
+			parameter = Parameter(TypeBool(), typeName);
+		}
+		else if(typeVar instanceof MJTypeIntArray)
+		{
+			//TODO: part two. handle array declarations
+			//parameter = Parameter(TypeIntArray(), typeName);
+		}
+		//TODO: next exercise, handle class declarations
+		else if(typeVar instanceof MJTypeClass)
+		{
+
+		}
+	}
+	/**
+	 * Variable --> Temporary variable.
+	 * @param varUse
+	 */
+	@Override public void visit(MJVarUse varUse)
+	{
+		String varName = varUse.getVarName();
+
+		TemporaryVar tempVar = TemporaryVar(varName);
+
+	}
+
 
 }

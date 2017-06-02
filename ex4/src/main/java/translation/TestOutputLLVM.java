@@ -81,9 +81,9 @@ public class TestOutputLLVM {
             String llvmOutput = runLlvmCodeAndGetoutput(llvmProg, programInput);
             //Assert.assertEquals(javaOutput, llvmOutput);
 
-            System.out.println("Java output" + javaOutput.toString());
+            System.out.println("Java output: " + javaOutput.toString());
 
-            System.out.println("LLVM output" + llvmOutput.toString());
+            System.out.println("LLVM output: " + llvmOutput.toString());
 
             System.out.println("Java output == LLVM output: " + javaOutput.equals(llvmOutput));
 

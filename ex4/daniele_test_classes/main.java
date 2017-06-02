@@ -1,6 +1,9 @@
 class MainTest {
 	public static void main(String[] a) {
-		int a;
-		a = 5;
+		int b;
+		
+		b = 1;
+		
+		System.out.println(5);
 	}
 }
