@@ -67,8 +67,6 @@ public class Translator extends MJElement.DefaultVisitor  {
 		operand = expr.match(trans);
 		Print print = Print(operand);
 		this.curBlock.add(print);
-
-
 	}
 
 
