@@ -5,6 +5,7 @@ import minillvm.ast.Operand;
 
 import minijava.ast.*;
 import minillvm.ast.*;
+
 import static minillvm.ast.Ast.*;
 
 /**
@@ -18,8 +19,7 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     }
 
     @Override
-    public Operand case_ExprBinary(MJExprBinary exprBinary)
-    {
+    public Operand case_ExprBinary(MJExprBinary exprBinary) {
 
         return null;
     }
@@ -45,16 +45,23 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     }
 
     @Override
-    public Operand case_Number(MJNumber number)
-    {
-       Operand oper = ConstInt(number.getIntValue());
+    public Operand case_Number(MJNumber number) {
+        Operand oper = ConstInt(number.getIntValue());
 
         return oper;
     }
 
     @Override
-    public Operand case_VarUse(MJVarUse varUse)
-    {
+    public Operand case_VarUse(MJVarUse varUse) {
+        //firstly, get the value / reference thatßs in the varuse.
+        String varName = varUse.getVarName();
+        TemporaryVar tempVar = Translator.varDeclsTempVar.get(varName);
+        TemporaryVar y = TemporaryVar(varName);
+        Load(y,VarRef(tempVar));
+        System.out.println(y);
+
+
+       //  Operand oper = ConstInt();
         return null;
     }
 
