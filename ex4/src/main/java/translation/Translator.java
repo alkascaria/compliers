@@ -3,6 +3,7 @@ package translation;
 import minijava.ast.*;
 import minillvm.ast.*;
 import static minillvm.ast.Ast.*;
+import minillvm.analysis.*;
 
 //Statements, visitor like here is fine.
 //expressions, separate class MJExpr.Matcher<Operand> to pass back an operand when evaluating something
@@ -55,7 +56,6 @@ public class Translator extends MJElement.DefaultVisitor  {
 	}
 
 
-
 	@Override public void visit(MJStmtPrint stmtPrint)
 	{
 		//constant or variable
@@ -69,6 +69,14 @@ public class Translator extends MJElement.DefaultVisitor  {
 		this.curBlock.add(print);
 	}
 
+	//declaration --> variable.
+	//Varuse --> Ttemporary variable
+
+	//nstore variable declaration in llvm with hashmap
+	//varusage --> get the variable in hashmap
+	//mapping from minijava to minimmvl variable.
+
+
 	/** Variable --> parameter declaration
 	 * @param varDecl
 	 */
@@ -78,6 +86,7 @@ public class Translator extends MJElement.DefaultVisitor  {
 		MJType typeVar = varDecl.getType();
 		String typeName = varDecl.getName();
 		Parameter parameter;
+
 		if(typeVar instanceof MJTypeInt)
 		{
 			parameter = Parameter(TypeInt(), typeName);
@@ -89,6 +98,7 @@ public class Translator extends MJElement.DefaultVisitor  {
 		else if(typeVar instanceof MJTypeIntArray)
 		{
 			//TODO: part two. handle array declarations
+			//int C, create a struct with pointer to element and size.
 			//parameter = Parameter(TypeIntArray(), typeName);
 		}
 		//TODO: next exercise, handle class declarations
@@ -106,6 +116,25 @@ public class Translator extends MJElement.DefaultVisitor  {
 		String varName = varUse.getVarName();
 
 		TemporaryVar tempVar = TemporaryVar(varName);
+
+	}
+
+
+
+	@Override public void visit(MJStmtAssign stmtAssign)
+	{
+		MJExpr exprLeft = stmtAssign.getLeft();
+		MJExpr exprRight = stmtAssign.getRight();
+
+		ExprTranslatorMatcher trans = new ExprTranslatorMatcher();
+
+		Operand operLeft = exprLeft.match(trans);
+
+		//Alloc(TemporaryVar var, Operand sizeInBytes)
+		//allocate X bytes on the heap
+
+
+
 
 	}
 
