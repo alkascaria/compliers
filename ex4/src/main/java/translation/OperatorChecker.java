@@ -18,7 +18,12 @@ import minijava.ast.MJMinus;
  */
 public class OperatorChecker implements MJOperator.Matcher<Operator> {
 
-    //Todo operator checker
+
+    private Translator translator;
+    public OperatorChecker(Translator translator)
+    {
+        this.translator = translator;
+    }
 
     //Operator = Add() | Sub() | Mul() | Sdiv() | Srem()
      //   | And() | Or() | Xor()

@@ -13,9 +13,10 @@ import minillvm.ast.Type;
  */
 public class TypeMatcher implements MJType.Matcher<Type> {
 
+
     /**
      *
-     * @param typeClass
+     * @param typeClass(@code MJTypeClass)
      * @return
      */
     @Override
@@ -37,7 +38,7 @@ public class TypeMatcher implements MJType.Matcher<Type> {
 
     /**
      *
-     * @param typeIntArray
+     * @param typeIntArray(@code MJTypeIntArray)
      * @return
      */
     @Override
@@ -50,7 +51,7 @@ public class TypeMatcher implements MJType.Matcher<Type> {
 
     /**
      *
-     * @param typeInt
+     * @param typeInt(@code MJTypeInt)
      * @return
      */
     @Override

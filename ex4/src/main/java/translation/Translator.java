@@ -60,6 +60,22 @@ public class Translator extends MJElement.DefaultVisitor {
         return prog;
     }
 
+    /**
+     *
+     * @param statement(@code MJStatement)
+     */
+    public void visit(MJStatement statement) {
+        statement.match(new StatementChecker(this));
+    }
+
+    /**
+     *
+     * @param operator(@code MJOperator)
+     */
+    public void operator(MJOperator operator) {
+         operator.match(new OperatorChecker(this));
+    }
+
 
     @Override
     public void visit(MJStmtPrint stmtPrint) {
@@ -85,7 +101,7 @@ public class Translator extends MJElement.DefaultVisitor {
     /**
      * Variable --> parameter declaration
      *
-     * @param varDecl
+     * @param varDecl(@code MJVarDecl)
      */
     //TODO: replace instanceof with matcher
     @Override
