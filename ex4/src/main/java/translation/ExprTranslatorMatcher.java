@@ -64,7 +64,9 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_ExprUnary(MJExprUnary exprUnary) {
+
         return null;
+
     }
 
     /**
@@ -73,8 +75,9 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      * @return
      */
     @Override
-    public Operand case_BoolConst(MJBoolConst boolConst) {
-        return null;
+    public Operand case_BoolConst(MJBoolConst boolConst)
+    {
+        return Ast.ConstBool(boolConst.getBoolValue());
     }
 
     /**
@@ -108,6 +111,8 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
 
        //  Operand oper = ConstInt();
         return Ast.VarRef(tempVar1);
+
+
     }
 
     /**
@@ -159,4 +164,7 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
         return null;
     }
+
+
+
 }

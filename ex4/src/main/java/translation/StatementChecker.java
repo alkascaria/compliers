@@ -38,6 +38,7 @@ public class StatementChecker implements MJStatement.MatcherVoid{
 
     public void case_StmtPrint(MJStmtPrint stmtPrint) {
         //Todo StmtPrint
+       
     }
 
     public void case_StmtAssign(MJStmtAssign stmtAssign) {
@@ -53,12 +54,5 @@ public class StatementChecker implements MJStatement.MatcherVoid{
     //Todo Block
     }
 
-    public void case_Number(MJNumber number){
-    //Todo Number
-    }
-
-    public void case_ExprBinary(MJExprBinary exprExpr){
-    //ToDo Expression Binary
-    }
 
 }

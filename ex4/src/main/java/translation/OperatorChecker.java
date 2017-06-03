@@ -38,7 +38,6 @@ public class OperatorChecker implements MJOperator.Matcher<Operator> {
         return Ast.Mul();
     }
 
-
     /**
      *
      * @param equals(@code MJEquals)
