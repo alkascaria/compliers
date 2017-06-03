@@ -1,5 +1,6 @@
 package translation;
 
+import main.MiniJavaCompiler;
 import minijava.ast.*;
 import minillvm.ast.*;
 
@@ -77,6 +78,7 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
+
     @Override
     public void visit(MJStmtPrint stmtPrint) {
         //constant or variable
@@ -150,6 +152,13 @@ public class Translator extends MJElement.DefaultVisitor {
         }
     }
 
+    //method to convert Minijava MJType into minillvm Type
+
+
+
+
+
+
     /**
      * Variable --> Temporary variable.
      *
@@ -194,5 +203,30 @@ public class Translator extends MJElement.DefaultVisitor {
 
     }
 
+    public static Type typeConverter(MJType type){
+
+        return type.match(new MJType.Matcher<Type>() {
+            @Override
+            public Type case_TypeIntArray(MJTypeIntArray typeIntArray) {
+                return null;
+            }
+
+            @Override
+            public Type case_TypeBool(MJTypeBool typeBool) {
+                return TypeBool();
+            }
+
+            @Override
+            public Type case_TypeInt(MJTypeInt typeInt) {
+                return TypeInt();
+            }
+
+            @Override
+            public Type case_TypeClass(MJTypeClass typeClass) {
+                return null;
+            }
+        });
+
+    }
 
 }
