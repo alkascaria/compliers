@@ -14,6 +14,7 @@ import static minillvm.ast.Ast.VarRef;
  */
 public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
 
+
     /**
      *
      * @param fieldAccess
@@ -43,7 +44,6 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_ExprNull(MJExprNull exprNull)
     {
-
         return Ast.Nullpointer();
     }
 
