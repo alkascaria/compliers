@@ -22,8 +22,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
     //stores which Proc and Block we are currently in.
-    Proc curProc;
-    BasicBlock curBlock;
+    public static Proc curProc;
+    public static BasicBlock curBlock;
 
 
     public Translator(MJProgram javaProg) {
@@ -81,13 +81,16 @@ public class Translator extends MJElement.DefaultVisitor {
     public void visit(MJStmtPrint stmtPrint) {
         //constant or variable
         MJExpr expr = stmtPrint.getPrinted();
+
         Operand operand;
         ExprTranslatorMatcher trans = new ExprTranslatorMatcher();
 
         //check which operand type it is
         operand = expr.match(trans);
-        Print print = Print(operand);
-        this.curBlock.add(print);
+        System.out.println(operand.toString());
+
+        //Print print = Print(operand);
+        //this.curBlock.add(print);
     }
 
     //declaration --> variable.
@@ -111,26 +114,38 @@ public class Translator extends MJElement.DefaultVisitor {
 
         TemporaryVar tempVar;
 
-        if (typeVar instanceof MJTypeInt) {
+        if (typeVar instanceof MJTypeInt)
+        {
             tempVar = TemporaryVar(typeName);
 
-            Alloca(tempVar, TypeInt());  //allocates space on the stack
+			//allocates space on the stack
+            Alloca alloca = Alloca(tempVar, TypeInt());
+            //add it to current block, and consequently to current procedure
+            this.curBlock.add(alloca);
 
-
-            varDeclsType.put(typeName, TypeInt());   //Put the variable into a Hashmap
-            varDeclsTempVar.put(typeName, tempVar);   //Put the variable into a Hashmap
-        } else if (typeVar instanceof MJTypeBool) {
+			//Put the variable into a Hashmap
+            varDeclsType.put(typeName, TypeInt());
+            varDeclsTempVar.put(typeName, tempVar);
+        }
+        else if (typeVar instanceof MJTypeBool)
+        {
             tempVar = TemporaryVar(typeName);
-            Alloca(tempVar, TypeBool());
-            varDeclsType.put(typeName, TypeBool());   //Put the variable into a Hashmap
-            varDeclsTempVar.put(typeName, tempVar);   //Put the variable into a Hashmap
-        } else if (typeVar instanceof MJTypeIntArray) {
+            //allocates space on the stack
+            Alloca alloca = Alloca(tempVar, TypeBool());
+            this.curBlock.add(alloca);
+			//Put the variable into a Hashmap
+            varDeclsType.put(typeName, TypeBool());
+            varDeclsTempVar.put(typeName, tempVar);
+        }
+        else if (typeVar instanceof MJTypeIntArray)
+        {
             //TODO: part two. handle array declarations
             //int C, create a struct with pointer to element and size.
             //parameter = Parameter(TypeIntArray(), typeName);
         }
         //TODO: next exercise, handle class declarations
-        else if (typeVar instanceof MJTypeClass) {
+        else if (typeVar instanceof MJTypeClass)
+        {
 
         }
     }
@@ -157,13 +172,16 @@ public class Translator extends MJElement.DefaultVisitor {
         System.out.println(exprLeft);
         //put value into the assigned stack space
         //ex: z = 5
-        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber)) {
+        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
+        {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
             int valueRight=((MJNumber) exprRight).getIntValue();
             Type typeExprLeft = varDeclsType.get(nameLeft);
             TemporaryVar tempVar =  varDeclsTempVar.get(nameLeft);
             Operand operand = ConstInt(valueRight);
-            Store(VarRef(tempVar), operand);
+            Store storevar = Store(VarRef(tempVar), operand);
+            //i suppose we need to add this to the current block --> procedure too.
+            this.curBlock.add(storevar);
         }
 
         //    ExprTranslatorMatcher trans = new ExprTranslatorMatcher();

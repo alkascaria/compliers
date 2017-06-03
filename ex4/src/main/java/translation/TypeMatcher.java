@@ -46,7 +46,6 @@ public class TypeMatcher implements MJType.Matcher<Type> {
     {
         TypePointer typePointer = TypePointer(Ast.TypeArray(Ast.TypeInt(),0));
         return (typePointer);
-
     }
 
     /**

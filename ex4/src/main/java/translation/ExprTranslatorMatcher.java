@@ -105,14 +105,14 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
         //firstly, get the value / reference thatßs in the varuse.
         String varName = varUse.getVarName();
         TemporaryVar tempVar = Translator.varDeclsTempVar.get(varName);
-        TemporaryVar tempVar1 = TemporaryVar(varName);
-        Load(tempVar1,VarRef(tempVar));
-        System.out.println(tempVar1);
+
+        //okay, we got the temp var. Now how to get the value inside it?
+        //TemporaryVar tempVar1 = TemporaryVar(varName);
+        //Load(tempVar1,VarRef(tempVar));
 
        //  Operand oper = ConstInt();
-        return Ast.VarRef(tempVar1);
-
-
+        //return Ast.VarRef(tempVar);
+        return VarRef(tempVar);
     }
 
     /**

@@ -4,6 +4,6 @@ class MainTest {
 		
 		b = 1;
 		
-		System.out.println(5);
+		System.out.println(b);
 	}
 }
