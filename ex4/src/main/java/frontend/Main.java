@@ -26,8 +26,11 @@ public class Main {
             MJFrontend frontend = new MJFrontend();
             MJProgram prog = frontend.parse(r);
             System.out.println(prog);
-            Translator translator = new Translator(prog);
-            Prog progTranslated = translator.translate();
+
+            //this is not needed as TestOutputLLVM.testTranslation
+            // already instantiates Translator():
+            // Translator translator = new Translator(prog);
+            //translator.translate();
 
             File inputFile = new File(fileName);
             String input = new String(Files.readAllBytes(inputFile.toPath()), StandardCharsets.UTF_8);

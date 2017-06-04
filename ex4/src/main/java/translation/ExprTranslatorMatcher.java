@@ -9,6 +9,8 @@ import minillvm.ast.*;
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.VarRef;
 
+
+
 /**
  * Created by Daniele on 02/06/2017.
  */
@@ -87,10 +89,6 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_Number(MJNumber number) {
-        //Operand oper = ConstInt(number.getIntValue());
-
-        //return oper;
-
         //Optimized
         return Ast.ConstInt(number.getIntValue());
     }
@@ -101,18 +99,38 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      * @return
      */
     @Override
-    public Operand case_VarUse(MJVarUse varUse) {
-        //firstly, get the value / reference thatßs in the varuse.
-        String varName = varUse.getVarName();
-        TemporaryVar tempVar = Translator.varDeclsTempVar.get(varName);
+    public Operand case_VarUse(MJVarUse varUse)
+    {
+       MJVarDecl varDecl = varUse.getVariableDeclaration();
+       MJType typeVar = varDecl.getType();
+        
+        return typeVar.match(new MJType.Matcher<Operand>()
+        {
+            @Override
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray) {
+                return null;
+            }
 
-        //okay, we got the temp var. Now how to get the value inside it?
-        //TemporaryVar tempVar1 = TemporaryVar(varName);
-        //Load(tempVar1,VarRef(tempVar));
+            @Override
+            public Operand case_TypeBool(MJTypeBool typeBool)
+            {
+                return null;
 
-       //  Operand oper = ConstInt();
-        //return Ast.VarRef(tempVar);
-        return VarRef(tempVar);
+            }
+
+            @Override
+            public Operand case_TypeInt(MJTypeInt typeInt)
+            {
+                return Ast.ConstInt(Translator.varsStackval.get(varUse.getVarName()));
+            }
+
+            @Override
+            public Operand case_TypeClass(MJTypeClass typeClass) {
+                return null;
+            }
+        });
+
+
     }
 
     /**

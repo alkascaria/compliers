@@ -8,6 +8,7 @@ import static minillvm.ast.Ast.*;
 
 import minillvm.analysis.*;
 
+import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 
 //Statements, visitor like here is fine.
@@ -18,8 +19,13 @@ public class Translator extends MJElement.DefaultVisitor {
 
     private final MJProgram javaProg;
 
-    public static HashMap<String, Type> varDeclsType = new HashMap<>();
-    public static HashMap<String, TemporaryVar> varDeclsTempVar = new HashMap<>();
+    //variables declarations go onto the stack (ex: int a). contains no value yet!
+    public static HashMap<String, TemporaryVar> varsStackTempVar = new HashMap<>();
+    public static HashMap<String, VarRef> varsStackRef = new HashMap<>();
+    public static HashMap<String, Integer> varsStackval = new HashMap<>();
+
+    //variable assignments go onto the head (ex: a = 5)
+   // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
 
 
     //stores which Proc and Block we are currently in.
@@ -42,11 +48,11 @@ public class Translator extends MJElement.DefaultVisitor {
         this.curProc = mainProc;
         prog.getProcedures().add(mainProc);
 
-        //main block?
+        //main block
         BasicBlock mainBlock = BasicBlock
-                (
+        (
 
-                );
+        );
 
         //get the list of instruction
         mainBlock.setName("entry");
@@ -91,8 +97,8 @@ public class Translator extends MJElement.DefaultVisitor {
         operand = expr.match(trans);
         System.out.println(operand.toString());
 
-        //Print print = Print(operand);
-        //this.curBlock.add(print);
+        Print print = Print(operand);
+        this.curBlock.add(print);
     }
 
     //declaration --> variable.
@@ -119,15 +125,12 @@ public class Translator extends MJElement.DefaultVisitor {
         if (typeVar instanceof MJTypeInt)
         {
             tempVar = TemporaryVar(typeName);
-
 			//allocates space on the stack
             Alloca alloca = Alloca(tempVar, TypeInt());
             //add it to current block, and consequently to current procedure
             this.curBlock.add(alloca);
-
-			//Put the variable into a Hashmap
-            varDeclsType.put(typeName, TypeInt());
-            varDeclsTempVar.put(typeName, tempVar);
+			//put the variable onto the stack
+            varsStackTempVar.put(typeName, tempVar);
         }
         else if (typeVar instanceof MJTypeBool)
         {
@@ -135,9 +138,8 @@ public class Translator extends MJElement.DefaultVisitor {
             //allocates space on the stack
             Alloca alloca = Alloca(tempVar, TypeBool());
             this.curBlock.add(alloca);
-			//Put the variable into a Hashmap
-            varDeclsType.put(typeName, TypeBool());
-            varDeclsTempVar.put(typeName, tempVar);
+			//put the variable onto the stack
+            varsStackTempVar.put(typeName, tempVar);
         }
         else if (typeVar instanceof MJTypeIntArray)
         {
@@ -184,49 +186,50 @@ public class Translator extends MJElement.DefaultVisitor {
         if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
         {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            int valueRight=((MJNumber) exprRight).getIntValue();
-            Type typeExprLeft = varDeclsType.get(nameLeft);
-            TemporaryVar tempVar =  varDeclsTempVar.get(nameLeft);
-            Operand operand = ConstInt(valueRight);
-            Store storevar = Store(VarRef(tempVar), operand);
-            //i suppose we need to add this to the current block --> procedure too.
-            this.curBlock.add(storevar);
+            int valueRight = ((MJNumber) exprRight).getIntValue();
+            //store value into variable's stack address
+            TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
+            VarRef varRef = VarRef(tempVar);
+            Store storeRef = Store(varRef, ConstInt(valueRight));
+            this.curBlock.add(storeRef);
+            //now add it to the var refs
+            this.varsStackRef.put(nameLeft, varRef);
+            varsStackval.put(nameLeft, valueRight);
         }
-
-        //    ExprTranslatorMatcher trans = new ExprTranslatorMatcher();
-
-        //  Operand operLeft = exprLeft.match(trans);
-
-        //Alloc(TemporaryVar var, Operand sizeInBytes)
-        //allocate X bytes on the heap
-
 
     }
 
-    public static Type typeConverter(MJType type){
+    /**
+    public static Type matcherTypeVarUse(MJType type, MJVarDecl varDecl){
 
-        return type.match(new MJType.Matcher<Type>() {
+        return type.match(new MJType.Matcher<Operand>() {
             @Override
-            public Type case_TypeIntArray(MJTypeIntArray typeIntArray) {
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray) {
                 return null;
             }
 
             @Override
-            public Type case_TypeBool(MJTypeBool typeBool) {
-                return TypeBool();
+            public Operand case_TypeBool(MJTypeBool typeBool)
+            {
+                return null;
+
             }
 
             @Override
-            public Type case_TypeInt(MJTypeInt typeInt) {
-                return TypeInt();
+            public Operand case_TypeInt(MJTypeInt typeInt)
+            {
+                return Ast.ConstInt(Translator.varsStackval.get(varUse.getVarName()));
+
             }
 
             @Override
-            public Type case_TypeClass(MJTypeClass typeClass) {
+            public Operand case_TypeClass(MJTypeClass typeClass) {
                 return null;
             }
         });
 
     }
+
+     */
 
 }
