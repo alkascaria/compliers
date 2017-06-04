@@ -118,7 +118,7 @@ public class Translator extends MJElement.DefaultVisitor {
      *
      * @param varDecl(@code MJVarDecl)
      */
-    //TODO: replace instanceof with matcher
+    //TODO: replace instanceof with TypeMatcher
     @Override
     public void visit(MJVarDecl varDecl) {
         MJType typeVar = varDecl.getType();
@@ -158,10 +158,6 @@ public class Translator extends MJElement.DefaultVisitor {
         }
     }
 
-    //method to convert Minijava MJType into minillvm Type
-
-
-
 
     /**
      * Variable --> Temporary variable.
@@ -179,8 +175,8 @@ public class Translator extends MJElement.DefaultVisitor {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
-        //TODO:
-        //put value into the assigned stack space
+        System.out.println(exprRight.toString());
+
         //ex: z = 5
         if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
         {
@@ -195,6 +191,7 @@ public class Translator extends MJElement.DefaultVisitor {
             this.varsStackRef.put(nameLeft, varRef);
             varsStackInt.put(nameLeft, valueRight);
         }
+        //ex: x = false
         else if((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst))
         {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
@@ -208,42 +205,28 @@ public class Translator extends MJElement.DefaultVisitor {
 
             this.varsStackRef.put(nameLeft, varRef);
             this.varsStackBool.put(nameLeft, boolRight);
+        }
+        else if((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary))
+        {
+            //variable name
+            String nameLeft = ((MJVarUse) exprLeft).getVarName();
+            MJExprUnary unaryExpr = (MJExprUnary) exprRight;
+
+            //for boolean expressions
+            if(unaryExpr instanceof MJNegate)
+            {
+
+            }
+            //for numbers
+            else if(unaryExpr instanceof MJUnaryMinus)
+            {
+
+            }
+
 
         }
 
     }
 
-    /**
-    public static Type matcherTypeVarUse(MJType type, MJVarDecl varDecl){
-
-        return type.match(new MJType.Matcher<Operand>() {
-            @Override
-            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray) {
-                return null;
-            }
-
-            @Override
-            public Operand case_TypeBool(MJTypeBool typeBool)
-            {
-                return null;
-
-            }
-
-            @Override
-            public Operand case_TypeInt(MJTypeInt typeInt)
-            {
-                return Ast.ConstInt(Translator.varsStackval.get(varUse.getVarName()));
-
-            }
-
-            @Override
-            public Operand case_TypeClass(MJTypeClass typeClass) {
-                return null;
-            }
-        });
-
-    }
-
-     */
 
 }
