@@ -28,7 +28,7 @@ public class Translator extends MJElement.DefaultVisitor {
     public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
 
     //variable assignments go onto the head (ex: a = 5)
-   // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
+    // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
 
 
     //stores which Proc and Block we are currently in.
@@ -53,9 +53,9 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //main block
         BasicBlock mainBlock = BasicBlock
-        (
+                (
 
-        );
+                );
 
         //get the list of instruction
         mainBlock.setName("entry");
@@ -71,23 +71,18 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
     /**
-     *
      * @param statement(@code MJStatement)
      */
-    public void visit(MJStatement statement)
-    {
+    public void visit(MJStatement statement) {
         statement.match(new StatementChecker(this));
     }
 
     /**
-     *
      * @param operator(@code MJOperator)
      */
-    public void operator(MJOperator operator)
-    {
-         operator.match(new OperatorChecker(this));
+    public void operator(MJOperator operator) {
+        operator.match(new OperatorChecker(this));
     }
-
 
 
     @Override
@@ -126,34 +121,28 @@ public class Translator extends MJElement.DefaultVisitor {
 
         TemporaryVar tempVar;
 
-        if (typeVar instanceof MJTypeInt)
-        {
+        if (typeVar instanceof MJTypeInt) {
             tempVar = TemporaryVar(typeName);
-			//allocates space on the stack
+            //allocates space on the stack
             Alloca alloca = Alloca(tempVar, TypeInt());
             //add it to current block, and consequently to current procedure
             this.curBlock.add(alloca);
-			//put the variable onto the stack
+            //put the variable onto the stack
             varsStackTempVar.put(typeName, tempVar);
-        }
-        else if (typeVar instanceof MJTypeBool)
-        {
+        } else if (typeVar instanceof MJTypeBool) {
             tempVar = TemporaryVar(typeName);
             //allocates space on the stack
             Alloca alloca = Alloca(tempVar, TypeBool());
             this.curBlock.add(alloca);
-			//put the variable onto the stack
+            //put the variable onto the stack
             varsStackTempVar.put(typeName, tempVar);
-        }
-        else if (typeVar instanceof MJTypeIntArray)
-        {
+        } else if (typeVar instanceof MJTypeIntArray) {
             //TODO: part two. handle array declarations
             //int C, create a struct with pointer to element and size.
             //parameter = Parameter(TypeIntArray(), typeName);
         }
         //TODO: next exercise, handle class declarations
-        else if (typeVar instanceof MJTypeClass)
-        {
+        else if (typeVar instanceof MJTypeClass) {
 
         }
     }
@@ -175,11 +164,8 @@ public class Translator extends MJElement.DefaultVisitor {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
-        System.out.println(exprRight.toString());
-
         //ex: z = 5
-        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
-        {
+        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber)) {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
             int valueRight = ((MJNumber) exprRight).getIntValue();
             //store value into variable's stack address
@@ -192,8 +178,7 @@ public class Translator extends MJElement.DefaultVisitor {
             varsStackInt.put(nameLeft, valueRight);
         }
         //ex: x = false
-        else if((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst))
-        {
+        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst)) {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
             boolean boolRight = ((MJBoolConst) exprRight).getBoolValue();
 
@@ -205,28 +190,31 @@ public class Translator extends MJElement.DefaultVisitor {
 
             this.varsStackRef.put(nameLeft, varRef);
             this.varsStackBool.put(nameLeft, boolRight);
-        }
-        else if((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary))
-        {
+        } else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary)) {
             //variable name
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            MJExprUnary unaryExpr = (MJExprUnary) exprRight;
+
+            //unaryOperator
+            MJUnaryOperator unaryOperator = ((MJExprUnary) exprRight).getUnaryOperator();
 
             //for boolean expressions
-            if(unaryExpr instanceof MJNegate)
-            {
+            if (unaryOperator instanceof MJNegate) {
 
             }
             //for numbers
-            else if(unaryExpr instanceof MJUnaryMinus)
-            {
+            else if (unaryOperator instanceof MJUnaryMinus) {
+                MJExpr unaryRight = (((MJExprUnary) exprRight).getExpr());       //getting the unary operand
+                int valueRight = -((((MJNumber) unaryRight).getIntValue()));    //getting its value
 
+                TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
+                VarRef varRef = VarRef(tempVar);
+                Store storeRef = Store(varRef, ConstInt(valueRight));
+
+                this.curBlock.add(storeRef);
+
+                this.varsStackRef.put(nameLeft, varRef);
+                varsStackInt.put(nameLeft, valueRight);
             }
-
-
         }
-
     }
-
-
 }

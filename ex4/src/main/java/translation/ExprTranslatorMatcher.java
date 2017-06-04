@@ -149,9 +149,13 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_ExprUnary(MJExprUnary exprUnary) {
+        MJExpr unary = (((MJExprUnary) exprUnary).getExpr());       //getting the unary operand
+        int unaryValue = 0;
 
-        return null;
+        if (unary instanceof MJVarUse)      //check if there is a varuse
+            unaryValue = -(Translator.varsStackInt.get(((MJVarUse) unary).getVarName()));       //getting the unary value
 
+        return Ast.ConstInt(unaryValue);
     }
 
     /**
@@ -203,8 +207,6 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
                 return null;
             }
         });
-
-
     }
 
     /**
@@ -251,6 +253,4 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
         return null;
     }
-
-
 }
