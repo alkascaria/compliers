@@ -83,6 +83,13 @@ public class Translator extends MJElement.DefaultVisitor {
          operator.match(new OperatorChecker(this));
     }
 
+    /**
+     *
+     * @param unaryOperator(@code MJUnaryOperator)
+     */
+    public void visit(MJUnaryOperator unaryOperator) {
+        unaryOperator.match(new UnaryOperatorChecker(this));
+    }
 
 
     @Override
