@@ -103,7 +103,7 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     {
        MJVarDecl varDecl = varUse.getVariableDeclaration();
        MJType typeVar = varDecl.getType();
-        
+
         return typeVar.match(new MJType.Matcher<Operand>()
         {
             @Override
@@ -114,14 +114,13 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeBool(MJTypeBool typeBool)
             {
-                return null;
-
+                return Ast.ConstBool(Translator.varsStackBool.get(varUse.getVarName()));
             }
 
             @Override
             public Operand case_TypeInt(MJTypeInt typeInt)
             {
-                return Ast.ConstInt(Translator.varsStackval.get(varUse.getVarName()));
+                return Ast.ConstInt(Translator.varsStackInt.get(varUse.getVarName()));
             }
 
             @Override

@@ -7,10 +7,6 @@ class MainTest {
 		
 		System.out.println(b);
 		
-		boolean h;
-		
-		h = false;
-		
 		
 		
 		

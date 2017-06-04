@@ -21,8 +21,11 @@ public class Translator extends MJElement.DefaultVisitor {
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsStackTempVar = new HashMap<>();
+    //not sure if needed?
     public static HashMap<String, VarRef> varsStackRef = new HashMap<>();
-    public static HashMap<String, Integer> varsStackval = new HashMap<>();
+    //if the value changes, remember to update the corresponding value in the hashmap.
+    public static HashMap<String, Integer> varsStackInt = new HashMap<>();
+    public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
 
     //variable assignments go onto the head (ex: a = 5)
    // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
@@ -71,7 +74,8 @@ public class Translator extends MJElement.DefaultVisitor {
      *
      * @param statement(@code MJStatement)
      */
-    public void visit(MJStatement statement) {
+    public void visit(MJStatement statement)
+    {
         statement.match(new StatementChecker(this));
     }
 
@@ -79,17 +83,11 @@ public class Translator extends MJElement.DefaultVisitor {
      *
      * @param operator(@code MJOperator)
      */
-    public void operator(MJOperator operator) {
+    public void operator(MJOperator operator)
+    {
          operator.match(new OperatorChecker(this));
     }
 
-    /**
-     *
-     * @param unaryOperator(@code MJUnaryOperator)
-     */
-    public void visit(MJUnaryOperator unaryOperator) {
-        unaryOperator.match(new UnaryOperatorChecker(this));
-    }
 
 
     @Override
@@ -102,7 +100,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //check which operand type it is
         operand = expr.match(trans);
-        System.out.println(operand.toString());
 
         Print print = Print(operand);
         this.curBlock.add(print);
@@ -166,8 +163,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
 
-
-
     /**
      * Variable --> Temporary variable.
      *
@@ -175,9 +170,7 @@ public class Translator extends MJElement.DefaultVisitor {
      */
     @Override
     public void visit(MJVarUse varUse) {
-        String varName = varUse.getVarName();
 
-        TemporaryVar tempVar = TemporaryVar(varName);
 
     }
 
@@ -186,8 +179,7 @@ public class Translator extends MJElement.DefaultVisitor {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
-
-        System.out.println(exprLeft);
+        //TODO:
         //put value into the assigned stack space
         //ex: z = 5
         if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
@@ -201,7 +193,22 @@ public class Translator extends MJElement.DefaultVisitor {
             this.curBlock.add(storeRef);
             //now add it to the var refs
             this.varsStackRef.put(nameLeft, varRef);
-            varsStackval.put(nameLeft, valueRight);
+            varsStackInt.put(nameLeft, valueRight);
+        }
+        else if((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst))
+        {
+            String nameLeft = ((MJVarUse) exprLeft).getVarName();
+            boolean boolRight = ((MJBoolConst) exprRight).getBoolValue();
+
+            TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
+            VarRef varRef = VarRef(tempVar);
+            Store storeRef = Store(varRef, ConstBool(boolRight));
+
+            this.curBlock.add(storeRef);
+
+            this.varsStackRef.put(nameLeft, varRef);
+            this.varsStackBool.put(nameLeft, boolRight);
+
         }
 
     }
