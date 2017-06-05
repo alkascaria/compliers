@@ -18,189 +18,35 @@ public class AssignMatcherRightVarUse implements MatcherVoid {
     @Override
     public void case_FieldAccess(MJFieldAccess fieldAccess) {
 
-
     }
 
     @Override
     public void case_ExprBinary(MJExprBinary exprBinary) {
 
-        String nameLeft=this.nameVarLeft;
+        String nameLeft = this.nameVarLeft;
 
         //operands
-        int operand1 = 0, operand2 = 0;
-        boolean operandBool1 = false, operandBool2 = false;
+        Object operand1, operand2;
 
-        MJExpr binaryLeft = ((MJExprBinary) exprBinary).getLeft();     //Left expr of the ExprBinary
-        MJExpr binaryRight = ((MJExprBinary) exprBinary).getRight();   //Right exxpr of ExprBinary
-        MJOperator binaryOperator = ((MJExprBinary) exprBinary).getOperator();     //Operator of ExprBinary
+        MJExpr binaryLeft = ((MJExprBinary) exprBinary).getLeft();                  //Left expr of the ExprBinary
+        MJExpr binaryRight = ((MJExprBinary) exprBinary).getRight();                //Right exxpr of ExprBinary
+        MJOperator binaryOperator = ((MJExprBinary) exprBinary).getOperator();      //Operator of ExprBinary
 
-        //For binaryLeft
-        //binaryLeft is a number eg. 5
-        if (binaryLeft instanceof MJNumber) {
-            operand1 = (((MJNumber) binaryLeft).getIntValue());
-        }
-        //binaryLeft is a variable eg. a
-        else if (binaryLeft instanceof MJVarUse) {
+        //as both binaryLeft and binaryRight are expr, getting the operandLeft and operandRight
+        ExprMatcher exprMatcher = new ExprMatcher();
+        operand1 = binaryLeft.match(exprMatcher);
+        operand2 = binaryRight.match(exprMatcher);
 
-            String binaryLeftName = (((MJVarUse) binaryLeft).getVarName());       //name of the binaryLeft expr
-            MJVarDecl varDecl = ((MJVarUse) binaryLeft).getVariableDeclaration();
-            MJType type = (varDecl.getType());   //Type of the binaryLeft expr
+        //Doing the operation operand1 operator operand2
+        OperatorMatcher operatorMatcher = new OperatorMatcher();
+        operatorMatcher.getOperands(operand1,operand2);
+        Object valueRight = binaryOperator.match(operatorMatcher);
 
-            //a is of int
-            if (type instanceof MJTypeInt) {
-                operand1 = Translator.varsStackInt.get(binaryLeftName);      //value of the binaryLeft expr
-            }
-            // a is boolean
-            else if (type instanceof MJTypeBool) {
-                operandBool1 = Translator.varsStackBool.get(binaryLeftName);
-            }
-        }
-        //binaryLeft is a unary eg. -a/!true
-        else if (binaryLeft instanceof MJExprUnary) {
-
-            MJUnaryOperator unaryOperator = ((MJExprUnary) binaryLeft).getUnaryOperator();      //unaryOperator
-            MJExpr exprUnary = ((MJExprUnary) binaryLeft).getExpr();        //unaryExpression
-
-            //unaryExpression is a variable eg.-a
-            if (exprUnary instanceof MJVarUse) {
-
-                String nameUnary = ((MJVarUse) exprUnary).getVarName();     //name of the variable
-
-                //identifying the operator
-                if (unaryOperator instanceof MJUnaryMinus) {
-                    operand1 = -(Translator.varsStackInt.get(nameUnary));      //assg the value
-                }
-                else if (unaryOperator instanceof MJNegate) {
-                    operandBool1 = !(Translator.varsStackBool.get(nameUnary));
-                }
-            }
-            //eg. -5
-            else if (exprUnary instanceof MJNumber) {
-                operand1 = -(((MJNumber) exprUnary).getIntValue());
-            }
-            //eg. !true
-            else if (exprUnary instanceof MJBoolConst) {
-                operandBool1 = !(((MJBoolConst) exprUnary).getBoolValue());
-            }
-        }
-        //boolean
-        else if (binaryLeft instanceof MJBoolConst) {
-            operandBool1 = ((MJBoolConst) binaryLeft).getBoolValue();
-        }
-
-        //For binaryRight
-        //binaryRight is a number
-        if (binaryRight instanceof MJNumber) {
-            operand2 = ((MJNumber) binaryRight).getIntValue();
-        }
-        //is a variable eg. a
-        else if (binaryRight instanceof MJVarUse) {
-
-            String binaryRightName = (((MJVarUse) binaryRight).getVarName());       //name of the binaryLeft expr
-            MJVarDecl varDecl = ((MJVarUse) binaryRight).getVariableDeclaration();
-            MJType type = (varDecl.getType());   //Type of the binaryLeft expr
-
-            //is int
-            if (type instanceof MJTypeInt) {
-                operand2 = Translator.varsStackInt.get(binaryRightName);      //value of the binaryLeft expr
-            }
-            //is boolean
-            else if (type instanceof MJTypeBool) {
-                operandBool2 = Translator.varsStackBool.get(binaryRightName);
-            }
-        }
-        //is unary
-        else if (binaryRight instanceof MJExprUnary) {
-            MJUnaryOperator unaryOperator = ((MJExprUnary) binaryRight).getUnaryOperator();
-            MJExpr exprUnary = ((MJExprUnary) binaryRight).getExpr();
-
-            //is a variable
-            if (exprUnary instanceof MJVarUse) {
-
-                String nameUnary = ((MJVarUse) exprUnary).getVarName();
-
-                if (unaryOperator instanceof MJUnaryMinus) {
-                    operand2 = -(Translator.varsStackInt.get(nameUnary));
-                } else if (unaryOperator instanceof MJNegate) {
-                    operandBool2 = !(Translator.varsStackBool.get(nameUnary));
-                }
-            }
-            //is a number
-            else if (exprUnary instanceof MJNumber) {
-                operand2 = -(((MJNumber) exprUnary).getIntValue());
-            }
-            //is a number
-            else if (exprUnary instanceof MJBoolConst) {
-                operandBool2 = !(((MJBoolConst) exprUnary).getBoolValue());
-            }
-        }
-        //is boolean
-        else if (binaryRight instanceof MJBoolConst) {
-            operandBool2 = ((MJBoolConst) binaryRight).getBoolValue();
-        }
-
-        int finalOperand1 = operand1;
-        int finalOperand2 = operand2;
-
-        boolean finalOperandBool = operandBool1;
-        boolean finalOperandBool1 = operandBool2;
-
-        //check for the operators
-        binaryOperator.match(new MJOperator.MatcherVoid() {
-            int valueRight = 0;
-            boolean valueRightBool;
-
-            @Override
-            public void case_Plus(MJPlus plus) {
-                valueRight = finalOperand1 + finalOperand2;
-                updateHashMapsVariableInt(nameLeft, valueRight);
-            }
-
-            @Override
-            public void case_Minus(MJMinus minus) {
-                valueRight = finalOperand1 - finalOperand2;
-                updateHashMapsVariableInt(nameLeft, valueRight);
-            }
-
-            @Override
-            public void case_Equals(MJEquals equals) {
-                //in assg there is no case of equals
-                //but in if it can occur
-            }
-
-            @Override
-            public void case_And(MJAnd and) {
-                valueRightBool = finalOperandBool && finalOperandBool1;
-                updateHashMapsVariableBool(nameLeft, valueRightBool);
-            }
-
-            @Override
-            public void case_Less(MJLess less) {
-                valueRightBool = finalOperand1 < finalOperand2;
-                updateHashMapsVariableBool(nameLeft, valueRightBool);
-            }
-
-            @Override
-            public void case_Div(MJDiv div) {
-                if (finalOperand2 == 0) {
-                    HaltWithError haltWithError = Ast.HaltWithError("Arithmetic Exception");
-                    Translator.curBlock.add(haltWithError);
-                    Translator.curBlockErrors.add(haltWithError);
-                    //Translator.curBlock.add(HaltWithError("Arithmetic error: dividing by 0 is not allowed."));
-                } else {
-                    valueRight = finalOperand1 / finalOperand2;
-                    updateHashMapsVariableInt(nameLeft, valueRight);
-                }
-            }
-
-            @Override
-            public void case_Times(MJTimes times) {
-                valueRight = finalOperand1 * finalOperand2;
-                updateHashMapsVariableInt(nameLeft, valueRight);
-            }
-
-        });
-
+        //updating the calue to the respective hashmap
+        if (valueRight instanceof Integer)
+            updateHashMapsVariableInt(nameLeft, (int) valueRight);
+        else
+            updateHashMapsVariableBool(nameLeft, (boolean) valueRight);
     }
 
     @Override

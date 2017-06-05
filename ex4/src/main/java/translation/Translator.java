@@ -324,7 +324,7 @@ public class Translator extends MJElement.DefaultVisitor
             //perform right operations in class
             exprRight.match(assMatchRight);
         }
-
+        System.out.println(varsStackInt);
+        System.out.println(varsStackBool);
     }
-
 }
