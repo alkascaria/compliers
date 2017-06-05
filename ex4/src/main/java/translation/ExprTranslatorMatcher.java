@@ -114,8 +114,21 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
             }
 
             @Override
-            public Operand case_Div(MJDiv div) {
+            public Operand case_Div(MJDiv div)
+            {
+                if(finalOperand2 == 0)
+                {
+                    HaltWithError haltWithError = HaltWithError("Test");
+                    Translator.curBlock.add(haltWithError);
+                    Translator.curBlockErrors.add(haltWithError);
+                    //Translator.curBlock.add(HaltWithError("Arithmetic error: dividing by 0 is not allowed."));
+                    return Ast.ConstInt(-1);
+                }
+
                 return Ast.ConstInt(finalOperand1 / finalOperand2);
+
+
+
             }
 
             @Override

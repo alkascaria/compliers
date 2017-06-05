@@ -13,7 +13,6 @@ import minillvm.ast.Type;
  */
 public class TypeMatcher implements MJType.Matcher<Type> {
 
-
     /**
      *
      * @param typeClass(@code MJTypeClass)

@@ -10,6 +10,7 @@ import minillvm.analysis.*;
 
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 //Statements, visitor like here is fine.
 //expressions, separate class MJExpr.Matcher<Operand> to pass back an operand when evaluating something
@@ -26,6 +27,8 @@ public class Translator extends MJElement.DefaultVisitor {
     //if the value changes, remember to update the corresponding value in the hashmap.
     public static HashMap<String, Integer> varsStackInt = new HashMap<>();
     public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
+
+    public static LinkedList<TerminatingInstruction> curBlockErrors = new LinkedList<TerminatingInstruction>();
 
     //variable assignments go onto the head (ex: a = 5)
     // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
@@ -65,7 +68,17 @@ public class Translator extends MJElement.DefaultVisitor {
 
         javaProg.accept(this);
 
-        curBlock.add(ReturnExpr(ConstInt(0)));
+        //check if curBlock contains a terminating instruction. if it doesn't, add Return
+
+
+
+        if((this.curBlockErrors.isEmpty()))
+        {
+            System.out.println("Empty");
+            curBlock.add(ReturnExpr(ConstInt(0)));
+
+        }
+
 
         return prog;
     }
@@ -97,7 +110,13 @@ public class Translator extends MJElement.DefaultVisitor {
         operand = expr.match(trans);
 
         Print print = Print(operand);
-        this.curBlock.add(print);
+
+        //if no error, go ahead and add it
+        if(this.curBlockErrors.isEmpty())
+        {
+            this.curBlock.add(print);
+
+        }
     }
 
     //declaration --> variable.

@@ -1,20 +1,5 @@
-class MainTest {
-	public static void main(String[] a) {
-		
-		boolean b;
-		
-		b = false;
-		
-		
-		boolean d;
-		
-		d = true;
-		
-		
-		b = !d;
-			
-
-		
-		
+class Main {
+	public static void main(String[] a){
+		System.out.println(100 / 0);
 	}
 }
