@@ -1,17 +1,13 @@
 class MainTest {
 	public static void main(String[] a) {
-		
-		int d;
-		d = -2;		
-		
-		
 		int b;
 		
-		b = -d;
+		b = 1;
+		int d;
+		d = 2;		
+		b = d;
 		
-		System.out.println(b);
-
-		
+		System.out.println(b);		
 		
 	}
 }

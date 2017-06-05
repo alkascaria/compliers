@@ -149,11 +149,15 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_ExprUnary(MJExprUnary exprUnary) {
-        MJExpr unary = (((MJExprUnary) exprUnary).getExpr());       //getting the unary operand
+        MJExpr unary = exprUnary.getExpr();       //getting the unary operand
         int unaryValue = 0;
 
-        if (unary instanceof MJVarUse)      //check if there is a varuse
-            unaryValue = -(Translator.varsStackInt.get(((MJVarUse) unary).getVarName()));       //getting the unary value
+        //check if there is a varuse get its value instead.
+        if (unary instanceof MJVarUse)
+        {
+            //if var use is there,
+            unaryValue = -(Translator.varsStackInt.get(((MJVarUse) unary).getVarName()));
+        }
 
         return Ast.ConstInt(unaryValue);
     }

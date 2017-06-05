@@ -159,61 +159,110 @@ public class Translator extends MJElement.DefaultVisitor {
 
     }
 
+    /**
+     *
+     * @param varName: name of the variable whose value needs to be modified
+     * @param varValue: new value of the variable
+     *                This function updates all references to variables with the value provided
+     *                It checks if a reference to the variable specified is there before inserting
+     *                a new value into the hashmap
+     */
+    public void updateHashMapsVariableInt(String varName, int varValue)
+    {
+        //store value into variable's stack address
+        TemporaryVar tempVar = this.varsStackTempVar.get(varName);
+        VarRef varRef = VarRef(tempVar);
+        Store storeRef = Store(varRef, ConstInt(varValue));
+        this.curBlock.add(storeRef);
+        //now add it to the var refs
+        this.varsStackRef.put(varName, varRef);
+
+        //if not there yet, add it
+        if (!(this.varsStackInt.containsKey(varName)))
+        {
+            varsStackInt.put(varName, varValue);
+        }
+        //update
+        else if(this.varsStackInt.containsKey(varName))
+        {
+            varsStackInt.put(varName, varValue);
+        }
+    }
+
+    public void updateHashMapsVariableBool(String varName, boolean varBoolVal)
+    {
+        //store value into variable's stack address
+        TemporaryVar tempVar = this.varsStackTempVar.get(varName);
+        VarRef varRef = VarRef(tempVar);
+        Store storeRef = Store(varRef, ConstBool(varBoolVal));
+        this.curBlock.add(storeRef);
+        //now add it to the var refs
+        this.varsStackRef.put(varName, varRef);
+
+        //if not there yet, add it
+        if (!(this.varsStackBool.containsKey(varName)))
+        {
+            varsStackBool.put(varName, varBoolVal);
+        }
+        //update
+        else if(this.varsStackBool.containsKey(varName))
+        {
+            varsStackBool.put(varName, varBoolVal);
+        }
+
+    }
+
     @Override
     public void visit(MJStmtAssign stmtAssign) {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
         //ex: z = 5
-        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber)) {
+        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
+        {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
             int valueRight = ((MJNumber) exprRight).getIntValue();
-            //store value into variable's stack address
-            TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
-            VarRef varRef = VarRef(tempVar);
-            Store storeRef = Store(varRef, ConstInt(valueRight));
-            this.curBlock.add(storeRef);
-            //now add it to the var refs
-            this.varsStackRef.put(nameLeft, varRef);
-            varsStackInt.put(nameLeft, valueRight);
+
+            updateHashMapsVariableInt(nameLeft, valueRight);
+        }
+        //ex: b = d
+        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJVarUse))
+        {
+            //get value from right-hand side and assign to left-hand side variable
+            String nameLeft = ((MJVarUse) exprLeft).getVarName();
+            String nameRight = ((MJVarUse) exprRight).getVarName();
+            int varRight = this.varsStackInt.get(nameRight);
+
+            updateHashMapsVariableInt(nameLeft, varRight);
+
         }
         //ex: x = false
         else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst)) {
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
             boolean boolRight = ((MJBoolConst) exprRight).getBoolValue();
 
-            TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
-            VarRef varRef = VarRef(tempVar);
-            Store storeRef = Store(varRef, ConstBool(boolRight));
-
-            this.curBlock.add(storeRef);
-
-            this.varsStackRef.put(nameLeft, varRef);
-            this.varsStackBool.put(nameLeft, boolRight);
-        } else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary)) {
+            updateHashMapsVariableBool(nameLeft, boolRight);
+        }
+        //example : d = -5 or d = -v;
+        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary))
+        {
             //variable name
             String nameLeft = ((MJVarUse) exprLeft).getVarName();
+            MJExprUnary unaryRight = (MJExprUnary) exprRight;
 
-            //unaryOperator
-            MJUnaryOperator unaryOperator = ((MJExprUnary) exprRight).getUnaryOperator();
-
-            //for boolean expressions
-            if (unaryOperator instanceof MJNegate) {
-
+            //unary minus with constants (ex: d = -5)
+            if (unaryRight.getExpr() instanceof MJNumber)
+            {
+                MJNumber numberRight = (MJNumber)unaryRight.getExpr();
+                int valueRight = -numberRight.getIntValue();
+                updateHashMapsVariableInt(nameLeft, valueRight);
             }
-            //for numbers
-            else if (unaryOperator instanceof MJUnaryMinus) {
-                MJExpr unaryRight = (((MJExprUnary) exprRight).getExpr());       //getting the unary operand
-                int valueRight = -((((MJNumber) unaryRight).getIntValue()));    //getting its value
-
-                TemporaryVar tempVar = this.varsStackTempVar.get(nameLeft);
-                VarRef varRef = VarRef(tempVar);
-                Store storeRef = Store(varRef, ConstInt(valueRight));
-
-                this.curBlock.add(storeRef);
-
-                this.varsStackRef.put(nameLeft, varRef);
-                varsStackInt.put(nameLeft, valueRight);
+            //varuse and -varuse . example : d = -b;
+            else if (unaryRight.getExpr() instanceof MJVarUse)
+            {
+                String nameRight = ((MJVarUse) unaryRight.getExpr()).getVarName();
+                int varRight = - (this.varsStackInt.get(nameRight));
+                updateHashMapsVariableInt(nameLeft, varRight);
             }
         }
     }
