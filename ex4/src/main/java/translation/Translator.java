@@ -9,6 +9,7 @@ import static minillvm.ast.Ast.*;
 import minillvm.analysis.*;
 
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -29,7 +30,8 @@ public class Translator extends MJElement.DefaultVisitor
     public static HashMap<String, Integer> varsStackInt = new HashMap<>();
     public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
 
-    public static LinkedList<TerminatingInstruction> curBlockErrors = new LinkedList<TerminatingInstruction>();
+    public static ArrayList<TerminatingInstruction> curBlockErrors = new ArrayList<TerminatingInstruction>();
+
 
     //variable assignments go onto the head (ex: a = 5)
     // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
@@ -73,14 +75,13 @@ public class Translator extends MJElement.DefaultVisitor
         //check if curBlock contains a terminating instruction. if it doesn't, add Return
 
 
-
-        if((this.curBlockErrors.isEmpty()))
+        if((curBlockErrors.isEmpty()))
         {
-            System.out.println("Empty");
+            //System.out.println("Empty");
             curBlock.add(ReturnExpr(ConstInt(0)));
-
         }
 
+        curBlockErrors.clear();
 
         return prog;
     }
@@ -107,7 +108,7 @@ public class Translator extends MJElement.DefaultVisitor
         Print print = Print(operand);
 
         //if no error, go ahead and add it
-        if(this.curBlockErrors.isEmpty())
+        if(curBlockErrors.isEmpty())
         {
             this.curBlock.add(print);
         }
@@ -205,7 +206,6 @@ public class Translator extends MJElement.DefaultVisitor
             varsStackBool.put(varName, varBoolVal);
         }
 
-        System.out.println(this.varsStackBool.toString());
     }
 
     @Override
