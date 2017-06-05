@@ -127,6 +127,8 @@ public class Translator extends MJElement.DefaultVisitor
      *
      * @param varDecl(@code MJVarDecl)
      */
+
+
     //TODO: replace instanceof with TypeMatcher
     @Override
     public void visit(MJVarDecl varDecl)
@@ -163,51 +165,53 @@ public class Translator extends MJElement.DefaultVisitor
      *                It checks if a reference to the variable specified is there before inserting
      *                a new value into the hashmap
      */
-    public void updateHashMapsVariableInt(String varName, int varValue)
+    public static void updateHashMapsVariableInt(String varName, int varValue)
     {
         //store value into variable's stack address
-        TemporaryVar tempVar = this.varsStackTempVar.get(varName);
+        TemporaryVar tempVar = varsStackTempVar.get(varName);
         VarRef varRef = VarRef(tempVar);
         Store storeRef = Store(varRef, ConstInt(varValue));
-        this.curBlock.add(storeRef);
+        curBlock.add(storeRef);
         //now add it to the var refs
-        this.varsStackRef.put(varName, varRef);
+        varsStackRef.put(varName, varRef);
 
         //if not there yet, add it
-        if (!(this.varsStackInt.containsKey(varName)))
+        if (!(varsStackInt.containsKey(varName)))
         {
             varsStackInt.put(varName, varValue);
         }
         //update
-        else if(this.varsStackInt.containsKey(varName))
+        else if(varsStackInt.containsKey(varName))
         {
             varsStackInt.put(varName, varValue);
         }
     }
 
-    public void updateHashMapsVariableBool(String varName, boolean varBoolVal)
+    public static void updateHashMapsVariableBool(String varName, boolean varBoolVal)
     {
         //store value into variable's stack address
-        TemporaryVar tempVar = this.varsStackTempVar.get(varName);
+        TemporaryVar tempVar = varsStackTempVar.get(varName);
         VarRef varRef = VarRef(tempVar);
         Store storeRef = Store(varRef, ConstBool(varBoolVal));
-        this.curBlock.add(storeRef);
+        curBlock.add(storeRef);
         //now add it to the var refs
-        this.varsStackRef.put(varName, varRef);
+        varsStackRef.put(varName, varRef);
 
         //if not there yet, add it
-        if (!(this.varsStackBool.containsKey(varName)))
+        if (!(varsStackBool.containsKey(varName)))
         {
             varsStackBool.put(varName, varBoolVal);
         }
         //update
-        else if(this.varsStackBool.containsKey(varName))
+        else if(varsStackBool.containsKey(varName))
         {
             varsStackBool.put(varName, varBoolVal);
         }
 
     }
 
+
+    /*
     @Override
     public void visit(MJStmtAssign stmtAssign) {
         MJExpr exprLeft = stmtAssign.getLeft();
@@ -293,5 +297,34 @@ public class Translator extends MJElement.DefaultVisitor
             }
 
         }
+
     }
+
+    */
+
+
+    @Override
+    public void visit(MJStmtAssign stmtAssign)
+    {
+        MJExpr exprLeft = stmtAssign.getLeft();
+        MJExpr exprRight = stmtAssign.getRight();
+
+        //left side in here since it's just about a few cases: MJVarUse and FieldAccess
+
+        //a = something.
+        if(exprLeft instanceof MJVarUse)
+        {
+            MJVarUse varUseLeft = (MJVarUse) exprLeft;
+
+            String nameLeft = varUseLeft.getVarName();
+
+            AssignMatcherRightVarUse assMatchRight = new AssignMatcherRightVarUse();
+            assMatchRight.nameVarLeft = nameLeft;
+
+            //perform right operations in class
+            exprRight.match(assMatchRight);
+        }
+
+    }
+
 }
