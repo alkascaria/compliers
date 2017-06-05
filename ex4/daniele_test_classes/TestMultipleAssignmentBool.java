@@ -5,14 +5,8 @@ class MainTest {
 		
 		b = false;
 		
+		b = true;
 		
-		boolean d;
-		
-		d = true;
-		
-		
-		b = !d;
-			
 
 		
 		

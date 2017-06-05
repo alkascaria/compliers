@@ -11,8 +11,14 @@ class MainTest {
 		d = true;
 		
 		
-		b = !d;
-			
+		b = d;
+		
+		
+		
+	
+		
+		
+		
 
 		
 		
