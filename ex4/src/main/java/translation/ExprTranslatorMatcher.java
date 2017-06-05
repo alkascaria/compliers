@@ -40,20 +40,20 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
         MJOperator operator = exprBinary.getOperator();
 
         MJVarDecl varDecl;
-        MJType typeVar = null,typeVar1=null,typeVar2=null;
-        String name = null,name1=null,name2=null;
+        MJType typeVar = null, typeVarLeft = null, typeVarRight = null;
+        String name = null, nameLeft = null, nameRight = null;
         int operand1 = 0, operand2 = 0;
 
         //check if there is a varUse
         // if exprRight is a varuse
-        if ((exprRight instanceof MJVarUse)&&(exprLeft instanceof MJNumber)) {
+        if ((exprRight instanceof MJVarUse) && (exprLeft instanceof MJNumber)) {
             count = 1;          //count is changed
             name = ((MJVarUse) exprRight).getVarName();     //the name of the variable
             varDecl = ((MJVarUse) exprRight).getVariableDeclaration();
             typeVar = varDecl.getType();        //type of the vardec
             operand1 = ((MJNumber) exprLeft).getIntValue();         //operand1=exprLeft
         }//if exprLeft is a varuse
-        else if ((exprRight instanceof MJNumber)&&(exprLeft instanceof MJVarUse)) {
+        else if ((exprRight instanceof MJNumber) && (exprLeft instanceof MJVarUse)) {
             count = 2;
             name = ((MJVarUse) exprLeft).getVarName();      //the name of the variable
             varDecl = ((MJVarUse) exprLeft).getVariableDeclaration();
@@ -61,18 +61,16 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
             operand2 = ((MJNumber) exprRight).getIntValue();        //operand2=exprRight
         }
         //Both left and right expr are of varUse
-        else if ((exprRight instanceof MJVarUse)&& (exprLeft instanceof MJVarUse))
-        {
-            count =3;
-            name1= ((MJVarUse) exprLeft).getVarName();      //the name of the variable
+        else if ((exprRight instanceof MJVarUse) && (exprLeft instanceof MJVarUse)) {
+            count = 3;
+            nameLeft = ((MJVarUse) exprLeft).getVarName();      //the name of the variable
             varDecl = ((MJVarUse) exprLeft).getVariableDeclaration();
-            typeVar = varDecl.getType();         //type of the vardec
+            typeVarLeft = varDecl.getType();         //type of the vardec
 
-            name2= ((MJVarUse) exprRight).getVarName();      //the name of the variable
+            nameRight = ((MJVarUse) exprRight).getVarName();      //the name of the variable
             varDecl = ((MJVarUse) exprRight).getVariableDeclaration();
-            typeVar = varDecl.getType();         //type of the vardec
-        }
-        else {
+            typeVarRight = varDecl.getType();         //type of the vardec
+        } else {
             //There is a unaryMinus
             if (exprLeft instanceof MJExprUnary) {
                 MJExpr unLeft = (((MJExprUnary) exprLeft).getExpr());       //getting the unary operand
@@ -94,9 +92,14 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
                 operand2 = (Translator.varsStackInt.get(name));
             } else if (count == 2) {
                 operand1 = (Translator.varsStackInt.get(name));
-            }else  if (count==3){
-                operand1 = (Translator.varsStackInt.get(name1));
-                operand2 = (Translator.varsStackInt.get(name2));
+            }
+        }
+
+        //Both left and right expr are varUse
+        if (count == 3) {
+            if ((typeVarLeft instanceof MJTypeInt) && (typeVarRight instanceof MJTypeInt)) {
+                operand1 = (Translator.varsStackInt.get(nameLeft));
+                operand2 = (Translator.varsStackInt.get(nameRight));
             }
         }
 
@@ -130,10 +133,8 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
             }
 
             @Override
-            public Operand case_Div(MJDiv div)
-            {
-                if(finalOperand2 == 0)
-                {
+            public Operand case_Div(MJDiv div) {
+                if (finalOperand2 == 0) {
                     HaltWithError haltWithError = HaltWithError("Test");
                     Translator.curBlock.add(haltWithError);
                     Translator.curBlockErrors.add(haltWithError);
@@ -142,7 +143,6 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
                 }
 
                 return Ast.ConstInt(finalOperand1 / finalOperand2);
-
 
 
             }
@@ -182,8 +182,7 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
         int unaryValue = 0;
 
         //check if there is a varuse get its value instead.
-        if (unary instanceof MJVarUse)
-        {
+        if (unary instanceof MJVarUse) {
             //if var use is there,
             unaryValue = -(Translator.varsStackInt.get(((MJVarUse) unary).getVarName()));
         }
