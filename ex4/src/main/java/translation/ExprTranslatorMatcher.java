@@ -33,73 +33,58 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
     public Operand case_ExprBinary(MJExprBinary exprBinary) {
         //TODO Refactor to avoid 'instanceof' if possible
 
-        int count = 0;      //setting a count to identify if there is a varUse()
-
         MJExpr exprLeft = exprBinary.getLeft();
         MJExpr exprRight = exprBinary.getRight();
         MJOperator operator = exprBinary.getOperator();
 
-        MJVarDecl varDecl;
-        MJType typeVar = null, typeVarLeft = null, typeVarRight = null;
-        String name = null, nameLeft = null, nameRight = null;
+        String name = null;
         int operand1 = 0, operand2 = 0;
 
         //check if there is a varUse
-        // if exprRight is a varuse
-        if ((exprRight instanceof MJVarUse) && (exprLeft instanceof MJNumber)) {
-            count = 1;          //count is changed
-            name = ((MJVarUse) exprRight).getVarName();     //the name of the variable
-            varDecl = ((MJVarUse) exprRight).getVariableDeclaration();
-            typeVar = varDecl.getType();        //type of the vardec
-            operand1 = ((MJNumber) exprLeft).getIntValue();         //operand1=exprLeft
-        }//if exprLeft is a varuse
-        else if ((exprRight instanceof MJNumber) && (exprLeft instanceof MJVarUse)) {
-            count = 2;
+        //if exprLeft is a varuse
+        if (exprLeft instanceof MJVarUse) {
             name = ((MJVarUse) exprLeft).getVarName();      //the name of the variable
-            varDecl = ((MJVarUse) exprLeft).getVariableDeclaration();
-            typeVar = varDecl.getType();         //type of the vardec
-            operand2 = ((MJNumber) exprRight).getIntValue();        //operand2=exprRight
+            operand1 = (Translator.varsStackInt.get(name));
         }
-        //Both left and right expr are of varUse
-        else if ((exprRight instanceof MJVarUse) && (exprLeft instanceof MJVarUse)) {
-            count = 3;
-            nameLeft = ((MJVarUse) exprLeft).getVarName();      //the name of the variable
-            varDecl = ((MJVarUse) exprLeft).getVariableDeclaration();
-            typeVarLeft = varDecl.getType();         //type of the vardec
-
-            nameRight = ((MJVarUse) exprRight).getVarName();      //the name of the variable
-            varDecl = ((MJVarUse) exprRight).getVariableDeclaration();
-            typeVarRight = varDecl.getType();         //type of the vardec
-        } else {
-            //There is a unaryMinus
-            if (exprLeft instanceof MJExprUnary) {
-                MJExpr unLeft = (((MJExprUnary) exprLeft).getExpr());       //getting the unary operand
-                operand1 = -((((MJNumber) unLeft).getIntValue()));      //operand1=unary
-                operand2 = (((MJNumber) exprRight).getIntValue());      //operand2=exprRigh
-            } else if (exprRight instanceof MJExprUnary) {
-                MJExpr unRight = (((MJExprUnary) exprRight).getExpr());       //getting the unary operand
-                operand2 = -((((MJNumber) unRight).getIntValue()));     //operand2=unary
-                operand1 = (((MJNumber) exprLeft).getIntValue());       //operand1=exprLeft
-            }//Both are numbers
+        //exprLeft is a number
+        else if (exprLeft instanceof MJNumber) {
+            operand1 = ((MJNumber) exprLeft).getIntValue();
+        }
+        //exprLeft is a unary
+        else if (exprLeft instanceof MJExprUnary) {
+            MJExpr unLeft = (((MJExprUnary) exprLeft).getExpr());       //getting the unary operand
+            System.out.println(unLeft);
+            if (unLeft instanceof MJVarUse)
+            {
+                name=((MJVarUse) unLeft).getVarName();
+                operand1=-(Translator.varsStackInt.get(name));
+            }
             else {
-                operand1 = (((MJNumber) exprLeft).getIntValue());       //operand1=exprLeft
-                operand2 = (((MJNumber) exprRight).getIntValue());      //operand2=exprRigh
+                operand1 = -((((MJNumber) unLeft).getIntValue()));      //operand1=unary
             }
         }
 
-        if (typeVar instanceof MJTypeInt) {
-            if (count == 1) {
-                operand2 = (Translator.varsStackInt.get(name));
-            } else if (count == 2) {
-                operand1 = (Translator.varsStackInt.get(name));
-            }
+        // if exprRight is a varuse
+        if (exprRight instanceof MJVarUse) {
+            name = ((MJVarUse) exprRight).getVarName();     //the name of the variable
+            operand2 = (Translator.varsStackInt.get(name));
         }
-
-        //Both left and right expr are varUse
-        if (count == 3) {
-            if ((typeVarLeft instanceof MJTypeInt) && (typeVarRight instanceof MJTypeInt)) {
-                operand1 = (Translator.varsStackInt.get(nameLeft));
-                operand2 = (Translator.varsStackInt.get(nameRight));
+        //exprRight is a number
+        else if (exprRight instanceof MJNumber) {
+            System.out.println(exprRight);
+            operand2 = ((MJNumber) exprRight).getIntValue();
+        }
+        //exprRight is a unary
+        else if (exprRight instanceof MJExprUnary) {
+            MJExpr unRight = (((MJExprUnary) exprRight).getExpr());       //getting the unary operand
+            //There is a variable eg:-a
+            if (unRight instanceof MJVarUse)
+            {
+                name=((MJVarUse) unRight).getVarName();
+                operand1=-(Translator.varsStackInt.get(name));
+            }
+            else {
+                operand2 = -((((MJNumber) unRight).getIntValue()));     //operand2=unary
             }
         }
 
@@ -109,6 +94,8 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
         return operator.match(new MJOperator.Matcher<Operand>() {
             @Override
             public Operand case_Plus(MJPlus plus) {
+                System.out.println(finalOperand1);
+                System.out.println(finalOperand2);
                 return Ast.ConstInt(finalOperand1 + finalOperand2);
             }
 
