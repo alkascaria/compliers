@@ -16,7 +16,8 @@ import java.util.LinkedList;
 //expressions, separate class MJExpr.Matcher<Operand> to pass back an operand when evaluating something
 
 
-public class Translator extends MJElement.DefaultVisitor {
+public class Translator extends MJElement.DefaultVisitor
+{
 
     private final MJProgram javaProg;
 
@@ -43,7 +44,8 @@ public class Translator extends MJElement.DefaultVisitor {
         this.javaProg = javaProg;
     }
 
-    public Prog translate() {
+    public Prog translate()
+    {
         Prog prog = Prog(TypeStructList(), GlobalList(), ProcList());
 
         //fill this with other blocks in the future
@@ -56,9 +58,9 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //main block
         BasicBlock mainBlock = BasicBlock
-                (
+        (
 
-                );
+        );
 
         //get the list of instruction
         mainBlock.setName("entry");
@@ -81,13 +83,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
         return prog;
-    }
-
-    /**
-     * @param statement(@code MJStatement)
-     */
-    public void visit(MJStatement statement) {
-        statement.match(new StatementChecker(this));
     }
 
     /**
@@ -115,7 +110,6 @@ public class Translator extends MJElement.DefaultVisitor {
         if(this.curBlockErrors.isEmpty())
         {
             this.curBlock.add(print);
-
         }
     }
 
@@ -134,36 +128,18 @@ public class Translator extends MJElement.DefaultVisitor {
      */
     //TODO: replace instanceof with TypeMatcher
     @Override
-    public void visit(MJVarDecl varDecl) {
+    public void visit(MJVarDecl varDecl)
+    {
+        TypeMatcher typeMatcher = new TypeMatcher();
+
         MJType typeVar = varDecl.getType();
         String typeName = varDecl.getName();
 
-        TemporaryVar tempVar;
-
-        if (typeVar instanceof MJTypeInt) {
-            tempVar = TemporaryVar(typeName);
-            //allocates space on the stack
-            Alloca alloca = Alloca(tempVar, TypeInt());
-            //add it to current block, and consequently to current procedure
-            this.curBlock.add(alloca);
-            //put the variable onto the stack
-            varsStackTempVar.put(typeName, tempVar);
-        } else if (typeVar instanceof MJTypeBool) {
-            tempVar = TemporaryVar(typeName);
-            //allocates space on the stack
-            Alloca alloca = Alloca(tempVar, TypeBool());
-            this.curBlock.add(alloca);
-            //put the variable onto the stack
-            varsStackTempVar.put(typeName, tempVar);
-        } else if (typeVar instanceof MJTypeIntArray) {
-            //TODO: part two. handle array declarations
-            //int C, create a struct with pointer to element and size.
-            //parameter = Parameter(TypeIntArray(), typeName);
-        }
-        //TODO: next exercise, handle class declarations
-        else if (typeVar instanceof MJTypeClass) {
-
-        }
+        Type typeReturn = typeVar.match(typeMatcher);
+        TemporaryVar tempVar = TemporaryVar(typeName);
+        Alloca alloca = Alloca(tempVar, typeReturn);
+        this.curBlock.add(alloca);
+        varsStackTempVar.put(typeName, tempVar);
     }
 
 

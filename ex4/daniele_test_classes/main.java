@@ -1,5 +1,10 @@
 class Main {
 	public static void main(String[] a){
-		System.out.println(100 / 0);
+		int b;
+		
+		
+		b = 5;
+		
+		System.out.println(b);
 	}
 }

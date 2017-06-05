@@ -1,8 +1,6 @@
 package translation;
 
-import static minillvm.ast.Ast.TypePointer;
 import minijava.ast.*;
-import minillvm.ast.TypePointer;
 import minillvm.ast.Ast;
 import minillvm.ast.Type;
 
@@ -11,8 +9,8 @@ import minillvm.ast.Type;
  * Created by Daniele on 02/06/2017.
  * Matches correct type of a vardecl
  */
-public class TypeMatcher implements MJType.Matcher<Type> {
-
+public class TypeMatcher implements MJType.Matcher<Type>
+{
     /**
      *
      * @param typeClass(@code MJTypeClass)
@@ -43,8 +41,7 @@ public class TypeMatcher implements MJType.Matcher<Type> {
     @Override
     public Type case_TypeIntArray(MJTypeIntArray typeIntArray)
     {
-        TypePointer typePointer = TypePointer(Ast.TypeArray(Ast.TypeInt(),0));
-        return (typePointer);
+        return null;
     }
 
     /**
@@ -55,6 +52,7 @@ public class TypeMatcher implements MJType.Matcher<Type> {
     @Override
     public Type case_TypeInt(MJTypeInt typeInt)
     {
-        return Ast.TypeInt();
+       return Ast.TypeInt();
+
     }
 }
