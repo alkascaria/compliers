@@ -128,10 +128,7 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
                     //Translator.curBlock.add(HaltWithError("Arithmetic error: dividing by 0 is not allowed."));
                     return Ast.ConstInt(-1);
                 }
-
                 return Ast.ConstInt(finalOperand1 / finalOperand2);
-
-
             }
 
             @Override
@@ -173,6 +170,8 @@ public class ExprTranslatorMatcher implements MJExpr.Matcher<Operand> {
             //if var use is there,
             unaryValue = -(Translator.varsStackInt.get(((MJVarUse) unary).getVarName()));
         }
+        else        //it is a Number
+            unaryValue=-(((MJNumber) unary).getIntValue());
 
         return Ast.ConstInt(unaryValue);
     }
