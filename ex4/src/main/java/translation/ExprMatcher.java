@@ -10,11 +10,22 @@ import minijava.ast.*;
 
 public class ExprMatcher implements MJExpr.Matcher {
 
+    /**
+     *
+     * @param fieldAccess(@code MJFieldAccess)
+     * @return
+     */
     @Override
-    public Object case_FieldAccess(MJFieldAccess fieldAccess) {
-        return null;
+    public Object case_FieldAccess(MJFieldAccess fieldAccess)
+    {
+        return new RuntimeException();
     }
 
+    /**
+     *
+     * @param exprBinary(@code MJExprBinary)
+     * @return
+     */
     @Override
     public Object case_ExprBinary(MJExprBinary exprBinary) {
 
@@ -37,18 +48,36 @@ public class ExprMatcher implements MJExpr.Matcher {
         return value;
     }
 
+    /**
+     *
+     * @param exprNull(@code MJExprNull)
+     * @return
+     */
     @Override
-    public Object case_ExprNull(MJExprNull exprNull) {
+    public Object case_ExprNull(MJExprNull exprNull)
+    {
         return null;
     }
 
+    /**
+     *
+     * @param methodCall(@code MJMethodCall)
+     * @return
+     */
     @Override
-    public Object case_MethodCall(MJMethodCall methodCall) {
-        return null;
+    public Object case_MethodCall(MJMethodCall methodCall)
+    {
+        return new RuntimeException();
     }
 
+    /**
+     *
+     * @param exprUnary(@code MJExprUnary)
+     * @return
+     */
     @Override
-    public Object case_ExprUnary(MJExprUnary exprUnary) {
+    public Object case_ExprUnary(MJExprUnary exprUnary)
+    {
         System.out.println(exprUnary);
 
         MJUnaryOperator unaryOperator = exprUnary.getUnaryOperator();      //unaryOperator
@@ -57,8 +86,13 @@ public class ExprMatcher implements MJExpr.Matcher {
 
         ExprMatcher exprMatcher=new ExprMatcher();
 
-        return unaryOperator.match(new MJUnaryOperator.Matcher<Object>() {
-
+        return unaryOperator.match(new MJUnaryOperator.Matcher<Object>()
+        {
+            /**
+             *
+             * @param unaryMinus(@code MJUnaryMinus)
+             * @return
+             */
             @Override
             public Object case_UnaryMinus(MJUnaryMinus unaryMinus) {
                 int operand;
@@ -74,6 +108,11 @@ public class ExprMatcher implements MJExpr.Matcher {
                 return operand;
             }
 
+            /**
+             *
+             * @param negate(@code MJNegate)
+             * @return
+             */
             @Override
             public Object case_Negate(MJNegate negate) {
                 System.out.println("hello");
@@ -115,6 +154,11 @@ public class ExprMatcher implements MJExpr.Matcher {
         return number.getIntValue();
     }
 
+    /**
+     *
+     * @param varUse(@code MJVarUse)
+     * @return
+     */
     @Override
     public Object case_VarUse(MJVarUse varUse) {
         String name = varUse.getVarName();
@@ -150,7 +194,8 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_TypeIntArray(MJTypeIntArray typeIntArray) {
+            public Object case_TypeIntArray(MJTypeIntArray typeIntArray)
+            {
                 return null;
             }
 
@@ -176,7 +221,7 @@ public class ExprMatcher implements MJExpr.Matcher {
     @Override
     public Object case_NewIntArray(MJNewIntArray newIntArray) 
     {
-        throw new RuntimeException();
+        return new RuntimeException();
     }
 
     /**
@@ -187,7 +232,7 @@ public class ExprMatcher implements MJExpr.Matcher {
     @Override
     public Object case_ExprThis(MJExprThis exprThis) 
     {
-       throw new RuntimeException();
+        return new RuntimeException();
     }
 
     /**
@@ -210,7 +255,7 @@ public class ExprMatcher implements MJExpr.Matcher {
      */
     @Override
     public Object case_NewObject(MJNewObject newObject) {
-        throw new RuntimeException();
+        return new RuntimeException();
     }
 
     /**
@@ -220,6 +265,6 @@ public class ExprMatcher implements MJExpr.Matcher {
      */
     @Override
     public Object case_ArrayLookup(MJArrayLookup arrayLookup) {
-       throw new RuntimeException();
+        return new RuntimeException();
     }
 }
