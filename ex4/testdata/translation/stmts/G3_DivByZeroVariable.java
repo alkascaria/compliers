@@ -9,8 +9,5 @@ class MainTest {
 
 		d =  b / c;
 		
-		
-		
-		
 	}
 }

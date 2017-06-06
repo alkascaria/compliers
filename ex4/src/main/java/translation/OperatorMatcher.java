@@ -57,10 +57,9 @@ public class OperatorMatcher implements MJOperator.Matcher {
     @Override
     public Object case_Div(MJDiv div) {
         if (operandInt2 == 0) {
-            HaltWithError haltWithError = Ast.HaltWithError("Arithmetic Exception");
+            HaltWithError haltWithError = Ast.HaltWithError("Arithmetic Exception. Dividing by 0 is not allowed");
             Translator.curBlock.add(haltWithError);
             Translator.curBlockErrors.add(haltWithError);
-            //Translator.curBlock.add(HaltWithError("Arithmetic error: dividing by 0 is not allowed."));
             return (-1);
         } else
             return (operandInt1 / operandInt2);

@@ -93,6 +93,20 @@ public class Translator extends MJElement.DefaultVisitor
         operator.match(new OperatorChecker(this));
     }
 
+    //TODO
+    public void visit(MJStmtIf stmtIf)
+    {
+
+
+
+    }
+
+    public void visit(MJStmtWhile stmtWhile)
+    {
+
+
+    }
+
 
     @Override
     public void visit(MJStmtPrint stmtPrint) {
@@ -215,10 +229,16 @@ public class Translator extends MJElement.DefaultVisitor
             ExprMatcher exprMatcher=new ExprMatcher();
             Object value=exprRight.match(exprMatcher);      //perform right operations in class
 
-            if (value instanceof Integer)
-                updateHashMapsVariableInt(nameLeft,(int) value);
-            else
-                updateHashMapsVariableBool(nameLeft,(boolean) value);
+            //if no error
+            if(this.curBlockErrors.isEmpty())
+            {
+                if (value instanceof Integer)
+                    updateHashMapsVariableInt(nameLeft, (int) value);
+                else
+                    updateHashMapsVariableBool(nameLeft, (boolean) value);
+
+            }
+
         }
         System.out.println("HasMap for Int"+ varsStackInt);
         System.out.println("HaspMap for Boolean"+ varsStackBool);
