@@ -115,7 +115,6 @@ public class Translator extends MJElement.DefaultVisitor
         //check which operand type it is. we know it must be a boolean here
         //Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
         Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
-        //true or false?
         //true statements if(){statements}
         MJStatement statementsTrue = stmtIf.getIfTrue();
         //else statements else{statements}
@@ -158,8 +157,8 @@ public class Translator extends MJElement.DefaultVisitor
         //done, go ahead with remaining code
         this.curBlock = basicBlockAfterIfElse;
         this.blocks.add(basicBlockAfterIfElse);
-
     }
+
 
 
     /**
@@ -169,8 +168,55 @@ public class Translator extends MJElement.DefaultVisitor
     @Override
     public void visit(MJStmtWhile stmtWhile)
     {
+        /*
+        ExprMatcher exprMatcher = new ExprMatcher();
+        //very similar to "IF"
+        MJExpr exprCondition = stmtWhile.getCondition();
 
 
+        MJStatement stmtLoopBody = stmtWhile.getLoopBody();
+
+        BasicBlock basicBlockCondition = BasicBlock();
+
+        BasicBlock basicBlockBodyWhile = BasicBlock();
+
+        BasicBlock basicBlockAfterWhile = BasicBlock();
+
+        //first of all, evaluate the while's condition
+        this.curBlock.add(Jump(basicBlockCondition));
+        this.curBlock = basicBlockCondition;
+        //update references
+        //this.curBlock = basicBlockCondition;
+        //this.blocks.add(basicBlockCondition);
+
+        //now check if the body should be evaluated or we should leave the loop
+        //do now instantiate Branch in a reference variable or we will have problems (as it needs to be
+        //instantiated repeatedly
+        Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
+
+        basicBlockCondition.add(Branch(operandCondition, basicBlockBodyWhile, basicBlockAfterWhile));
+
+
+        //start of while:
+
+        this.blocks.add(basicBlockCondition);
+        //Like in if, Branch decides which body should be evaluated.
+        this.curBlock = basicBlockBodyWhile;
+
+        //while body
+
+        this.blocks.add(basicBlockBodyWhile);
+          //evaluate statements in the while's body
+        stmtLoopBody.accept(this);
+        //then check the condition again
+        this.curBlock.add(Jump(basicBlockCondition));
+
+
+        //now check the statements outside the loop
+        this.curBlock = basicBlockAfterWhile;
+        this.blocks.add(basicBlockAfterWhile);
+
+        */
     }
 
 
