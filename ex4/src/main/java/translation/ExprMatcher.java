@@ -137,27 +137,34 @@ public class ExprMatcher implements MJExpr.Matcher {
     }
 
     @Override
-    public Object case_NewIntArray(MJNewIntArray newIntArray) {
-        return null;
+    public Object case_NewIntArray(MJNewIntArray newIntArray) 
+    {
+        throw new RuntimeException();
     }
 
     @Override
-    public Object case_ExprThis(MJExprThis exprThis) {
-        return null;
+    public Object case_ExprThis(MJExprThis exprThis) 
+    {
+       throw new RuntimeException();
     }
 
     @Override
-    public Object case_ArrayLength(MJArrayLength arrayLength) {
-        return null;
+
+         public Object case_ArrayLength(MJArrayLength arrayLength)
+    {
+        int operand;
+        operand = Translator.varsStackInt.get(arrayLength);
+        return operand;
     }
+    
 
     @Override
     public Object case_NewObject(MJNewObject newObject) {
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public Object case_ArrayLookup(MJArrayLookup arrayLookup) {
-        return null;
+       throw new RuntimeException();
     }
 }
