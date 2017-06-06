@@ -92,16 +92,6 @@ public class Translator extends MJElement.DefaultVisitor
         return prog;
     }
 
-    /**
-     * @param operator(@code MJOperator)
-     */
-    public void operator(MJOperator operator) {
-        operator.match(new OperatorChecker(this));
-    }
-
-
-
-
 
     /**
      * @param stmtIf
