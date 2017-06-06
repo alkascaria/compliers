@@ -5,6 +5,9 @@ import minijava.ast.*;
 /**
  * Created by alka on 6/5/2017.
  */
+
+//TODO returing Object as return can be either int or boolean....Try to find an alternative
+
 public class ExprMatcher implements MJExpr.Matcher {
 
     @Override
@@ -46,37 +49,44 @@ public class ExprMatcher implements MJExpr.Matcher {
 
     @Override
     public Object case_ExprUnary(MJExprUnary exprUnary) {
+        System.out.println(exprUnary);
 
         MJUnaryOperator unaryOperator = exprUnary.getUnaryOperator();      //unaryOperator
 
-        MJExpr expr = exprUnary.getExpr();                               //unaryExpression
+        MJExpr unary = exprUnary.getExpr();                               //unaryExpression
+
+        ExprMatcher exprMatcher=new ExprMatcher();
 
         return unaryOperator.match(new MJUnaryOperator.Matcher<Object>() {
-
-            MJExpr unary = exprUnary.getExpr();
 
             @Override
             public Object case_UnaryMinus(MJUnaryMinus unaryMinus) {
                 int operand;
 
-                if (exprUnary instanceof MJVarUse) {
-                    String name = ((MJVarUse) exprUnary).getVarName();
+                if (unary instanceof MJVarUse) {
+                    String name = ((MJVarUse) unary).getVarName();
                     operand = -(Translator.varsStackInt.get(name));      //assg the value
-                }
-                else {
+                } else if (unary instanceof MJNumber){
                     operand = -(((MJNumber) unary).getIntValue());
                 }
+                else
+                    operand=-((int)unary.match(exprMatcher));
                 return operand;
             }
 
             @Override
             public Object case_Negate(MJNegate negate) {
+                System.out.println("hello");
                 boolean operandBool;
-                if (exprUnary instanceof MJVarUse) {
-                    String name = ((MJVarUse) exprUnary).getVarName();
+                if (unary instanceof MJVarUse) {
+                    System.out.println("hi");
+                    String name = ((MJVarUse) unary).getVarName();
                     operandBool = !(Translator.varsStackBool.get(name));      //assg the value
-                } else
+                } else if (unary instanceof MJBoolConst)
                     operandBool = !(((MJBoolConst) unary).getBoolValue());
+                else {
+                    operandBool =!((boolean)unary.match(exprMatcher));
+                }
                 return operandBool;
             }
         });

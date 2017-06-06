@@ -100,10 +100,9 @@ public class Translator extends MJElement.DefaultVisitor
         MJExpr expr = stmtPrint.getPrinted();
 
         Operand operand;
-        ExprTranslatorMatcher trans = new ExprTranslatorMatcher();
 
-        //check which operand type it is
-        operand = expr.match(trans);
+        ExprMatcher exprMatcher=new ExprMatcher();
+        operand=Ast.ConstInt((int)expr.match(exprMatcher));               //check which operand type it is
 
         Print print = Print(operand);
 
@@ -143,18 +142,6 @@ public class Translator extends MJElement.DefaultVisitor
         Alloca alloca = Alloca(tempVar, typeReturn);
         this.curBlock.add(alloca);
         varsStackTempVar.put(typeName, tempVar);
-    }
-
-
-    /**
-     * Variable --> Temporary variable.
-     *
-     * @param varUse
-     */
-    @Override
-    public void visit(MJVarUse varUse) {
-
-
     }
 
     /**
@@ -210,99 +197,6 @@ public class Translator extends MJElement.DefaultVisitor
 
     }
 
-
-    /*
-    @Override
-    public void visit(MJStmtAssign stmtAssign) {
-        MJExpr exprLeft = stmtAssign.getLeft();
-        MJExpr exprRight = stmtAssign.getRight();
-
-        //ex: z = 5
-        if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJNumber))
-        {
-            String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            int valueRight = ((MJNumber) exprRight).getIntValue();
-
-            updateHashMapsVariableInt(nameLeft, valueRight);
-        }
-        //ex: b = d
-        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJVarUse))
-        {
-            //distinguish between integer and boolean
-            MJType typeExprRight = ((MJVarUse) exprRight).getVariableDeclaration().getType();
-
-            String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            String nameRight = ((MJVarUse) exprRight).getVarName();
-
-            if(typeExprRight instanceof MJTypeInt)
-            {
-                //get value from right-hand side and assign to left-hand side variable
-                int varRight = this.varsStackInt.get(nameRight);
-                updateHashMapsVariableInt(nameLeft, varRight);
-            }
-            else if(typeExprRight instanceof MJTypeBool)
-            {
-                //get value from right-hand side and assignt to left-hand side
-                boolean boolRight = this.varsStackBool.get(nameRight);
-                updateHashMapsVariableBool(nameLeft, boolRight);
-            }
-        }
-        //ex: x = false
-        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJBoolConst)) {
-            String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            boolean boolRight = ((MJBoolConst) exprRight).getBoolValue();
-
-            updateHashMapsVariableBool(nameLeft, boolRight);
-        }
-        //example : d = -5 or d = -v;
-        else if ((exprLeft instanceof MJVarUse) && (exprRight instanceof MJExprUnary))
-        {
-            //variable name
-            String nameLeft = ((MJVarUse) exprLeft).getVarName();
-            MJExprUnary unaryRight = (MJExprUnary) exprRight;
-
-            //unary minus with int constants (ex: d = -5)
-            if (unaryRight.getExpr() instanceof MJNumber)
-            {
-                MJNumber numberRight = (MJNumber)unaryRight.getExpr();
-                int valueRight = -(numberRight.getIntValue());
-                updateHashMapsVariableInt(nameLeft, valueRight);
-            }
-            //unary neg with bool constants
-            else if(unaryRight.getExpr() instanceof MJBoolConst)
-            {
-                MJBoolConst booleanRight = (MJBoolConst)unaryRight.getExpr();
-                boolean boolRight = !(booleanRight.getBoolValue());
-                updateHashMapsVariableBool(nameLeft, boolRight);
-            }
-            else if (unaryRight.getExpr() instanceof MJVarUse)
-            {
-                //check two cases. either boolean or integer
-                MJVarUse varUseRight = (MJVarUse)unaryRight.getExpr();
-                MJType typeVarUse = varUseRight.getVariableDeclaration().getType();
-                String nameRight = varUseRight.getVarName();
-
-
-                if(typeVarUse instanceof MJTypeInt)
-                {
-                    int varIntRight = - (this.varsStackInt.get(nameRight));
-                    updateHashMapsVariableInt(nameLeft, varIntRight);
-                }
-                else if(typeVarUse instanceof MJTypeBool)
-                {
-                    boolean varBoolRight = !(this.varsStackBool.get(nameRight));
-                    updateHashMapsVariableBool(nameLeft, varBoolRight);
-                }
-
-            }
-
-        }
-
-    }
-
-    */
-
-
     @Override
     public void visit(MJStmtAssign stmtAssign)
     {
@@ -318,13 +212,15 @@ public class Translator extends MJElement.DefaultVisitor
 
             String nameLeft = varUseLeft.getVarName();
 
-            AssignMatcherRightVarUse assMatchRight = new AssignMatcherRightVarUse();
-            assMatchRight.nameVarLeft = nameLeft;
+            ExprMatcher exprMatcher=new ExprMatcher();
+            Object value=exprRight.match(exprMatcher);      //perform right operations in class
 
-            //perform right operations in class
-            exprRight.match(assMatchRight);
+            if (value instanceof Integer)
+                updateHashMapsVariableInt(nameLeft,(int) value);
+            else
+                updateHashMapsVariableBool(nameLeft,(boolean) value);
         }
-        System.out.println(varsStackInt);
-        System.out.println(varsStackBool);
+        System.out.println("HasMap for Int"+ varsStackInt);
+        System.out.println("HaspMap for Boolean"+ varsStackBool);
     }
 }

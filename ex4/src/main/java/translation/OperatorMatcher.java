@@ -7,6 +7,9 @@ import minillvm.ast.HaltWithError;
 /**
  * Created by alka on 6/6/2017.
  */
+
+//TODO returing Object as return can be either int or boolean....Try to find an alternative
+
 public class OperatorMatcher implements MJOperator.Matcher {
 
     //There can be boolean as well as integer operations
@@ -61,7 +64,6 @@ public class OperatorMatcher implements MJOperator.Matcher {
             return (-1);
         } else
             return (operandInt1 / operandInt2);
-
     }
 
     @Override
