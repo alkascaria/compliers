@@ -28,32 +28,67 @@ public class OperatorMatcher implements MJOperator.Matcher {
         }
     }
 
+    /**
+     *
+     * @param plus(@code MJPlus)
+     * @return
+     */
     @Override
-    public Object case_Plus(MJPlus plus) {
+    public Object case_Plus(MJPlus plus)
+    {
         return (operandInt1 + operandInt2);
     }
 
+    /**
+     *
+     * @param minus(@code MJMinus)
+     * @return
+     */
     @Override
-    public Object case_Minus(MJMinus minus) {
+    public Object case_Minus(MJMinus minus)
+    {
 
         return (operandInt1 - operandInt2);
     }
 
+    /**
+     *
+     * @param equals(@code MJEquals)
+     * @return
+     */
     @Override
-    public Object case_Equals(MJEquals equals) {
-        return null;
+    public Object case_Equals(MJEquals equals)
+    {
+        return (operandBool1 = operandBool2);
     }
 
+    /**
+     *
+     * @param and(@code MJAnd)
+     * @return
+     */
     @Override
-    public Object case_And(MJAnd and) {
+    public Object case_And(MJAnd and)
+    {
         return (operandBool1 && operandBool2);
     }
 
+    /**
+     *
+     * @param less(@code MJLess)
+     * @return
+     */
     @Override
-    public Object case_Less(MJLess less) {
+    public Object case_Less(MJLess less)
+    {
         return (operandInt1 < operandInt2);
     }
 
+    /**
+     *
+     * @param div(@code MJDiv)
+     * @return
+     */
     @Override
     public Object case_Div(MJDiv div) {
         if (operandInt2 == 0) {
@@ -65,8 +100,14 @@ public class OperatorMatcher implements MJOperator.Matcher {
             return (operandInt1 / operandInt2);
     }
 
+    /**
+     *
+     * @param times(@code MJTimes)
+     * @return
+     */
     @Override
-    public Object case_Times(MJTimes times) {
+    public Object case_Times(MJTimes times)
+    {
         return (operandInt1 * operandInt2);
     }
 }
