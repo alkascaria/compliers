@@ -2,6 +2,7 @@ package translation;
 
 import minijava.ast.*;
 
+
 /**
  * Created by alka on 6/5/2017.
  */
@@ -29,9 +30,12 @@ public class ExprMatcher implements MJExpr.Matcher {
     @Override
     public Object case_ExprBinary(MJExprBinary exprBinary) {
 
-        MJExpr exprLeft = exprBinary.getLeft();             //Left of the binaryExpr
-        MJExpr exprRight = exprBinary.getRight();           //Right of the binaryExpr
-        MJOperator operator = exprBinary.getOperator();     //Operator of the binaryExpr
+        //Left of the binaryExpr
+        MJExpr exprLeft = exprBinary.getLeft();
+        //Right of the binaryExpr
+        MJExpr exprRight = exprBinary.getRight();
+        //Operator of the binaryExpr
+        MJOperator operator = exprBinary.getOperator();
 
         Object operand1 , operand2;
 
@@ -80,9 +84,11 @@ public class ExprMatcher implements MJExpr.Matcher {
     {
         System.out.println(exprUnary);
 
-        MJUnaryOperator unaryOperator = exprUnary.getUnaryOperator();      //unaryOperator
+        //unaryOperator
+        MJUnaryOperator unaryOperator = exprUnary.getUnaryOperator();
 
-        MJExpr unary = exprUnary.getExpr();                               //unaryExpression
+        //unaryExpression
+        MJExpr unary = exprUnary.getExpr();
 
         ExprMatcher exprMatcher=new ExprMatcher();
 
@@ -174,7 +180,7 @@ public class ExprMatcher implements MJExpr.Matcher {
             @Override
             public Object case_TypeClass(MJTypeClass typeClass)
             {
-                return null;
+                return new RuntimeException();
             }
 
             /**

@@ -5,6 +5,7 @@ import minillvm.ast.Ast;
 import minillvm.ast.Type;
 
 
+
 /**
  * Created by Daniele on 02/06/2017.
  * Matches correct type of a vardecl
@@ -19,7 +20,7 @@ public class TypeMatcher implements MJType.Matcher<Type>
     @Override
     public Type case_TypeClass(MJTypeClass typeClass)
     {
-        return null;
+        throw new RuntimeException();
     }
 
     /**
