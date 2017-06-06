@@ -41,6 +41,10 @@ public class Translator extends MJElement.DefaultVisitor
     public static Proc curProc;
     public static BasicBlock curBlock;
 
+    public static BasicBlockList blocks;
+
+    public Prog prog;
+
 
     public Translator(MJProgram javaProg) {
         this.javaProg = javaProg;
@@ -48,14 +52,15 @@ public class Translator extends MJElement.DefaultVisitor
 
     public Prog translate()
     {
-        Prog prog = Prog(TypeStructList(), GlobalList(), ProcList());
+         prog = Prog(TypeStructList(), GlobalList(), ProcList());
 
         //fill this with other blocks in the future
-        BasicBlockList blocks = BasicBlockList();
+         blocks = BasicBlockList();
 
         //main method
         Proc mainProc = Proc("main", TypeInt(), ParameterList(), blocks);
         this.curProc = mainProc;
+
         prog.getProcedures().add(mainProc);
 
         //main block
@@ -93,14 +98,63 @@ public class Translator extends MJElement.DefaultVisitor
         operator.match(new OperatorChecker(this));
     }
 
-    //TODO
+
+    /**
+     * @param stmtIf
+     * Parses content of an IF statement.
+     */
     public void visit(MJStmtIf stmtIf)
     {
+        //need to check if it's false or true to decide which body we should enter
+        MJExpr exprCondition = stmtIf.getCondition();
+        ExprMatcher exprMatcher = new ExprMatcher();
+        //check which operand type it is. we know it must be a boolean here
+        Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
+        //true or false?
+        boolean returnValue = ((boolean)exprCondition.match(exprMatcher));
+
+        //actuall
+        MJStatement statementsTrue = stmtIf.getIfTrue();
+        //this is like the else?
+        MJStatement statementsFalse = stmtIf.getIfFalse();
 
 
+        BasicBlock basicBlockTrue = BasicBlock(
+
+        );
+        BasicBlock basicBlockFalse = BasicBlock(
+
+        );
+
+        if(returnValue == true)
+        {
+            statementsTrue.accept(this);
+        }
+        else if (returnValue == false)
+        {
+            statementsFalse.accept(this);
+        }
+
+
+        //firstly, parse the content
+
+        //add terminating instructions at the end of blocks.
+        //basicBlockTrue.add(Jump());
+        //basicBlockFalse.add(Jump());
+
+        this.blocks.add(basicBlockTrue);
+        this.blocks.add(basicBlockFalse);
+
+        Branch branchIFElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
 
     }
 
+
+    /**
+     *
+     * @param stmtWhile
+     */
+    @Override
     public void visit(MJStmtWhile stmtWhile)
     {
 
@@ -236,7 +290,6 @@ public class Translator extends MJElement.DefaultVisitor
                     updateHashMapsVariableInt(nameLeft, (int) value);
                 else
                     updateHashMapsVariableBool(nameLeft, (boolean) value);
-
             }
 
         }
