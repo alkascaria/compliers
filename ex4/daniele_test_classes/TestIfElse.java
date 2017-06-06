@@ -17,10 +17,9 @@ class MainTest {
 		}
 		else
 		{
+			System.out.println(c);
+			
 		}
-		
-		System.out.println(500);
-		
 		
 
 	}

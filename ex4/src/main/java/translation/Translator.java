@@ -25,7 +25,8 @@ public class Translator extends MJElement.DefaultVisitor
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsStackTempVar = new HashMap<>();
     //not sure if needed?
-    public static HashMap<String, VarRef> varsStackRef = new HashMap<>();
+
+    //TODO: DELETE
     //if the value changes, remember to update the corresponding value in the hashmap.
     public static HashMap<String, Integer> varsStackInt = new HashMap<>();
     public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
@@ -99,6 +100,9 @@ public class Translator extends MJElement.DefaultVisitor
     }
 
 
+
+
+
     /**
      * @param stmtIf
      * Parses content of an IF statement.
@@ -109,43 +113,51 @@ public class Translator extends MJElement.DefaultVisitor
         MJExpr exprCondition = stmtIf.getCondition();
         ExprMatcher exprMatcher = new ExprMatcher();
         //check which operand type it is. we know it must be a boolean here
+        //Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
         Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
         //true or false?
-        boolean returnValue = ((boolean)exprCondition.match(exprMatcher));
-
-        //actuall
+        //true statements if(){statements}
         MJStatement statementsTrue = stmtIf.getIfTrue();
-        //this is like the else?
+        //else statements else{statements}
         MJStatement statementsFalse = stmtIf.getIfFalse();
 
 
-        BasicBlock basicBlockTrue = BasicBlock(
+        BasicBlock basicBlockTrue = BasicBlock();
+        basicBlockTrue.setName("TRUE if");
 
-        );
-        BasicBlock basicBlockFalse = BasicBlock(
+        BasicBlock basicBlockFalse = BasicBlock();
+        basicBlockFalse.setName("FALSE if");
 
-        );
+        BasicBlock basicBlockAfterIfElse = BasicBlock();
+        basicBlockAfterIfElse.setName("After if-else ");
 
-        if(returnValue == true)
-        {
-            statementsTrue.accept(this);
-        }
-        else if (returnValue == false)
-        {
-            statementsFalse.accept(this);
-        }
+        //add the new terminating instruction to the current block
+        Branch branchIfElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
+        this.curBlock.add(branchIfElse);
 
 
-        //firstly, parse the content
+        //we can now define the two code blocks. Branch decides which one should be evaluated anyway
 
-        //add terminating instructions at the end of blocks.
-        //basicBlockTrue.add(Jump());
-        //basicBlockFalse.add(Jump());
-
+        //TRUE code block in IF-ELSE.
+        //update references
+        this.curBlock = basicBlockTrue;
         this.blocks.add(basicBlockTrue);
-        this.blocks.add(basicBlockFalse);
+        //evaluate all expressions inside the true block
+        statementsTrue.accept(this);
+        //once we're done with this block, go on with the remaining code
+        basicBlockTrue.add(Jump(basicBlockAfterIfElse));
 
-        Branch branchIFElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
+
+        //FALSE code block (else) in IF. same functioning as TRUE block.
+        this.curBlock = basicBlockFalse;
+        this.blocks.add(basicBlockFalse);
+        statementsFalse.accept(this);
+        basicBlockFalse.add(Jump(basicBlockAfterIfElse));
+
+
+        //done, go ahead with remaining code
+        this.curBlock = basicBlockAfterIfElse;
+        this.blocks.add(basicBlockAfterIfElse);
 
     }
 
@@ -163,7 +175,9 @@ public class Translator extends MJElement.DefaultVisitor
 
 
     @Override
-    public void visit(MJStmtPrint stmtPrint) {
+    public void visit(MJStmtPrint stmtPrint)
+    {
+
         //constant or variable
         MJExpr expr = stmtPrint.getPrinted();
 
@@ -179,12 +193,36 @@ public class Translator extends MJElement.DefaultVisitor
         {
             this.curBlock.add(print);
         }
+        //constant or variable
+
+        /*Daniele example for using Load for printing a variable. ex: System.out.println(x);
+        MJExpr expr = stmtPrint.getPrinted();
+
+        if(expr instanceof MJVarUse)
+        {
+            String varName = ((MJVarUse) expr).getVarName();
+
+            TemporaryVar temp = TemporaryVar("tempvar");
+            this.curBlock.add(Load(temp, VarRef(this.varsStackTempVar.get(varName))));
+            this.curBlock.add(Print(VarRef(temp)));
+
+            //this.curBlock.add(Print(VarRef(this.varsStackTempVar.get(varName))));
+            //Print print = Print(Ast);
+        }
+        */
+
+
+
+        //if no error, go ahead and add it
+       // if(curBlockErrors.isEmpty())
+        //{
+         //   this.curBlock.add(print);
+        //}
     }
 
     //declaration --> variable.
-    //Varuse --> Ttemporary variable
-
-    //nstore variable declaration in llvm with hashmap
+    //Varuse --> create a temporary variable
+    //store variable declaration in llvm with hashmap
     //varusage --> get the variable in hashmap
     //mapping from minijava to minimmvl variable.
 
@@ -228,7 +266,6 @@ public class Translator extends MJElement.DefaultVisitor
         Store storeRef = Store(varRef, ConstInt(varValue));
         curBlock.add(storeRef);
         //now add it to the var refs
-        varsStackRef.put(varName, varRef);
 
         //if not there yet, add it
         if (!(varsStackInt.containsKey(varName)))
@@ -250,7 +287,6 @@ public class Translator extends MJElement.DefaultVisitor
         Store storeRef = Store(varRef, ConstBool(varBoolVal));
         curBlock.add(storeRef);
         //now add it to the var refs
-        varsStackRef.put(varName, varRef);
 
         //if not there yet, add it
         if (!(varsStackBool.containsKey(varName)))
@@ -276,6 +312,7 @@ public class Translator extends MJElement.DefaultVisitor
         //a = something.
         if(exprLeft instanceof MJVarUse)
         {
+
             MJVarUse varUseLeft = (MJVarUse) exprLeft;
 
             String nameLeft = varUseLeft.getVarName();
@@ -293,7 +330,7 @@ public class Translator extends MJElement.DefaultVisitor
             }
 
         }
-        System.out.println("HasMap for Int"+ varsStackInt);
-        System.out.println("HaspMap for Boolean"+ varsStackBool);
+        System.out.println("HasMap for Int: "+ varsStackInt);
+        System.out.println("HaspMap for Boolean: "+ varsStackBool);
     }
 }

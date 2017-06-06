@@ -22,7 +22,7 @@ public class ExprMatcher implements MJExpr.Matcher {
         MJExpr exprRight = exprBinary.getRight();           //Right of the binaryExpr
         MJOperator operator = exprBinary.getOperator();     //Operator of the binaryExpr
 
-        Object operand1 = 0, operand2 = 0;
+        Object operand1 , operand2;
 
         //Matching it with the expr and getting the operands
         ExprMatcher exprMatcher = new ExprMatcher();
@@ -85,7 +85,7 @@ public class ExprMatcher implements MJExpr.Matcher {
                 } else if (unary instanceof MJBoolConst)
                     operandBool = !(((MJBoolConst) unary).getBoolValue());
                 else {
-                    operandBool =!((boolean)unary.match(exprMatcher));
+                    operandBool = !((boolean)unary.match(exprMatcher));
                 }
                 return operandBool;
             }
@@ -100,6 +100,7 @@ public class ExprMatcher implements MJExpr.Matcher {
 
     @Override
     public Object case_Number(MJNumber number) {
+
         int operand = number.getIntValue();
         return operand;
     }

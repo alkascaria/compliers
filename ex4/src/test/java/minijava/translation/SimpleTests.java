@@ -15,7 +15,7 @@ public class SimpleTests {
 	@Test
 	public void test0() throws Exception {
 		testStatements(
-				"System.out.println(System.in.read() * 7 + 3);"
+				"System.out.println(42 * 7 + 3);"
 		);
 	}
 
@@ -23,7 +23,7 @@ public class SimpleTests {
 	public void test1() throws Exception {
 		testStatements(
 				"int x;",
-				"x = System.in.read();",
+				"x = 42;",
 				"x = x + 1;",
 				"System.out.println(x);"
 		);
@@ -34,7 +34,7 @@ public class SimpleTests {
 	public void test2() throws Exception {
 		testStatements(
 				"int x;",
-				"x = System.in.read();",
+				"x = 42;",
 				"while (0 < x) {",
 				"	System.out.println(x);",
 				"	x = x - 1;",
