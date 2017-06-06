@@ -92,17 +92,27 @@ public class ExprMatcher implements MJExpr.Matcher {
         });
     }
 
+    /**
+     *
+     * @param boolConst(@code MJBoolConst)
+     * @return
+     */
     @Override
-    public Object case_BoolConst(MJBoolConst boolConst) {
-        boolean operandBool = boolConst.getBoolValue();
-        return operandBool;
+    public Object case_BoolConst(MJBoolConst boolConst)
+    {
+        //return boolean
+        return boolConst.getBoolValue();
     }
 
+    /**
+     *
+     * @param number(@code MJNumber)
+     * @return
+     */
     @Override
     public Object case_Number(MJNumber number) {
-
-        int operand = number.getIntValue();
-        return operand;
+        //return int value
+        return number.getIntValue();
     }
 
     @Override
@@ -112,57 +122,102 @@ public class ExprMatcher implements MJExpr.Matcher {
         MJType type = varDecl.getType();
 
         return type.match(new MJType.Matcher<Object>() {
+            /**
+             *
+             * @param typeClass(@code MJTypeClass)
+             * @return
+             */
             @Override
-            public Object case_TypeClass(MJTypeClass typeClass) {
+            public Object case_TypeClass(MJTypeClass typeClass)
+            {
                 return null;
             }
 
+            /**
+             *
+             * @param typeBool(@code MJTypeBool)
+             * @return
+             */
             @Override
             public Object case_TypeBool(MJTypeBool typeBool) {
-                boolean operand = Translator.varsStackBool.get(name);
-                return operand;
+                //return boolean value
+                return Translator.varsStackBool.get(name);
             }
 
+            /**
+             *
+             * @param typeIntArray(@code MJTypeIntArray)
+             * @return
+             */
             @Override
             public Object case_TypeIntArray(MJTypeIntArray typeIntArray) {
                 return null;
             }
 
+            /**
+             *
+             * @param typeInt(@code MJTypeInt)
+             * @return
+             */
             @Override
             public Object case_TypeInt(MJTypeInt typeInt) {
-                int operand = Translator.varsStackInt.get(name);      //value of the binaryLeft expr
-                return operand;
+                //return int
+                //value of the binaryLeft expr
+                return Translator.varsStackInt.get(name);
             }
         });
     }
 
+    /**
+     *
+     * @param newIntArray(@code MJNewIntArray)
+     * @return
+     */
     @Override
     public Object case_NewIntArray(MJNewIntArray newIntArray) 
     {
         throw new RuntimeException();
     }
 
+    /**
+     *
+     * @param exprThis(@code MJExprThis)
+     * @return
+     */
     @Override
     public Object case_ExprThis(MJExprThis exprThis) 
     {
        throw new RuntimeException();
     }
 
+    /**
+     *
+     * @param arrayLength(@code MJArrayLength)
+     * @return
+     */
     @Override
-
-         public Object case_ArrayLength(MJArrayLength arrayLength)
+    public Object case_ArrayLength(MJArrayLength arrayLength)
     {
         int operand;
         operand = Translator.varsStackInt.get(arrayLength);
         return operand;
     }
-    
 
+    /**
+     *
+     * @param newObject(@code MJNewObject)
+     * @return
+     */
     @Override
     public Object case_NewObject(MJNewObject newObject) {
         throw new RuntimeException();
     }
 
+    /**
+     *
+     * @param arrayLookup(@code MJArrayLookup)
+     * @return
+     */
     @Override
     public Object case_ArrayLookup(MJArrayLookup arrayLookup) {
        throw new RuntimeException();
