@@ -59,6 +59,7 @@ public class TestOutputLLVM {
         // check llvm prog
         new Checks().checkProgram(llvmProg);
 
+
         // get some input for testing the program
         String programInput = randomInput();
 
@@ -79,6 +80,7 @@ public class TestOutputLLVM {
 
         // verify the llvm program with
         verifyLlvm(llvmProg);
+
         // run the llvm program and compare its output with the output of Java
         try {
             String llvmOutput = runLlvmCodeAndGetoutput(llvmProg, programInput);

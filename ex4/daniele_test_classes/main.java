@@ -1,27 +1,13 @@
-class MainTest {
+class addition {
 	public static void main(String[] args) {
+		int blablabloe;
+		blablabloe = 7;
 		
-		int b;
-
-		b = 5;
-		
-		
-		int c;
-		
-		c = 50;
-		
-
-		if(c < 10)
+		while (1 < blablabloe) 
 		{
-			System.out.println(b);
-		}
-		else
-		{
+			blablabloe = blablabloe;
 		}
 		
-		System.out.println(500);
-		
-		
-
+		System.out.println(blablabloe);
 	}
 }

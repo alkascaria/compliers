@@ -152,6 +152,14 @@ public class Translator extends MJElement.DefaultVisitor
 
     }
 
+    public void visit(MJBlock block)
+    {
+        for(MJStatement statement: block)
+        {
+            statement.accept(this);
+        }
+    }
+
 
     /**
      *
@@ -160,57 +168,70 @@ public class Translator extends MJElement.DefaultVisitor
     @Override
     public void visit(MJStmtWhile stmtWhile)
     {
-         /*
+
         ExprMatcher exprMatcher = new ExprMatcher();
         //very similar to "IF"
         MJExpr exprCondition = stmtWhile.getCondition();
 
-
         MJStatement stmtLoopBody = stmtWhile.getLoopBody();
 
-        BasicBlock basicBlockCondition = BasicBlock();
-
         BasicBlock basicBlockBodyWhile = BasicBlock();
-
         BasicBlock basicBlockAfterWhile = BasicBlock();
 
-        //first of all, evaluate the while's condition
-        this.curBlock.add(Jump(basicBlockCondition));
-        this.curBlock = basicBlockCondition;
-        //update references
-        //this.curBlock = basicBlockCondition;
-        //this.blocks.add(basicBlockCondition);
+        this.curBlock.add(Jump(basicBlockBodyWhile));
 
-        //now check if the body should be evaluated or we should leave the loop
-        //do now instantiate Branch in a reference variable or we will have problems (as it needs to be
-        //instantiated repeatedly
-        Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
-
-        basicBlockCondition.add(Branch(operandCondition, basicBlockBodyWhile, basicBlockAfterWhile));
+        this.curBlock = basicBlockBodyWhile;
+        this.blocks.add(basicBlockBodyWhile);
 
 
-        //start of while:
+        //FUCK BRANCHES! they ain't working.
+        boolean condition = (boolean)exprCondition.match(exprMatcher);
 
+        while(condition)
+        {
+            //EVALUATE BODY
+            stmtLoopBody.accept(this);
+            //update condition
+            condition = (boolean)exprCondition.match(exprMatcher);
+        }
+
+        //leaving while, add the return to the other block
+        this.curBlock.add(Jump(basicBlockAfterWhile));
+
+        this.curBlock = basicBlockAfterWhile;
+        this.blocks.add(basicBlockAfterWhile);
+
+
+
+
+
+
+        /*
+
+        //start of while
         this.blocks.add(basicBlockCondition);
-        //Like in if, Branch decides which body should be evaluated.
         this.curBlock = basicBlockBodyWhile;
 
-        //while body
-
-        this.blocks.add(basicBlockBodyWhile);
-          //evaluate statements in the while's body
+        //body of while
+        //Like in if, Branch decides which body should be evaluated.
         stmtLoopBody.accept(this);
+        //while body
+          //evaluate statements in the while's body
         //then check the condition again
-        this.curBlock.add(Jump(basicBlockCondition));
+        basicBlockBodyWhile.add(Jump(basicBlockCondition));
+        this.blocks.add(basicBlockBodyWhile);
 
+
+        //this.curBlock.add(Jump(basicBlockCondition));
 
         //now check the statements outside the loop
         this.curBlock = basicBlockAfterWhile;
         this.blocks.add(basicBlockAfterWhile);
 
         */
-        
-        
+
+
+
  /**
         TemporaryVar temporaryVar = null;
         Operator operator= null;
@@ -412,7 +433,7 @@ public class Translator extends MJElement.DefaultVisitor
             }
 
         }
-        System.out.println("HasMap for Int: "+ varsStackInt);
-        System.out.println("HaspMap for Boolean: "+ varsStackBool);
+        //System.out.println("HasMap for Int: "+ varsStackInt);
+        //System.out.println("HaspMap for Boolean: "+ varsStackBool);
     }
 }

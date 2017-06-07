@@ -49,6 +49,7 @@ public class ExprMatcher implements MJExpr.Matcher {
         operatorMatcher.getOperands(operand1, operand2);
         Object value = operator.match(operatorMatcher);
 
+
         return value;
     }
 
@@ -121,10 +122,8 @@ public class ExprMatcher implements MJExpr.Matcher {
              */
             @Override
             public Object case_Negate(MJNegate negate) {
-                System.out.println("hello");
                 boolean operandBool;
                 if (unary instanceof MJVarUse) {
-                    System.out.println("hi");
                     String name = ((MJVarUse) unary).getVarName();
                     operandBool = !(Translator.varsStackBool.get(name));      //assg the value
                 } else if (unary instanceof MJBoolConst)
@@ -214,6 +213,7 @@ public class ExprMatcher implements MJExpr.Matcher {
             public Object case_TypeInt(MJTypeInt typeInt) {
                 //return int
                 //value of the binaryLeft expr
+
                 return Translator.varsStackInt.get(name);
             }
         });
