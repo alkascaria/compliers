@@ -213,7 +213,6 @@ public class ExprMatcher implements MJExpr.Matcher {
             public Object case_TypeInt(MJTypeInt typeInt) {
                 //return int
                 //value of the binaryLeft expr
-
                 return Translator.varsStackInt.get(name);
             }
         });
@@ -249,9 +248,8 @@ public class ExprMatcher implements MJExpr.Matcher {
     @Override
     public Object case_ArrayLength(MJArrayLength arrayLength)
     {
-        int operand;
-        operand = Translator.varsStackInt.get(arrayLength);
-        return operand;
+        //return int
+        return Translator.varsStackInt.get(arrayLength);
     }
 
     /**

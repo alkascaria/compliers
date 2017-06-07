@@ -95,7 +95,7 @@ public class Translator extends MJElement.DefaultVisitor
 
 
     /**
-     * @param stmtIf
+     * @param stmtIf(@code MJStmtIf)
      * Parses content of an IF statement.
      */
     public void visit(MJStmtIf stmtIf)
@@ -152,6 +152,10 @@ public class Translator extends MJElement.DefaultVisitor
 
     }
 
+    /**
+     *
+     * @param (@code MJBlock)
+     */
     public void visit(MJBlock block)
     {
         for(MJStatement statement: block)
@@ -163,7 +167,7 @@ public class Translator extends MJElement.DefaultVisitor
 
     /**
      *
-     * @param stmtWhile
+     * @param stmtWhile(@code MJStmtWhile)
      */
     @Override
     public void visit(MJStmtWhile stmtWhile)
@@ -202,10 +206,6 @@ public class Translator extends MJElement.DefaultVisitor
         this.blocks.add(basicBlockAfterWhile);
 
 
-
-
-
-
         /*
 
         //start of while
@@ -230,51 +230,16 @@ public class Translator extends MJElement.DefaultVisitor
 
         */
 
+    }
 
-
- /**
-        TemporaryVar temporaryVar = null;
-        Operator operator= null;
-        MJNumber number = null;
-
-        if(stmtWhile.getCondition() instanceof MJExprBinary) {
-            MJExprBinary exprBinary = (MJExprBinary) stmtWhile.getCondition();
-            if(exprBinary.getRight() instanceof MJVarUse) {
-                MJVarUse varUse = (MJVarUse)exprBinary.getRight();
-                temporaryVar= this.blocks.get(varUse.getVariableDeclaration());
-                number = (MJNumber)((MJExprBinary) stmtWhile.getCondition()).getLeft();
-            }else if (exprBinary.getLeft() instanceof MJVarUse){
-                MJVarUse varUse = (MJVarUse)exprBinary.getLeft();
-                temporaryVar= this.blocks.get(varUse.getVariableDeclaration());
-                number = (MJNumber)((MJExprBinary) stmtWhile.getCondition()).getRight();
-            }
-            operator = this.visit(exprBinary.getOperator());
-        }
-        TemporaryVar temp = TemporaryVar ("temp");
-        TemporaryVar condition = TemporaryVar ("condition");
-        BasicBlock basicBlockCondition = BasicBlock ();
-        basicBlockCondition.setName ("basicBlockCondition");
-        BasicBlock basicBlockBodyWhile = BasicBlock ();
-        basicBlockBodyWhile.setName ("basicBlockBodyWhile");
-        BasicBlock basicBlockAfterWhile = BasicBlock ();
-        basicBlockAfterWhile.setName ("basicBlockAfterWhile");
-
-        this.curBlock.add(Jump(basicBlockCondition));
-        this.curBlock = basicBlockCondition;
-
-        basicBlockCondition.addAll ( Arrays . asList (
-                Load ( temp , VarRef ( temporaryVar)) ,
-                BinaryOperation(condition, ConstInt(number.getIntValue()), operator, VarRef(temp)),
-                Branch ( VarRef (condition ) , basicBlockBodyWhile , basicBlockAfterWhile )
-        ));
-        this.curBlock = basicBlockBodyWhile;
-        this.visit(stmtWhile.getLoopBody(MJStatement));
-        basicBlockBodyWhile.add(Jump(basicBlockCondition ));
-        this.curBlock = basicBlockAfterWhile;
-        this.blocks.add (basicBlockCondition );
-        this.blocks.add (basicBlockBodyWhile );
-        this.blocks.add (basicBlockAfterWhile );
-    */
+    /**
+     *
+     * @param stmtReturn(@code MJStmtReturn)
+     */
+    @Override
+    public void visit(MJStmtReturn stmtReturn)
+    {
+         throw new RuntimeException();
     }
 
 
@@ -287,7 +252,8 @@ public class Translator extends MJElement.DefaultVisitor
         Operand operand;
 
         ExprMatcher exprMatcher=new ExprMatcher();
-        operand=Ast.ConstInt((int)expr.match(exprMatcher));               //check which operand type it is
+        //check which operand type it is
+        operand=Ast.ConstInt((int)expr.match(exprMatcher));
 
         Print print = Print(operand);
 
