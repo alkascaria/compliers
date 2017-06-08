@@ -54,12 +54,13 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
         operand2 = exprRight.match(exprMatcher);
 
         //Doing the operation operand1 operator operand2
-        OperatorMatcher operatorMatcher = new OperatorMatcher();
-        operatorMatcher.getOperands(operand1, operand2);
+        OperatorMatcher operatorMatcher = new OperatorMatcher(operand1, operand2);
+
+        //this will already kinda contain a VarRef. return it directly
         Operand value = operator.match(operatorMatcher);
 
 
-        return value;
+        return (value);
     }
 
     /**

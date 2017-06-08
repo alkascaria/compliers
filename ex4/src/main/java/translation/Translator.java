@@ -25,18 +25,8 @@ public class Translator extends MJElement.DefaultVisitor
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
-    //not sure if needed?
 
-    //TODO: DELETE
-    //if the value changes, remember to update the corresponding value in the hashmap.
-    public static HashMap<String, Integer> varsStackInt = new HashMap<>();
-    public static HashMap<String, Boolean> varsStackBool = new HashMap<>();
-
-    public static ArrayList<TerminatingInstruction> curBlockErrors = new ArrayList<TerminatingInstruction>();
-
-
-    //variable assignments go onto the head (ex: a = 5)
-    // public static HashMap<String, Integer> varsHeapValue = new HashMap<>();
+    //public static ArrayList<TerminatingInstruction> curBlockErrors = new ArrayList<TerminatingInstruction>();
 
 
     //stores which Proc and Block we are currently in.
@@ -82,13 +72,12 @@ public class Translator extends MJElement.DefaultVisitor
         //check if curBlock contains a terminating instruction. if it doesn't, add Return
 
 
-        if((curBlockErrors.isEmpty()))
-        {
-            //System.out.println("Empty");
+       // if((curBlockErrors.isEmpty()))
+        //{
             curBlock.add(ReturnExpr(ConstInt(0)));
-        }
+        //}
 
-        curBlockErrors.clear();
+        //curBlockErrors.clear();
 
         return prog;
     }
@@ -107,6 +96,9 @@ public class Translator extends MJElement.DefaultVisitor
         //check which operand type it is. we know it must be a boolean here
         //Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
         Operand operandCondition = exprCondition.match(exprMatcher);
+
+        System.out.println(operandCondition);
+
         //true or false?
         //true statements if(){statements}
         MJStatement statementsTrue = stmtIf.getIfTrue();
@@ -123,10 +115,10 @@ public class Translator extends MJElement.DefaultVisitor
         BasicBlock basicBlockAfterIfElse = BasicBlock();
         basicBlockAfterIfElse.setName("After if-else ");
 
+
         //add the new terminating instruction to the current block
         Branch branchIfElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
         this.curBlock.add(branchIfElse);
-
 
         //we can now define the two code blocks. Branch decides which one should be evaluated anyway
 
@@ -174,41 +166,36 @@ public class Translator extends MJElement.DefaultVisitor
     public void visit(MJStmtWhile stmtWhile)
     {
 
+        BasicBlock conditionBlock = BasicBlock();
+        BasicBlock bodyBlock = BasicBlock();
+        BasicBlock restBlock = BasicBlock();
+
+        //first of all, go directly to the condition (top part)
+        this.curBlock.add(Jump(conditionBlock));
+        //update block
+        this.curBlock = conditionBlock;
+
+        //Now check the condition:
         ExprMatcher exprMatcher = new ExprMatcher();
-        //very similar to "IF"
         MJExpr exprCondition = stmtWhile.getCondition();
+        Operand operCondition = exprCondition.match(exprMatcher);
 
-        MJStatement stmtLoopBody = stmtWhile.getLoopBody();
+        //if condition met, go to the while body, if not met, go ahead with rest
+        Branch branchWhile = Branch(operCondition,  bodyBlock, restBlock);
+        this.blocks.add(conditionBlock);
+        conditionBlock.add(branchWhile);
 
-        BasicBlock basicBlockBodyWhile = BasicBlock();
-        BasicBlock basicBlockAfterWhile = BasicBlock();
+        //good, now evaluate while body
+        blocks.add(bodyBlock);
+        this.curBlock = bodyBlock;
+        MJStatement stmtsBody = stmtWhile.getLoopBody();
+        stmtsBody.accept(this);
+        //check the condition again
+        this.curBlock.add(Jump(conditionBlock));
 
-        this.curBlock.add(Jump(basicBlockBodyWhile));
-
-        this.curBlock = basicBlockBodyWhile;
-        this.blocks.add(basicBlockBodyWhile);
-
-
-        //TODO: recode with branches
-        /*
-        boolean condition = exprCondition.match(exprMatcher);
-
-        while(condition)
-        {
-            //EVALUATE BODY
-            stmtLoopBody.accept(this);
-            //update condition
-            condition = (boolean)exprCondition.match(exprMatcher);
-        }
-
-        */
-
-        //leaving while, add the return to the other block
-        this.curBlock.add(Jump(basicBlockAfterWhile));
-
-        this.curBlock = basicBlockAfterWhile;
-        this.blocks.add(basicBlockAfterWhile);
-
+        //now check what happens outside the while
+        this.curBlock = restBlock;
+        blocks.add(restBlock);
     }
 
     /**
@@ -238,10 +225,10 @@ public class Translator extends MJElement.DefaultVisitor
         Print print = Print(operand);
 
         //if no error, go ahead and add it
-        if(curBlockErrors.isEmpty())
-        {
+        //if(curBlockErrors.isEmpty())
+        //{
             this.curBlock.add(print);
-        }
+        //}
 
     }
 
@@ -252,7 +239,6 @@ public class Translator extends MJElement.DefaultVisitor
      */
 
 
-    //TODO: replace instanceof with TypeMatcher
     @Override
     public void visit(MJVarDecl varDecl)
     {

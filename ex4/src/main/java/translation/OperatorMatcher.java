@@ -1,34 +1,36 @@
 package translation;
 
 import minijava.ast.*;
-import minillvm.ast.Ast;
-import minillvm.ast.HaltWithError;
-import minillvm.ast.Operand;
+import minillvm.ast.*;
+
+import minijava.ast.*;
+import minillvm.ast.*;
+
+import static minillvm.ast.Ast.*;
+
+import minillvm.analysis.*;
+
+import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import static javafx.scene.input.KeyCode.T;
 
 /**
  * Created by alka on 6/6/2017.
+ * Modified by Daniele on 8/6/2017
  */
 
-//TODO returing Object as return can be either int or boolean....Try to find an alternative
+public class OperatorMatcher implements MJOperator.Matcher<Operand>
+{
 
-public class OperatorMatcher implements MJOperator.Matcher<Operand> {
+    Operand operLeft, operRight;
 
-    //There can be boolean as well as integer operations
-    int operandInt1 = 0, operandInt2 = 0;
-    boolean operandBool1 = false, operandBool2 = false;
-
-    //getting the operands and identifying whether its boolean or integer
-    void getOperands(Object operand1, Object operand2) {
-        if ((operand1 instanceof Integer) && (operand2 instanceof Integer)) {
-            operandInt1 = (int) operand1;
-            operandInt2 = (int) operand2;
-        }
-        else {
-            operandBool1 = (boolean) operand1;
-            operandBool2 = (boolean) operand2;
-        }
+    OperatorMatcher(Operand operInput1, Operand operInput2)
+    {
+        this.operLeft = operInput1;
+        this.operRight = operInput2;
     }
-
     /**
      *
      * @param plus(@code MJPlus)
@@ -37,9 +39,11 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Plus(MJPlus plus)
     {
-        return null;
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binSum = BinaryOperation(tempVar, this.operLeft, Add(), this.operRight);
+        Translator.curBlock.add(binSum);
 
-        //return (operandInt1 + operandInt2);
+        return VarRef(tempVar);
     }
 
     /**
@@ -50,8 +54,11 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Minus(MJMinus minus)
     {
-        return null;
-        //   return (operandInt1 - operandInt2);
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binSub = BinaryOperation(tempVar, this.operLeft, Sub(), this.operRight);
+        Translator.curBlock.add(binSub);
+
+        return VarRef(tempVar);
     }
 
     /**
@@ -62,8 +69,12 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Equals(MJEquals equals)
     {
-        return null;
-        //return (operandBool1 = operandBool2);
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binEq = BinaryOperation(tempVar, this.operLeft, Eq(), this.operRight);
+        Translator.curBlock.add(binEq);
+
+        return VarRef(tempVar);
+
     }
 
     /**
@@ -74,9 +85,11 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_And(MJAnd and)
     {
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binAnd = BinaryOperation(tempVar, this.operLeft, And(), this.operRight);
+        Translator.curBlock.add(binAnd);
 
-        return null;
-        //return (operandBool1 && operandBool2);
+        return VarRef(tempVar);
     }
 
     /**
@@ -87,8 +100,11 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Less(MJLess less)
     {
-        return null;
-        //return (operandInt1 < operandInt2);
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binLess = BinaryOperation(tempVar, this.operLeft, Slt(), this.operRight);
+        Translator.curBlock.add(binLess);
+
+        return VarRef(tempVar);
     }
 
     /**
@@ -99,17 +115,13 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Div(MJDiv div)
     {
-        return null;
-        /*
-        if (operandInt2 == 0) {
-            HaltWithError haltWithError = Ast.HaltWithError("Arithmetic Exception. Dividing by 0 is not allowed");
-            Translator.curBlock.add(haltWithError);
-            Translator.curBlockErrors.add(haltWithError);
-            return (-1);
-        } else
-            return (operandInt1 / operandInt2);
 
-            */
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binDiv = BinaryOperation(tempVar, this.operLeft, Sdiv(), this.operRight);
+        Translator.curBlock.add(binDiv);
+
+        return VarRef(tempVar);
+
     }
 
     /**
@@ -120,7 +132,10 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand> {
     @Override
     public Operand case_Times(MJTimes times)
     {
-        return null;
-        //return (operandInt1 * operandInt2);
+        TemporaryVar tempVar = TemporaryVar("temp");
+        BinaryOperation binTimes = BinaryOperation(tempVar, this.operLeft, Mul(), this.operRight);
+        Translator.curBlock.add(binTimes);
+
+        return VarRef(tempVar);
     }
 }
