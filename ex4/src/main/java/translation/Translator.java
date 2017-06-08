@@ -24,7 +24,7 @@ public class Translator extends MJElement.DefaultVisitor
     private final MJProgram javaProg;
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
-    public static HashMap<String, TemporaryVar> varsStackTempVar = new HashMap<>();
+    public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
     //not sure if needed?
 
     //TODO: DELETE
@@ -100,12 +100,13 @@ public class Translator extends MJElement.DefaultVisitor
      */
     public void visit(MJStmtIf stmtIf)
     {
+
         //need to check if it's false or true to decide which body we should enter
         MJExpr exprCondition = stmtIf.getCondition();
         ExprMatcher exprMatcher = new ExprMatcher();
         //check which operand type it is. we know it must be a boolean here
         //Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
-        Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
+        Operand operandCondition = exprCondition.match(exprMatcher);
         //true or false?
         //true statements if(){statements}
         MJStatement statementsTrue = stmtIf.getIfTrue();
@@ -188,8 +189,9 @@ public class Translator extends MJElement.DefaultVisitor
         this.blocks.add(basicBlockBodyWhile);
 
 
-        //FUCK BRANCHES! they ain't working.
-        boolean condition = (boolean)exprCondition.match(exprMatcher);
+        //TODO: recode with branches
+        /*
+        boolean condition = exprCondition.match(exprMatcher);
 
         while(condition)
         {
@@ -199,36 +201,13 @@ public class Translator extends MJElement.DefaultVisitor
             condition = (boolean)exprCondition.match(exprMatcher);
         }
 
+        */
+
         //leaving while, add the return to the other block
         this.curBlock.add(Jump(basicBlockAfterWhile));
 
         this.curBlock = basicBlockAfterWhile;
         this.blocks.add(basicBlockAfterWhile);
-
-
-        /*
-
-        //start of while
-        this.blocks.add(basicBlockCondition);
-        this.curBlock = basicBlockBodyWhile;
-
-        //body of while
-        //Like in if, Branch decides which body should be evaluated.
-        stmtLoopBody.accept(this);
-        //while body
-          //evaluate statements in the while's body
-        //then check the condition again
-        basicBlockBodyWhile.add(Jump(basicBlockCondition));
-        this.blocks.add(basicBlockBodyWhile);
-
-
-        //this.curBlock.add(Jump(basicBlockCondition));
-
-        //now check the statements outside the loop
-        this.curBlock = basicBlockAfterWhile;
-        this.blocks.add(basicBlockAfterWhile);
-
-        */
 
     }
 
@@ -253,7 +232,8 @@ public class Translator extends MJElement.DefaultVisitor
 
         ExprMatcher exprMatcher=new ExprMatcher();
         //check which operand type it is
-        operand=Ast.ConstInt((int)expr.match(exprMatcher));
+        //operand=Ast.ConstInt((int)expr.match(exprMatcher));
+        operand=expr.match(exprMatcher);
 
         Print print = Print(operand);
 
@@ -262,39 +242,8 @@ public class Translator extends MJElement.DefaultVisitor
         {
             this.curBlock.add(print);
         }
-        //constant or variable
 
-        /*Daniele example for using Load for printing a variable. ex: System.out.println(x);
-        MJExpr expr = stmtPrint.getPrinted();
-
-        if(expr instanceof MJVarUse)
-        {
-            String varName = ((MJVarUse) expr).getVarName();
-
-            TemporaryVar temp = TemporaryVar("tempvar");
-            this.curBlock.add(Load(temp, VarRef(this.varsStackTempVar.get(varName))));
-            this.curBlock.add(Print(VarRef(temp)));
-
-            //this.curBlock.add(Print(VarRef(this.varsStackTempVar.get(varName))));
-            //Print print = Print(Ast);
-        }
-        */
-
-
-
-        //if no error, go ahead and add it
-       // if(curBlockErrors.isEmpty())
-        //{
-         //   this.curBlock.add(print);
-        //}
     }
-
-    //declaration --> variable.
-    //Varuse --> create a temporary variable
-    //store variable declaration in llvm with hashmap
-    //varusage --> get the variable in hashmap
-    //mapping from minijava to minimmvl variable.
-
 
     /**
      * Variable --> parameter declaration
@@ -316,59 +265,10 @@ public class Translator extends MJElement.DefaultVisitor
         TemporaryVar tempVar = TemporaryVar(typeName);
         Alloca alloca = Alloca(tempVar, typeReturn);
         this.curBlock.add(alloca);
-        varsStackTempVar.put(typeName, tempVar);
+        varsTemp.put(typeName, tempVar);
     }
 
-    /**
-     *
-     * @param varName: name of the variable whose value needs to be modified
-     * @param varValue: new value of the variable
-     *                This function updates all references to variables with the value provided
-     *                It checks if a reference to the variable specified is there before inserting
-     *                a new value into the hashmap
-     */
-    public static void updateHashMapsVariableInt(String varName, int varValue)
-    {
-        //store value into variable's stack address
-        TemporaryVar tempVar = varsStackTempVar.get(varName);
-        VarRef varRef = VarRef(tempVar);
-        Store storeRef = Store(varRef, ConstInt(varValue));
-        curBlock.add(storeRef);
-        //now add it to the var refs
 
-        //if not there yet, add it
-        if (!(varsStackInt.containsKey(varName)))
-        {
-            varsStackInt.put(varName, varValue);
-        }
-        //update
-        else if(varsStackInt.containsKey(varName))
-        {
-            varsStackInt.put(varName, varValue);
-        }
-    }
-
-    public static void updateHashMapsVariableBool(String varName, boolean varBoolVal)
-    {
-        //store value into variable's stack address
-        TemporaryVar tempVar = varsStackTempVar.get(varName);
-        VarRef varRef = VarRef(tempVar);
-        Store storeRef = Store(varRef, ConstBool(varBoolVal));
-        curBlock.add(storeRef);
-        //now add it to the var refs
-
-        //if not there yet, add it
-        if (!(varsStackBool.containsKey(varName)))
-        {
-            varsStackBool.put(varName, varBoolVal);
-        }
-        //update
-        else if(varsStackBool.containsKey(varName))
-        {
-            varsStackBool.put(varName, varBoolVal);
-        }
-
-    }
 
     @Override
     public void visit(MJStmtAssign stmtAssign)
@@ -381,25 +281,16 @@ public class Translator extends MJElement.DefaultVisitor
         //a = something.
         if(exprLeft instanceof MJVarUse)
         {
-
             MJVarUse varUseLeft = (MJVarUse) exprLeft;
-
-            String nameLeft = varUseLeft.getVarName();
+            String varNameLeft = varUseLeft.getVarName();
 
             ExprMatcher exprMatcher=new ExprMatcher();
-            Object value=exprRight.match(exprMatcher);      //perform right operations in class
+            //returns right operand for the variable
+            Operand operRight = exprRight.match(exprMatcher);
 
-            //if no error
-            if(this.curBlockErrors.isEmpty())
-            {
-                if (value instanceof Integer)
-                    updateHashMapsVariableInt(nameLeft, (int) value);
-                else
-                    updateHashMapsVariableBool(nameLeft, (boolean) value);
-            }
-
+            //store the value of the right-hand side into the left-hand side.
+            Store store = Store(VarRef(varsTemp.get(varNameLeft)), operRight);
+            this.curBlock.add(store);
         }
-        //System.out.println("HasMap for Int: "+ varsStackInt);
-        //System.out.println("HaspMap for Boolean: "+ varsStackBool);
     }
 }

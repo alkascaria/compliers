@@ -1,13 +1,11 @@
 class addition {
-	public static void main(String[] args) {
-		int blablabloe;
-		blablabloe = 7;
+	public static void main(String[] args) 
+	{
+		int b;
 		
-		while (1 < blablabloe) 
-		{
-			blablabloe = blablabloe;
-		}
+		b = !true;
 		
-		System.out.println(blablabloe);
+		
+		
 	}
 }

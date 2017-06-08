@@ -1,15 +1,24 @@
 package translation;
 
+import com.sun.org.apache.xpath.internal.operations.UnaryOperation;
 import minijava.ast.*;
+import minillvm.ast.TemporaryVar;
+
+import minijava.ast.*;
+import minillvm.ast.*;
+
+import java.util.function.UnaryOperator;
+
+import static minillvm.ast.Ast.*;
 
 
 /**
  * Created by alka on 6/5/2017.
  */
 
-//TODO returing Object as return can be either int or boolean....Try to find an alternative
+//TODO returing Operand as return can be either int or boolean....Try to find an alternative
 
-public class ExprMatcher implements MJExpr.Matcher {
+public class ExprMatcher implements MJExpr.Matcher<Operand> {
 
     /**
      *
@@ -17,9 +26,9 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_FieldAccess(MJFieldAccess fieldAccess)
+    public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
-        return new RuntimeException();
+        return null;
     }
 
     /**
@@ -28,7 +37,7 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ExprBinary(MJExprBinary exprBinary) {
+    public Operand case_ExprBinary(MJExprBinary exprBinary) {
 
         //Left of the binaryExpr
         MJExpr exprLeft = exprBinary.getLeft();
@@ -37,7 +46,7 @@ public class ExprMatcher implements MJExpr.Matcher {
         //Operator of the binaryExpr
         MJOperator operator = exprBinary.getOperator();
 
-        Object operand1 , operand2;
+        Operand operand1 , operand2;
 
         //Matching it with the expr and getting the operands
         ExprMatcher exprMatcher = new ExprMatcher();
@@ -47,7 +56,7 @@ public class ExprMatcher implements MJExpr.Matcher {
         //Doing the operation operand1 operator operand2
         OperatorMatcher operatorMatcher = new OperatorMatcher();
         operatorMatcher.getOperands(operand1, operand2);
-        Object value = operator.match(operatorMatcher);
+        Operand value = operator.match(operatorMatcher);
 
 
         return value;
@@ -59,7 +68,7 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ExprNull(MJExprNull exprNull)
+    public Operand case_ExprNull(MJExprNull exprNull)
     {
         return null;
     }
@@ -70,9 +79,9 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_MethodCall(MJMethodCall methodCall)
+    public Operand case_MethodCall(MJMethodCall methodCall)
     {
-        return new RuntimeException();
+        return null;
     }
 
     /**
@@ -81,7 +90,7 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ExprUnary(MJExprUnary exprUnary)
+    public Operand case_ExprUnary(MJExprUnary exprUnary)
     {
         System.out.println(exprUnary);
 
@@ -93,7 +102,7 @@ public class ExprMatcher implements MJExpr.Matcher {
 
         ExprMatcher exprMatcher=new ExprMatcher();
 
-        return unaryOperator.match(new MJUnaryOperator.Matcher<Object>()
+        return unaryOperator.match(new MJUnaryOperator.Matcher<Operand>()
         {
             /**
              *
@@ -101,18 +110,51 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_UnaryMinus(MJUnaryMinus unaryMinus) {
-                int operand;
+            public Operand case_UnaryMinus(MJUnaryMinus unaryMinus)
+            {
+                Operand minus = ConstInt(-1);
 
-                if (unary instanceof MJVarUse) {
-                    String name = ((MJVarUse) unary).getVarName();
-                    operand = -(Translator.varsStackInt.get(name));      //assg the value
-                } else if (unary instanceof MJNumber){
-                    operand = -(((MJNumber) unary).getIntValue());
+                //ex: -b
+               if (unary instanceof MJVarUse)
+                {
+                    System.out.println("Checking unary varUse");
+                    String varName = ((MJVarUse) unary).getVarName();
+                    //get corresponding value and put it into a temp var.
+                    TemporaryVar varStored = TemporaryVar("temp");
+                    Load loadRef = Load(varStored, VarRef(Translator.varsTemp.get(varName)));
+                    Translator.curBlock.add(loadRef);
+                    TemporaryVar tempVarReturn = TemporaryVar("return");
+                    //same as MJNumber. make use of a binary operation to apply a -1
+                    BinaryOperation binaryMinusVar = BinaryOperation(tempVarReturn, VarRef(varStored), Mul(), minus);
+                    Translator.curBlock.add(binaryMinusVar);
+
+                    return VarRef(tempVarReturn);
                 }
+                //ex: -4
+                if (unary instanceof MJNumber)
+                {
+                    TemporaryVar tempVar = TemporaryVar("temp");
+                    int numberMinValue = (((MJNumber) unary).getIntValue());
+                    //put negative value into temporary variable. negative minus is also kinda binary
+                    //ex: 5 * -1
+                    BinaryOperation binaryMinus = BinaryOperation(tempVar, Ast.ConstInt(numberMinValue), Mul(), minus);
+                    Translator.curBlock.add(binaryMinus);
+
+                    return VarRef(tempVar);
+                }
+
+                //ex: -(...)
                 else
-                    operand=-((int)unary.match(exprMatcher));
-                return operand;
+                {
+                    //content of expression
+                    Operand operExpr = unary.match(exprMatcher);
+                    //take content of expression and
+                    TemporaryVar tempVar = TemporaryVar("temp");
+                    BinaryOperation binaryMinusExpr = BinaryOperation(tempVar, operExpr, Mul(), minus);
+                    Translator.curBlock.add(binaryMinusExpr);
+
+                   return VarRef(tempVar);
+                }
             }
 
             /**
@@ -121,17 +163,50 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_Negate(MJNegate negate) {
-                boolean operandBool;
-                if (unary instanceof MJVarUse) {
-                    String name = ((MJVarUse) unary).getVarName();
-                    operandBool = !(Translator.varsStackBool.get(name));      //assg the value
-                } else if (unary instanceof MJBoolConst)
-                    operandBool = !(((MJBoolConst) unary).getBoolValue());
-                else {
-                    operandBool = !((boolean)unary.match(exprMatcher));
+            public Operand case_Negate(MJNegate negate)
+            {
+
+                //ex: !b
+                if (unary instanceof MJVarUse)
+                {
+                    String varName = ((MJVarUse) unary).getVarName();
+                    //contains the stored variable
+                    TemporaryVar varStored = TemporaryVar("temp");
+                    Load loadRef = Load(varStored, VarRef(Translator.varsTemp.get(varName)));
+                    Translator.curBlock.add(loadRef);
+                    TemporaryVar tempVarReturn = TemporaryVar("return");
+                    //XOR with true to invert boolean value
+                    BinaryOperation binaryOp = BinaryOperation(tempVarReturn, VarRef(varStored) , Xor(), ConstBool(true));
+                    Translator.curBlock.add(binaryOp);
+                    //put the value of the corresponding variable into a temp var
+
+                    return VarRef(tempVarReturn);
+
                 }
-                return operandBool;
+                //ex: !false
+                else if (unary instanceof MJBoolConst)
+                {
+                    boolean boolValue = ((MJBoolConst) unary).getBoolValue();
+                    TemporaryVar tempVarReturn = TemporaryVar("temp");
+                    //again, XOR with true to invert boolean logic.
+                    BinaryOperation binOpReturn = BinaryOperation(tempVarReturn, ConstBool(boolValue), Xor(), ConstBool(true));
+                    Translator.curBlock.add(binOpReturn);
+
+                    return VarRef(tempVarReturn);
+                }
+                //other expressions. ex: !(...)
+                else
+                {
+                    System.out.println("Checking unary neg expression");
+                    //content of expression
+                    Operand operExpr = unary.match(exprMatcher);
+                    //take content of expression and
+                    TemporaryVar tempVar = TemporaryVar("temp");
+                    BinaryOperation binaryMinusExpr = BinaryOperation(tempVar, operExpr, Xor(), ConstBool(true));
+                    Translator.curBlock.add(binaryMinusExpr);
+
+                    return VarRef(tempVar);
+                }
             }
         });
     }
@@ -142,10 +217,10 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_BoolConst(MJBoolConst boolConst)
+    public Operand case_BoolConst(MJBoolConst boolConst)
     {
         //return boolean
-        return boolConst.getBoolValue();
+        return ConstBool(boolConst.getBoolValue());
     }
 
     /**
@@ -154,9 +229,10 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_Number(MJNumber number) {
+    public Operand case_Number(MJNumber number)
+    {
         //return int value
-        return number.getIntValue();
+        return ConstInt(number.getIntValue());
     }
 
     /**
@@ -165,21 +241,25 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_VarUse(MJVarUse varUse) {
-        String name = varUse.getVarName();
+    public Operand case_VarUse(MJVarUse varUse)
+    {
+        String varName = varUse.getVarName();
         MJVarDecl varDecl = varUse.getVariableDeclaration();
         MJType type = varDecl.getType();
 
-        return type.match(new MJType.Matcher<Object>() {
+        //just try for integer for now.
+
+        //now match the type of the variable being used
+        return type.match(new MJType.Matcher<Operand>() {
             /**
              *
              * @param typeClass(@code MJTypeClass)
              * @return
              */
             @Override
-            public Object case_TypeClass(MJTypeClass typeClass)
+            public Operand case_TypeClass(MJTypeClass typeClass)
             {
-                return new RuntimeException();
+                return null;
             }
 
             /**
@@ -188,9 +268,17 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_TypeBool(MJTypeBool typeBool) {
+            public Operand case_TypeBool(MJTypeBool typeBool) {
                 //return boolean value
-                return Translator.varsStackBool.get(name);
+                //return int
+                TemporaryVar tempBool = TemporaryVar("tempvar");
+                //put the value of the varUse found into the tempVar
+                Load loadBool = Load(tempBool, VarRef(Translator.varsTemp.get(varName)));
+                //not sure if needed
+                Translator.curBlock.add(loadBool);
+
+                return VarRef(tempBool);
+                //return Translator.varsStackBool.get(varName);
             }
 
             /**
@@ -199,7 +287,7 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_TypeIntArray(MJTypeIntArray typeIntArray)
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
                 return null;
             }
@@ -210,10 +298,16 @@ public class ExprMatcher implements MJExpr.Matcher {
              * @return
              */
             @Override
-            public Object case_TypeInt(MJTypeInt typeInt) {
+            public Operand case_TypeInt(MJTypeInt typeInt)
+            {
                 //return int
-                //value of the binaryLeft expr
-                return Translator.varsStackInt.get(name);
+                TemporaryVar tempInt = TemporaryVar("tempvar");
+                //put the value of the varUse found into the tempVar
+                Load loadInt = Load(tempInt, VarRef(Translator.varsTemp.get(varName)));
+                //not sure if needed
+                Translator.curBlock.add(loadInt);
+
+                return VarRef(tempInt);
             }
         });
     }
@@ -224,9 +318,9 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_NewIntArray(MJNewIntArray newIntArray) 
+    public Operand case_NewIntArray(MJNewIntArray newIntArray)
     {
-        return new RuntimeException();
+        return null;
     }
 
     /**
@@ -235,9 +329,9 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ExprThis(MJExprThis exprThis) 
+    public Operand case_ExprThis(MJExprThis exprThis)
     {
-        return new RuntimeException();
+        return null;
     }
 
     /**
@@ -246,20 +340,22 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ArrayLength(MJArrayLength arrayLength)
+    public Operand case_ArrayLength(MJArrayLength arrayLength)
     {
         //return int
-        return Translator.varsStackInt.get(arrayLength);
+        //return Translator.varsStackInt.get(arrayLength);
+        return null;
     }
 
     /**
      *
-     * @param newObject(@code MJNewObject)
+     * @param newObject
      * @return
      */
     @Override
-    public Object case_NewObject(MJNewObject newObject) {
-        return new RuntimeException();
+    public Operand case_NewObject(MJNewObject newObject)
+    {
+        return null;
     }
 
     /**
@@ -268,7 +364,7 @@ public class ExprMatcher implements MJExpr.Matcher {
      * @return
      */
     @Override
-    public Object case_ArrayLookup(MJArrayLookup arrayLookup) {
-        return new RuntimeException();
+    public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
+        return null;
     }
 }
