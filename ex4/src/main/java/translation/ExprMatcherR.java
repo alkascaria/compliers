@@ -288,8 +288,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             @Override
             public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
+                TemporaryVar tempIntArray = TemporaryVar("tempVarArr");
+                Load loadArray = Load(tempIntArray, VarRef(Translator.varsTemp.get(varName)));
+                Translator.curBlock.add(loadArray);
 
-                return null;
+                return ConstInt(0);
             }
 
             /**
@@ -410,9 +413,18 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ArrayLength(MJArrayLength arrayLength)
     {
-        //return int
-        //return Translator.varsStackInt.get(arrayLength);
-        return null;
+        MJExpr exprLength = arrayLength.getArrayExpr();
+
+        Operand operArray = exprLength.match(this);
+
+
+
+        //retrieve how long the array is in memory
+       // TemporaryVar varSizeArray = TemporaryVar("sizeArray");
+
+       // Load(varSizeArray, operCheck);
+
+        return ConstInt(0);
     }
 
     /**
@@ -432,7 +444,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
+    public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
+    {
+
+
+
         return null;
     }
 }
