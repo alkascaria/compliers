@@ -214,9 +214,7 @@ public class Translator extends MJElement.DefaultVisitor
     {
         //constant or variable
         MJExpr expr = stmtPrint.getPrinted();
-
         Operand operand;
-
         ExprMatcher exprMatcher=new ExprMatcher();
         //check which operand type it is
         //operand=Ast.ConstInt((int)expr.match(exprMatcher));

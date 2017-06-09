@@ -115,13 +115,38 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
     @Override
     public Operand case_Div(MJDiv div)
     {
+        //operaRight == zero?
+        TemporaryVar tempVarZero = TemporaryVar("temp");
+        Operand operZero = ConstInt(0);
+        BinaryOperation divZeroTrue = BinaryOperation(tempVarZero, operZero, Eq(), this.operRight);
+        Translator.curBlock.add(divZeroTrue);
+        //true or false.
+        Operand operResultZeroEq = VarRef(tempVarZero);
+
+        BasicBlock blockTrueZero = BasicBlock();
+        BasicBlock blockRest = BasicBlock();
+
+        //now branch depending on whether it's true or false
+        Branch branchZero = Branch(operResultZeroEq, blockTrueZero, blockRest);
+        Translator.curBlock.add(branchZero);
+
+        //if we are indeed dividing by zero
+        Translator.curBlock = blockTrueZero;
+        Translator.blocks.add(blockTrueZero);
+        //then add error
+        Translator.curBlock.add(HaltWithError("Dividing by 0"));
+
+        //not dividing by zero
+        Translator.curBlock = blockRest;
+        Translator.blocks.add(blockRest);
+
 
         TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binDiv = BinaryOperation(tempVar, this.operLeft, Sdiv(), this.operRight);
+        BinaryOperation binDiv = BinaryOperation(tempVar, this.operLeft, Sdiv(), this.operRight.copy());
+
         Translator.curBlock.add(binDiv);
 
         return VarRef(tempVar);
-
     }
 
     /**
