@@ -9,12 +9,15 @@ import static minillvm.ast.Ast.VarRef;
 
 /**
  * Created by Daniele on 09/06/2017.
+ * Matches the correct left-hand side
  */
+
+//TODO: add throw IllegalStatementException on expressions not allowed
+
 public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
     @Override
     public TemporaryVar case_FieldAccess(MJFieldAccess fieldAccess)
     {
-        //throw illegalstatementexception
         return null;
     }
 
@@ -48,7 +51,6 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
         return null;
     }
 
-    //TODO: put types for var use into its own class both in ExprMatcherL and ExprMatcherR
     public TemporaryVar case_VarUse(MJVarUse varUse)
     {
         String varName = varUse.getVarName();
@@ -88,7 +90,7 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
             @Override
             public TemporaryVar case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
-                return null;
+                return Translator.varsTemp.get(varName);
             }
 
             /**

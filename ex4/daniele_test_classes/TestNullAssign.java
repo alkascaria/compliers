@@ -4,6 +4,7 @@ class addition
 	{
 		int[] b;
 		
+		b = null;
 		
 
 	}

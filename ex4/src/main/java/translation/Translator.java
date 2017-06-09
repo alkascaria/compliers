@@ -54,10 +54,7 @@ public class Translator extends MJElement.DefaultVisitor
         prog.getProcedures().add(mainProc);
 
         //main block
-        BasicBlock mainBlock = BasicBlock
-        (
-
-        );
+        BasicBlock mainBlock = BasicBlock();
 
         //get the list of instruction
         mainBlock.setName("entry");
@@ -201,10 +198,7 @@ public class Translator extends MJElement.DefaultVisitor
         //check which operand type it is
         //operand=Ast.ConstInt((int)expr.match(exprMatcher));
         operand=expr.match(exprMatchR);
-
         Print print = Print(operand);
-
-
         this.curBlock.add(print);
 
     }
@@ -219,16 +213,50 @@ public class Translator extends MJElement.DefaultVisitor
     @Override
     public void visit(MJVarDecl varDecl)
     {
-        TypeMatcher typeMatcher = new TypeMatcher();
 
-        MJType typeVar = varDecl.getType();
-        String typeName = varDecl.getName();
+        MJType typeName = varDecl.getType();
+        String varName = varDecl.getName();
+        TemporaryVar tempVar = TemporaryVar(varName);
 
-        Type typeReturn = typeVar.match(typeMatcher);
-        TemporaryVar tempVar = TemporaryVar(typeName);
-        Alloca alloca = Alloca(tempVar, typeReturn);
-        this.curBlock.add(alloca);
-        varsTemp.put(typeName, tempVar);
+        //a = null by defau.t
+        //int a;
+        if(typeName instanceof MJTypeInt)
+        {
+            Type typeInt = TypeInt();
+            //put variable declaration onto stack
+            Alloca allocVar = Alloca(tempVar, typeInt);
+            this.curBlock.add(allocVar);
+            //add to hashmap
+            this.varsTemp.put(varName, tempVar);
+        }
+        //boolean a;
+        else if (typeName instanceof MJTypeBool)
+        {
+            Type typeBool = TypeBool();
+            //put variable declaration onto stack
+            Alloca allocVar = Alloca(tempVar, typeBool);
+            this.curBlock.add(allocVar);
+            //add to hashmap
+            this.varsTemp.put(varName, tempVar);
+        }
+        //int[] a;
+        else if(typeName instanceof MJTypeIntArray)
+        {
+            //create a pointer to an array.
+            TemporaryVar tempArray = TemporaryVar("arrayPointer");
+            //allocate onto the heap an array with size 0 to allow for pointers to refer to it
+            TypeArray typeArray = TypeArray(TypeInt(), 0);
+            Alloc allocHeap = Alloc(tempArray, ConstInt(0));
+            this.curBlock.add(allocHeap);
+            TemporaryVar tempVarReturn = TemporaryVar("arrayCasted");
+            //converting to array. credits to Joseff for this tip!
+            Bitcast arrayConverted = Bitcast(tempVarReturn,TypePointer(TypePointer(typeArray)),VarRef(tempArray));
+            this.curBlock.add(arrayConverted);
+            //finally, add to hashmap
+            this.varsTemp.put(varName, tempVarReturn);
+
+        }
+
     }
 
 
@@ -238,6 +266,7 @@ public class Translator extends MJElement.DefaultVisitor
     {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
+
 
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();

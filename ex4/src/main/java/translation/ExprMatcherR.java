@@ -11,9 +11,8 @@ import static minillvm.ast.Ast.*;
 
 /**
  * Created by alka on 6/5/2017.
+ * Modified by Daniele
  */
-
-//TODO returing Operand as return can be either int or boolean....Try to find an alternative
 
 public class ExprMatcherR implements MJExpr.Matcher<Operand>
 {
@@ -74,7 +73,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ExprNull(MJExprNull exprNull)
     {
-        return null;
+        Operand operandNull = Nullpointer();
+        return operandNull;
     }
 
     /**
@@ -169,7 +169,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             @Override
             public Operand case_Negate(MJNegate negate)
             {
-
                 //ex: !b
                 if (unary instanceof MJVarUse)
                 {
@@ -185,7 +184,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
                     //put the value of the corresponding variable into a temp var
 
                     return VarRef(tempVarReturn);
-
                 }
                 //ex: !false
                 else if (unary instanceof MJBoolConst)
@@ -321,14 +319,76 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_NewIntArray(MJNewIntArray newIntArray)
     {
-        //allocate memory on heap for int
         MJExpr exprSize = newIntArray.getArraySize();
-        //contains size
-        Operand operExprSize = exprSize.match(this);
-        //allocate enough space on the heap for the array
+        //store size of the array into this
+        Operand operArraySize = exprSize.match(this);
+        Operand operZero = ConstInt(0);
+
+        //boolean. true or false
+        TemporaryVar varIsNegativeSize = TemporaryVar("isSizeNegative");
+        //first of all, check if size is negative
+        Translator.curBlock.add(BinaryOperation(varIsNegativeSize, operArraySize, Slt(), operZero));
+
+        BasicBlock blockOkay = BasicBlock();
+        BasicBlock blockWrong = BasicBlock();
+
+        Operand checkNegSize = VarRef(varIsNegativeSize);
+
+        //choose the right block to jump to
+        Branch branchIsNeg = Branch(checkNegSize, blockWrong, blockOkay);
+        Translator.curBlock.add(branchIsNeg);
+
+        //not good, we got something negative here.
+        Translator.curBlock = blockWrong;
+        Translator.blocks.add(blockWrong);
+        //then add error to it and stop execution.
+        blockWrong.add(HaltWithError("An array cannot be initialized with negative size."));
+
+        //OKAY, we got a valid value (also 0 is valid here). then continue...
+        Translator.curBlock = blockOkay;
+        Translator.blocks.add(blockOkay);
+
+        //size needs to be given + 1
+        TemporaryVar arraySizeIncr = TemporaryVar("array size adjusted");
+        Operand operOne = ConstInt(1);
+        BinaryOperation binAddSize = BinaryOperation(arraySizeIncr, operArraySize.copy(), Add(), operOne);
+        Translator.curBlock.add(binAddSize);
+
+        //allocate space for each element of the array
+        Operand operArrSizeInc = VarRef(arraySizeIncr);
+        TemporaryVar sizeArrayMembers = TemporaryVar("array members size");
+        //just to make just it's enough
+        Operand sizePerEment = ConstInt(8);
+        BinaryOperation binSizeMember = BinaryOperation(sizeArrayMembers, operArrSizeInc, Mul(), sizePerEment);
+        Translator.curBlock.add(binSizeMember);
 
 
-        return null;
+        Operand sizeTotalArray = VarRef(sizeArrayMembers);
+        //good, now allocate the space for the array.
+        TemporaryVar arrayHeapVar = TemporaryVar("array");
+        Alloc allocHeap = Alloc(arrayHeapVar, sizeTotalArray);
+        Translator.curBlock.add(allocHeap);
+
+        //now cast pointer into array
+        TemporaryVar arrayPointer = TemporaryVar("cast array pointer");
+        TypeArray typeArray = TypeArray(TypeInt(),0 );
+        //thanks to Joseff for bitcasting and setting the length
+        Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(typeArray), VarRef(arrayHeapVar));
+        Translator.curBlock.add(binCastPointer);
+
+        //now store the size of the array
+        TemporaryVar arrayLengthNew = TemporaryVar("array length");
+        Operand addressBaseArray = ConstInt(0);
+        //sort of empty list for now
+        OperandList operandList = OperandList(addressBaseArray, addressBaseArray.copy());
+        GetElementPtr elementPtr = GetElementPtr(arrayLengthNew, VarRef(arrayPointer),operandList);
+        Translator.curBlock.add(elementPtr);
+        //set the size here. allocate enough space.
+        Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
+        Translator.curBlock.add(storeArr);
+
+
+        return VarRef(arrayPointer);
     }
 
     /**
