@@ -380,6 +380,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Translator.curBlock.add(binCastPointer);
 
         //now store the size of the array
+        /*
+
         TemporaryVar arrayLengthNew = TemporaryVar("array length");
         Operand addressBaseArray = ConstInt(0);
         //sort of empty list for now
@@ -389,6 +391,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //set the size here. allocate enough space.
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
+        */
 
 
         return VarRef(arrayPointer);
