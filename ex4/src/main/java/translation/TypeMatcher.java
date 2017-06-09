@@ -42,7 +42,8 @@ public class TypeMatcher implements MJType.Matcher<Type>
     @Override
     public Type case_TypeIntArray(MJTypeIntArray typeIntArray)
     {
-        return null;
+        //inizialize with 0 initially
+        return Ast.TypeArray(Ast.TypeInt(), typeIntArray.size());
     }
 
     /**

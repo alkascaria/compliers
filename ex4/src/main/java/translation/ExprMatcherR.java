@@ -1,13 +1,10 @@
 package translation;
 
-import com.sun.org.apache.xpath.internal.operations.UnaryOperation;
-import minijava.ast.*;
-import minillvm.ast.TemporaryVar;
-
 import minijava.ast.*;
 import minillvm.ast.*;
-
-import java.util.function.UnaryOperator;
+import minillvm.ast.BinaryOperation;
+import minillvm.ast.Load;
+import minillvm.ast.TemporaryVar;
 
 import static minillvm.ast.Ast.*;
 
@@ -18,7 +15,13 @@ import static minillvm.ast.Ast.*;
 
 //TODO returing Operand as return can be either int or boolean....Try to find an alternative
 
-public class ExprMatcher implements MJExpr.Matcher<Operand> {
+public class ExprMatcherR implements MJExpr.Matcher<Operand>
+{
+
+    ExprMatcherR()
+    {
+
+    }
 
     /**
      *
@@ -49,9 +52,9 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
         Operand operand1 , operand2;
 
         //Matching it with the expr and getting the operands
-        ExprMatcher exprMatcher = new ExprMatcher();
-        operand1 = exprLeft.match(exprMatcher);
-        operand2 = exprRight.match(exprMatcher);
+        ExprMatcherR exprMatchR = new ExprMatcherR();
+        operand1 = exprLeft.match(exprMatchR);
+        operand2 = exprRight.match(exprMatchR);
 
         //Doing the operation operand1 operator operand2
         OperatorMatcher operatorMatcher = new OperatorMatcher(operand1, operand2);
@@ -101,7 +104,7 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
         //unaryExpression
         MJExpr unary = exprUnary.getExpr();
 
-        ExprMatcher exprMatcher=new ExprMatcher();
+        ExprMatcherR exprMatcher=new ExprMatcherR();
 
         return unaryOperator.match(new MJUnaryOperator.Matcher<Operand>()
         {
@@ -198,7 +201,6 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
                 //other expressions. ex: !(...)
                 else
                 {
-                    System.out.println("Checking unary neg expression");
                     //content of expression
                     Operand operExpr = unary.match(exprMatcher);
                     //take content of expression and
@@ -248,7 +250,6 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
         MJVarDecl varDecl = varUse.getVariableDeclaration();
         MJType type = varDecl.getType();
 
-        //just try for integer for now.
 
         //now match the type of the variable being used
         return type.match(new MJType.Matcher<Operand>() {
@@ -269,17 +270,16 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeBool(MJTypeBool typeBool) {
+            public Operand case_TypeBool(MJTypeBool typeBool)
+            {
                 //return boolean value
                 //return int
                 TemporaryVar tempBool = TemporaryVar("tempvar");
                 //put the value of the varUse found into the tempVar
                 Load loadBool = Load(tempBool, VarRef(Translator.varsTemp.get(varName)));
-                //not sure if needed
                 Translator.curBlock.add(loadBool);
 
                 return VarRef(tempBool);
-                //return Translator.varsStackBool.get(varName);
             }
 
             /**
@@ -290,6 +290,7 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
+
                 return null;
             }
 
@@ -305,7 +306,6 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
                 TemporaryVar tempInt = TemporaryVar("tempvar");
                 //put the value of the varUse found into the tempVar
                 Load loadInt = Load(tempInt, VarRef(Translator.varsTemp.get(varName)));
-                //not sure if needed
                 Translator.curBlock.add(loadInt);
 
                 return VarRef(tempInt);
@@ -314,13 +314,20 @@ public class ExprMatcher implements MJExpr.Matcher<Operand> {
     }
 
     /**
-     *
+     * a = new int[5];
      * @param newIntArray(@code MJNewIntArray)
      * @return
      */
     @Override
     public Operand case_NewIntArray(MJNewIntArray newIntArray)
     {
+        //allocate memory on heap for int
+        MJExpr exprSize = newIntArray.getArraySize();
+        //contains size
+        Operand operExprSize = exprSize.match(this);
+        //allocate enough space on the heap for the array
+
+
         return null;
     }
 

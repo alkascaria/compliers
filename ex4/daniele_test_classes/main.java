@@ -1,30 +1,20 @@
 class MainTest {
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
+		int a;
+		
+		a = 2;
+		
 		
 		int b;
-
-		b = 5;
 		
+		b = 3;
 		
-		int c;
+		a = b;
 		
-		c = 2;
-		
-		c = c - 1;
-		
-		System.out.println(c);
+		System.out.println(a);
 
 		
-
-		while(c < b)
-		{
-			c = 50;
-	
-		}
-		
-		
-		System.out.println(c);
-
 		
 		
 

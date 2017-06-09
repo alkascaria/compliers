@@ -26,8 +26,6 @@ public class Translator extends MJElement.DefaultVisitor
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
 
-    //public static ArrayList<TerminatingInstruction> curBlockErrors = new ArrayList<TerminatingInstruction>();
-
 
     //stores which Proc and Block we are currently in.
     public static Proc curProc;
@@ -69,15 +67,7 @@ public class Translator extends MJElement.DefaultVisitor
 
         javaProg.accept(this);
 
-        //check if curBlock contains a terminating instruction. if it doesn't, add Return
-
-
-       // if((curBlockErrors.isEmpty()))
-        //{
-            curBlock.add(ReturnExpr(ConstInt(0)));
-        //}
-
-        //curBlockErrors.clear();
+        curBlock.add(ReturnExpr(ConstInt(0)));
 
         return prog;
     }
@@ -92,12 +82,9 @@ public class Translator extends MJElement.DefaultVisitor
 
         //need to check if it's false or true to decide which body we should enter
         MJExpr exprCondition = stmtIf.getCondition();
-        ExprMatcher exprMatcher = new ExprMatcher();
-        //check which operand type it is. we know it must be a boolean here
-        //Operand operandCondition = Ast.ConstBool((boolean)exprCondition.match(exprMatcher));
-        Operand operandCondition = exprCondition.match(exprMatcher);
-
-        System.out.println(operandCondition);
+        ExprMatcherR exprMatchR = new ExprMatcherR();
+        //will be boolean
+        Operand operandCondition = exprCondition.match(exprMatchR);
 
         //true or false?
         //true statements if(){statements}
@@ -105,16 +92,11 @@ public class Translator extends MJElement.DefaultVisitor
         //else statements else{statements}
         MJStatement statementsFalse = stmtIf.getIfFalse();
 
-
         BasicBlock basicBlockTrue = BasicBlock();
-        basicBlockTrue.setName("TRUE if");
 
         BasicBlock basicBlockFalse = BasicBlock();
-        basicBlockFalse.setName("FALSE if");
 
         BasicBlock basicBlockAfterIfElse = BasicBlock();
-        basicBlockAfterIfElse.setName("After if-else ");
-
 
         //add the new terminating instruction to the current block
         Branch branchIfElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
@@ -176,9 +158,9 @@ public class Translator extends MJElement.DefaultVisitor
         this.curBlock = conditionBlock;
 
         //Now check the condition:
-        ExprMatcher exprMatcher = new ExprMatcher();
+        ExprMatcherR exprMatchR = new ExprMatcherR();
         MJExpr exprCondition = stmtWhile.getCondition();
-        Operand operCondition = exprCondition.match(exprMatcher);
+        Operand operCondition = exprCondition.match(exprMatchR);
 
         //if condition met, go to the while body, if not met, go ahead with rest
         Branch branchWhile = Branch(operCondition,  bodyBlock, restBlock);
@@ -215,18 +197,15 @@ public class Translator extends MJElement.DefaultVisitor
         //constant or variable
         MJExpr expr = stmtPrint.getPrinted();
         Operand operand;
-        ExprMatcher exprMatcher=new ExprMatcher();
+        ExprMatcherR exprMatchR = new ExprMatcherR();
         //check which operand type it is
         //operand=Ast.ConstInt((int)expr.match(exprMatcher));
-        operand=expr.match(exprMatcher);
+        operand=expr.match(exprMatchR);
 
         Print print = Print(operand);
 
-        //if no error, go ahead and add it
-        //if(curBlockErrors.isEmpty())
-        //{
-            this.curBlock.add(print);
-        //}
+
+        this.curBlock.add(print);
 
     }
 
@@ -260,21 +239,16 @@ public class Translator extends MJElement.DefaultVisitor
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
-        //left side in here since it's just about a few cases: MJVarUse and FieldAccess
+        //match left --> put var use into exprmatcher L
+        ExprMatcherL exprMatchL = new ExprMatcherL();
+        //left must return a temporary var
+        TemporaryVar tempVarLeft = exprLeft.match(exprMatchL);
 
-        //a = something.
-        if(exprLeft instanceof MJVarUse)
-        {
-            MJVarUse varUseLeft = (MJVarUse) exprLeft;
-            String varNameLeft = varUseLeft.getVarName();
+        ExprMatcherR exprMatchR = new ExprMatcherR();
+        Operand operRight = exprRight.match(exprMatchR);
 
-            ExprMatcher exprMatcher=new ExprMatcher();
-            //returns right operand for the variable
-            Operand operRight = exprRight.match(exprMatcher);
+        Store storeValue = Store(VarRef(tempVarLeft), operRight);
+        this.curBlock.add(storeValue);
 
-            //store the value of the right-hand side into the left-hand side.
-            Store store = Store(VarRef(varsTemp.get(varNameLeft)), operRight);
-            this.curBlock.add(store);
-        }
     }
 }
