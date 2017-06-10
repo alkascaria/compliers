@@ -374,18 +374,16 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //now cast pointer into array
         TemporaryVar arrayPointer = TemporaryVar("cast array pointer");
         TypeArray typeArray = TypeArray(TypeInt(),0 );
-        //thanks to Joseff for bitcasting and setting the length
+        //thanks to Joseff for bitcasting, i.e: converting into an actual array
+        //arrayPointer will then contain the converted array
         Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(typeArray), VarRef(arrayHeapVar));
         Translator.curBlock.add(binCastPointer);
-
-        //now store the size of the array
-
-
+        //now set the size of the array in the first position
         TemporaryVar arrayLengthNew = TemporaryVar("array length");
         Operand addressZero = ConstInt(0);
         //                 0   |1| 2 |3 | 4|5
         //store like this: size|e1|e2|e3|e4|e5...
-        //an der ersten Stelle, speichern wie die Arraysgröße
+        //save the array size in the first position of the array
         OperandList operandList = OperandList(addressZero, addressZero.copy());
         GetElementPtr elementPtr = GetElementPtr(arrayLengthNew, VarRef(arrayPointer),operandList);
         Translator.curBlock.add(elementPtr);
@@ -410,21 +408,35 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     /**
      *
      * @param arrayLength(@code MJArrayLength)
+     * ex: a.length
      * @return
      */
     @Override
     public Operand case_ArrayLength(MJArrayLength arrayLength)
     {
-        MJExpr exprLength = arrayLength.getArrayExpr();
-        ExprMatcherL matcherL = new ExprMatcherL();
+        MJExpr exprArray = arrayLength.getArrayExpr();
         //returns reference to the array's declaration (i.e: base address)
-        TemporaryVar arrayStored = exprLength.match(matcherL);
+        //in form of a temporary variable
+        return this.returnArrayLength(exprArray);
+    }
+
+    /**
+     *
+     * @param exprArray contains the expression with the array.
+     * ex: e.length --> get e or e[5] --> get e
+     * @return Operand --> VarRef(lengthVarReturn) = VarRef(tempVar)
+     */
+
+    public Operand returnArrayLength(MJExpr exprArray)
+    {
+        ExprMatcherL matcherL = new ExprMatcherL();
+        TemporaryVar arrayTemp = exprArray.match(matcherL);
+
+
         TemporaryVar arrayRef = TemporaryVar("array ref");
         //store reference of reference /credits to Joseff for double referencing arrays
-        Translator.curBlock.add(Load(arrayRef, VarRef(arrayStored)));
-
+        Translator.curBlock.add(Load(arrayRef, VarRef(arrayTemp)));
         TemporaryVar lengthArray = TemporaryVar("arrayLength");
-
         //start from the base address and get the value stored at index 0 --> length.
         Operand lengthBase = ConstInt(0);
         //get value at index 0 in the array
@@ -437,7 +449,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Translator.curBlock.add(loadVar);
 
         return VarRef(lengthVarReturn);
-
     }
 
     /**
@@ -459,9 +470,75 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
+        MJExpr exprArray = arrayLookup.getArrayExpr();
+        //firstly, get the array size
+        Operand arraySize = returnArrayLength(exprArray);
+
+        //then get the array index we're trying to access
+        MJExpr exprArrayIndex = arrayLookup.getArrayIndex();
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+        Operand arrayIndex = exprArrayIndex.match(exprMatcherR);
+
+        //make sure the arrayIndex is not < 0, i.e: negative
+        Operand operZero = ConstInt(0);
+        TemporaryVar tempNegative = TemporaryVar("negative");
+        BinaryOperation binNotNegative = BinaryOperation(tempNegative, arrayIndex, Slt(), operZero);
+        Translator.curBlock.add(binNotNegative);
+        Operand operIsNegative = VarRef(tempNegative);
+
+        //case where index is < 0
+        BasicBlock blockLessZero = BasicBlock();
+        //case where index > 0
+        BasicBlock blockOkayNotNeg = BasicBlock();
+
+        Translator.curBlock.add(Branch(operIsNegative, blockLessZero, blockOkayNotNeg));
+
+        //if we are indeed trying to use a negative index
+        Translator.curBlock = blockLessZero;
+        Translator.blocks.add(blockLessZero);
+        //then add error
+        Translator.curBlock.add(HaltWithError("Index Out of Lower Bound error: Array access indexes cannot be negative!"));
+
+        //it's alright, accessing a valid element (index >= 0)
+        Translator.curBlock = blockOkayNotNeg;
+        Translator.blocks.add(blockOkayNotNeg);
+
+
+        //now check if we're accessing an index too high, i.e: size = 5 --> max index = 4
+
+        //now check if accessing a value beyond the size --> a[size] --> make sure indexAccess < size
+        TemporaryVar tempIndexOutHigh = TemporaryVar("out of upper bound");
+        BinaryOperation binOpTooHigh = BinaryOperation(tempIndexOutHigh,arrayIndex.copy(), Slt(), arraySize);
+        Translator.curBlock.add(binOpTooHigh);
+        //true if index smaller than size. false if index greater than size
+        Operand operTooHigh = VarRef(tempIndexOutHigh);
+
+        //case where index is > 0
+        BasicBlock blockOutUpperBound = BasicBlock();
+        //case where index > 0
+        BasicBlock blockOkayUpper = BasicBlock();
+
+        Translator.curBlock.add(Branch(operTooHigh, blockOkayUpper, blockOutUpperBound ));
+
+        //if we are indeed trying to use a negative index
+        Translator.curBlock = blockOutUpperBound;
+        Translator.blocks.add(blockOutUpperBound);
+        //then add error
+        Translator.curBlock.add(HaltWithError("Index Out of Upper Bound error: you cannot access a value that is beyond the array's size!"));
+
+        //it's alright, accessing a valid element (index >= 0)
+        Translator.curBlock = blockOkayUpper;
+        Translator.blocks.add(blockOkayUpper);
+
+        //all good, go ahead and get the value in it
 
 
 
-        return null;
+
+
+
+
+
+        return ConstInt(0);
     }
 }

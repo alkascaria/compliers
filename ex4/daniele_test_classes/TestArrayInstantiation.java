@@ -4,9 +4,7 @@ class addition
 	{
 		int[] b;
 		
-		b = new int[6];
-		
-		System.out.println(b[6]);
+		b = new int[5];
 		
 	}
 }
