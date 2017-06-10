@@ -292,7 +292,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
                 Load loadArray = Load(tempIntArray, VarRef(Translator.varsTemp.get(varName)));
                 Translator.curBlock.add(loadArray);
 
-                return ConstInt(0);
+                return VarRef(tempIntArray);
             }
 
             /**
@@ -326,7 +326,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //store size of the array into this
         Operand operArraySize = exprSize.match(this);
         Operand operZero = ConstInt(0);
-
         //boolean. true or false
         TemporaryVar varIsNegativeSize = TemporaryVar("isSizeNegative");
         //first of all, check if size is negative
@@ -380,19 +379,19 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Translator.curBlock.add(binCastPointer);
 
         //now store the size of the array
-        /*
+
 
         TemporaryVar arrayLengthNew = TemporaryVar("array length");
-        Operand addressBaseArray = ConstInt(0);
-        //sort of empty list for now
-        OperandList operandList = OperandList(addressBaseArray, addressBaseArray.copy());
+        Operand addressZero = ConstInt(0);
+        //                 0   |1| 2 |3 | 4|5
+        //store like this: size|e1|e2|e3|e4|e5...
+        //an der ersten Stelle, speichern wie die Arraysgröße
+        OperandList operandList = OperandList(addressZero, addressZero.copy());
         GetElementPtr elementPtr = GetElementPtr(arrayLengthNew, VarRef(arrayPointer),operandList);
         Translator.curBlock.add(elementPtr);
-        //set the size here. allocate enough space.
+        //again, put the length in the 0 position.
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
-        */
-
 
         return VarRef(arrayPointer);
     }
@@ -417,17 +416,28 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     public Operand case_ArrayLength(MJArrayLength arrayLength)
     {
         MJExpr exprLength = arrayLength.getArrayExpr();
+        ExprMatcherL matcherL = new ExprMatcherL();
+        //returns reference to the array's declaration (i.e: base address)
+        TemporaryVar arrayStored = exprLength.match(matcherL);
+        TemporaryVar arrayRef = TemporaryVar("array ref");
+        //store reference of reference /credits to Joseff for double referencing arrays
+        Translator.curBlock.add(Load(arrayRef, VarRef(arrayStored)));
 
-        Operand operArray = exprLength.match(this);
+        TemporaryVar lengthArray = TemporaryVar("arrayLength");
 
+        //start from the base address and get the value stored at index 0 --> length.
+        Operand lengthBase = ConstInt(0);
+        //get value at index 0 in the array
+        OperandList operandList = OperandList(lengthBase, lengthBase.copy());
+        GetElementPtr elementPtr = GetElementPtr(lengthArray, VarRef(arrayRef), operandList);
+        Translator.curBlock.add(elementPtr);
+        //assign it to a variable and return
+        TemporaryVar lengthVarReturn =  TemporaryVar("length return");
+        Load loadVar =  Load(lengthVarReturn, VarRef(lengthArray));
+        Translator.curBlock.add(loadVar);
 
+        return VarRef(lengthVarReturn);
 
-        //retrieve how long the array is in memory
-       // TemporaryVar varSizeArray = TemporaryVar("sizeArray");
-
-       // Load(varSizeArray, operCheck);
-
-        return ConstInt(0);
     }
 
     /**
