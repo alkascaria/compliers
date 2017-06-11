@@ -49,5 +49,22 @@ public class SimpleTests {
 		TranslationTestHelper.testTranslation("Test.java", input);
 	}
 
+	@Test
+	public void test3() throws Exception {
+		testStatements(
+				"int steve;",
+				"steve = 20;",
+				"while (0 < steve) {",
+				"	System.out.println(steve);",
+				"	steve = steve - 1;",
+				"}"
+		);
+	}
+	@Test
+	public void testArray() throws Exception{
+		testStatements(
+		"int[] a;"," a = new int[5];");
+	}
+
 
 }
