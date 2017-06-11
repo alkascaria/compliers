@@ -439,35 +439,10 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
-        //make sure index is within range of array
-        checkArrayIndexInRange(arrayLookup);
-        //if in range, continue...
-        MJExpr exprIndex = arrayLookup.getArrayIndex();
-        Operand operIndex = exprIndex.match(this);
-
-        //increase tempvar by 1, as position 0 contains length
-        TemporaryVar tempIndexIncr = TemporaryVar("temp index increased");
-        BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
-        Translator.curBlock.add(binOpIncr);
-
-        //now get back the original array's address
-        MJExpr exprArray = arrayLookup.getArrayExpr();
         ExprMatcherL exprMatcherL = new ExprMatcherL();
-        Operand arrayTemp = exprArray.match(exprMatcherL);
+        TemporaryVar pointerElementArray =  exprMatcherL.accessIndexArray(arrayLookup);
 
-        //array address stored in arrayRef
-        TemporaryVar arrayRef = TemporaryVar("array ref");
-        Translator.curBlock.add(Load(arrayRef, arrayTemp));
-
-        TemporaryVar pointerElementArray = TemporaryVar("element pointer");
-        //start from the base address and get the value stored at index 0 --> length.
-        Operand lengthBase = ConstInt(0);
-        //get value at index i in array --> i = tempIndexIncr.
-        OperandList operandList = OperandList(lengthBase, VarRef(tempIndexIncr));
-        GetElementPtr elementPtr = GetElementPtr(pointerElementArray, VarRef(arrayRef), operandList);
-        Translator.curBlock.add(elementPtr);
-
-        //convert pointer into actual integer
+        //convert pointer into actual integer for accessing the value
         TemporaryVar tempVar = TemporaryVar("temp");
         Translator.curBlock.add(Load(tempVar, VarRef(pointerElementArray)));
 

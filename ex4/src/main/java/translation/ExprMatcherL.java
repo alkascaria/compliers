@@ -137,6 +137,20 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      */
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
+
+        TemporaryVar pointerElementArray = accessIndexArray(arrayLookup);
+
+        //return pointer to the element desired --> store value into it
+        return VarRef(pointerElementArray);
+    }
+
+
+    /**
+     * Input: arrayLookup. an access to an array element (ex: a[5])
+     * @return
+     */
+    public TemporaryVar accessIndexArray(MJArrayLookup arrayLookup)
+    {
         //make sure the index is within range first
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         //firstly, check if the index is within range
@@ -167,8 +181,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
         GetElementPtr elementPtr = GetElementPtr(pointerElementArray, VarRef(arrayRef), operandList);
         Translator.curBlock.add(elementPtr);
 
+        return pointerElementArray;
 
-        //return pointer to the element desired --> store value into it
-        return VarRef(pointerElementArray);
     }
 }
