@@ -267,16 +267,16 @@ public class Translator extends MJElement.DefaultVisitor
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
-
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();
-        //left must return a temporary var
-        TemporaryVar tempVarLeft = exprLeft.match(exprMatchL);
+        Operand operLeft = exprLeft.match(exprMatchL);
+
+        System.out.println(operLeft);
 
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
 
-        Store storeValue = Store(VarRef(tempVarLeft), operRight);
+        Store storeValue = Store(operLeft, operRight);
         this.curBlock.add(storeValue);
 
     }

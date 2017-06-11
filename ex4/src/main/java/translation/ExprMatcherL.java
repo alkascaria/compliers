@@ -1,11 +1,10 @@
 package translation;
 
 import minijava.ast.*;
-import minillvm.ast.Ast;
-import minillvm.ast.Load;
-import minillvm.ast.TemporaryVar;
+import minillvm.ast.*;
 
-import static minillvm.ast.Ast.VarRef;
+import static minillvm.ast.Ast.*;
+import static minillvm.ast.Ast.TypePointer;
 
 /**
  * Created by Daniele on 09/06/2017.
@@ -14,44 +13,44 @@ import static minillvm.ast.Ast.VarRef;
 
 //TODO: add throw IllegalStatementException on expressions not allowed
 
-public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
+public class ExprMatcherL implements MJExpr.Matcher<Operand> {
     @Override
-    public TemporaryVar case_FieldAccess(MJFieldAccess fieldAccess)
+    public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ExprBinary(MJExprBinary exprBinary) {
+    public Operand case_ExprBinary(MJExprBinary exprBinary) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ExprNull(MJExprNull exprNull) {
+    public Operand case_ExprNull(MJExprNull exprNull) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_MethodCall(MJMethodCall methodCall) {
+    public Operand case_MethodCall(MJMethodCall methodCall) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ExprUnary(MJExprUnary exprUnary) {
+    public Operand case_ExprUnary(MJExprUnary exprUnary) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_BoolConst(MJBoolConst boolConst) {
+    public Operand case_BoolConst(MJBoolConst boolConst) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_Number(MJNumber number) {
+    public Operand case_Number(MJNumber number) {
         return null;
     }
 
-    public TemporaryVar case_VarUse(MJVarUse varUse)
+    public Operand case_VarUse(MJVarUse varUse)
     {
         String varName = varUse.getVarName();
         MJVarDecl varDecl = varUse.getVariableDeclaration();
@@ -60,14 +59,14 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
         //just try for integer for now.
 
         //now match the type of the variable being used
-        return type.match(new MJType.Matcher<TemporaryVar>() {
+        return type.match(new MJType.Matcher<Operand>() {
             /**
              *
              * @param typeClass(@code MJTypeClass)
              * @return
              */
             @Override
-            public TemporaryVar case_TypeClass(MJTypeClass typeClass)
+            public Operand case_TypeClass(MJTypeClass typeClass)
             {
                 return null;
             }
@@ -78,8 +77,8 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
              * @return
              */
             @Override
-            public TemporaryVar case_TypeBool(MJTypeBool typeBool) {
-                return Translator.varsTemp.get(varName);
+            public Operand case_TypeBool(MJTypeBool typeBool) {
+                return VarRef(Translator.varsTemp.get(varName));
             }
 
             /**
@@ -88,9 +87,9 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
              * @return
              */
             @Override
-            public TemporaryVar case_TypeIntArray(MJTypeIntArray typeIntArray)
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
-                return Translator.varsTemp.get(varName);
+                return VarRef(Translator.varsTemp.get(varName));
             }
 
             /**
@@ -99,36 +98,47 @@ public class ExprMatcherL implements MJExpr.Matcher<TemporaryVar> {
              * @return
              */
             @Override
-            public TemporaryVar case_TypeInt(MJTypeInt typeInt)
+            public Operand case_TypeInt(MJTypeInt typeInt)
             {
                 //the corresponding variable in the hashmap
-                return Translator.varsTemp.get(varName);
+                return VarRef(Translator.varsTemp.get(varName));
             }
         });
     }
 
     @Override
-    public TemporaryVar case_NewIntArray(MJNewIntArray newIntArray) {
+    public Operand case_NewIntArray(MJNewIntArray newIntArray) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ExprThis(MJExprThis exprThis) {
+    public Operand case_ExprThis(MJExprThis exprThis) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ArrayLength(MJArrayLength arrayLength) {
+    public Operand case_ArrayLength(MJArrayLength arrayLength) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_NewObject(MJNewObject newObject) {
+    public Operand case_NewObject(MJNewObject newObject) {
         return null;
     }
 
     @Override
-    public TemporaryVar case_ArrayLookup(MJArrayLookup arrayLookup) {
-        return null;
+    //assigning value of an array to a variable
+    //ex: b = a[7];
+    public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
+    {
+
+        //make sure the index is within range first
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+        //firstly, check if the index is within range
+        exprMatcherR.checkArrayIndexInRange(arrayLookup);
+        //get the variable name
+
+
+        return ConstInt(0);
     }
 }

@@ -86,10 +86,9 @@ public class TestOutputLLVM {
             String llvmOutput = runLlvmCodeAndGetoutput(llvmProg, programInput);
             //Assert.assertEquals(javaOutput, llvmOutput);
 
-            System.out.println("Java output: " + javaOutput.toString());
+            System.out.println("Java normal output: " + javaOutput.toString());
 
-            System.out.println("LLVM output: " + llvmOutput.toString());
-
+            System.out.println("LLVM normal output: " + llvmOutput.toString());
             System.out.println("Java output == LLVM output: " + javaOutput.equals(llvmOutput));
 
             if (runtimeErrorInJava != null) {
@@ -98,7 +97,7 @@ public class TestOutputLLVM {
             }
         } catch (ProgramExecutionException e) {
             if (e.exitCode == 222) { // special error code returned by LLVM-error instruction
-                System.out.println(("Llvm interpreter gave error, but there should be no error.\nOutput: \n" + e.getOutput() + runtimeErrorInJava));
+                System.out.println(("LLVM exception Output: \n" + e.getOutput() + "\n Java output:" +  runtimeErrorInJava));
             } else {
                 throw e;
             }

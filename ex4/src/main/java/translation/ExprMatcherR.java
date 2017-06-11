@@ -391,6 +391,9 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
 
+        System.out.println(arrayPointer.calculateType());
+        System.out.println(VarRef(arrayPointer).calculateType());
+
         return VarRef(arrayPointer);
     }
 
@@ -420,36 +423,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         return this.returnArrayLength(exprArray);
     }
 
-    /**
-     *
-     * @param exprArray contains the expression with the array.
-     * ex: e.length --> get e or e[5] --> get e
-     * @return Operand --> VarRef(lengthVarReturn) = VarRef(tempVar)
-     */
-
-    public Operand returnArrayLength(MJExpr exprArray)
-    {
-        ExprMatcherL matcherL = new ExprMatcherL();
-        TemporaryVar arrayTemp = exprArray.match(matcherL);
-
-
-        TemporaryVar arrayRef = TemporaryVar("array ref");
-        //store reference of reference /credits to Joseff for double referencing arrays
-        Translator.curBlock.add(Load(arrayRef, VarRef(arrayTemp)));
-        TemporaryVar lengthArray = TemporaryVar("arrayLength");
-        //start from the base address and get the value stored at index 0 --> length.
-        Operand lengthBase = ConstInt(0);
-        //get value at index 0 in the array
-        OperandList operandList = OperandList(lengthBase, lengthBase.copy());
-        GetElementPtr elementPtr = GetElementPtr(lengthArray, VarRef(arrayRef), operandList);
-        Translator.curBlock.add(elementPtr);
-        //assign it to a variable and return
-        TemporaryVar lengthVarReturn =  TemporaryVar("length return");
-        Load loadVar =  Load(lengthVarReturn, VarRef(lengthArray));
-        Translator.curBlock.add(loadVar);
-
-        return VarRef(lengthVarReturn);
-    }
 
     /**
      *
@@ -469,6 +442,20 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
      */
     @Override
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
+    {
+        //make sure index is within range of array
+        checkArrayIndexInRange(arrayLookup);
+
+        return ConstInt(0);
+    }
+
+    /**
+     *
+     * @param arrayLookup
+     * Checks that index is not negative ( out of lower bound)
+     * checks that index is not beyond the array's length (out of upper bound)
+     */
+    public void checkArrayIndexInRange(MJArrayLookup arrayLookup)
     {
         MJExpr exprArray = arrayLookup.getArrayExpr();
         //firstly, get the array size
@@ -529,16 +516,37 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //it's alright, accessing a valid element (index >= 0)
         Translator.curBlock = blockOkayUpper;
         Translator.blocks.add(blockOkayUpper);
-
-        //all good, go ahead and get the value in it
-
-
-
-
-
-
-
-
-        return ConstInt(0);
     }
+
+    /**
+     *
+     * @param exprArray contains the expression with the array.
+     * ex: e.length --> get e or e[5] --> get e
+     * @return Operand --> VarRef(lengthVarReturn) = VarRef(tempVar)
+     */
+
+    public Operand returnArrayLength(MJExpr exprArray)
+    {
+        ExprMatcherL matcherL = new ExprMatcherL();
+        Operand arrayTemp = exprArray.match(matcherL);
+
+
+        TemporaryVar arrayRef = TemporaryVar("array ref");
+        //store reference of reference /credits to Joseff for double referencing arrays
+        Translator.curBlock.add(Load(arrayRef, arrayTemp));
+        TemporaryVar lengthArray = TemporaryVar("arrayLength");
+        //start from the base address and get the value stored at index 0 --> length.
+        Operand lengthBase = ConstInt(0);
+        //get value at index 0 in the array
+        OperandList operandList = OperandList(lengthBase, lengthBase.copy());
+        GetElementPtr elementPtr = GetElementPtr(lengthArray, VarRef(arrayRef), operandList);
+        Translator.curBlock.add(elementPtr);
+        //assign it to a variable and return
+        TemporaryVar lengthVarReturn =  TemporaryVar("length return");
+        Load loadVar =  Load(lengthVarReturn, VarRef(lengthArray));
+        Translator.curBlock.add(loadVar);
+
+        return VarRef(lengthVarReturn);
+    }
+
 }
