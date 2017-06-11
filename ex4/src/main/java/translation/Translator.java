@@ -271,12 +271,12 @@ public class Translator extends MJElement.DefaultVisitor
         ExprMatcherL exprMatchL = new ExprMatcherL();
         Operand operLeft = exprLeft.match(exprMatchL);
 
-        System.out.println(operLeft);
-
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
 
         Store storeValue = Store(operLeft, operRight);
+
+
         this.curBlock.add(storeValue);
 
     }

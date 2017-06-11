@@ -51,9 +51,9 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Operand operand1 , operand2;
 
         //Matching it with the expr and getting the operands
-        ExprMatcherR exprMatchR = new ExprMatcherR();
-        operand1 = exprLeft.match(exprMatchR);
-        operand2 = exprRight.match(exprMatchR);
+        //ExprMatcherR exprMatchR = new ExprMatcherR();
+        operand1 = exprLeft.match(this);
+        operand2 = exprRight.match(this);
 
         //Doing the operation operand1 operator operand2
         OperatorMatcher operatorMatcher = new OperatorMatcher(operand1, operand2);
@@ -96,7 +96,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ExprUnary(MJExprUnary exprUnary)
     {
-        System.out.println(exprUnary);
 
         //unaryOperator
         MJUnaryOperator unaryOperator = exprUnary.getUnaryOperator();
@@ -121,7 +120,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
                 //ex: -b
                if (unary instanceof MJVarUse)
                 {
-                    System.out.println("Checking unary varUse");
                     String varName = ((MJVarUse) unary).getVarName();
                     //get corresponding value and put it into a temp var.
                     TemporaryVar varStored = TemporaryVar("temp");
@@ -359,8 +357,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //allocate space for each element of the array
         Operand operArrSizeInc = VarRef(arraySizeIncr);
         TemporaryVar sizeArrayMembers = TemporaryVar("array members size");
-        //just to make just it's enough
-        Operand sizePerEment = ConstInt(8);
+        //4 taken from the slides
+        Operand sizePerEment = ConstInt(4);
         BinaryOperation binSizeMember = BinaryOperation(sizeArrayMembers, operArrSizeInc, Mul(), sizePerEment);
         Translator.curBlock.add(binSizeMember);
 
@@ -387,12 +385,10 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         OperandList operandList = OperandList(addressZero, addressZero.copy());
         GetElementPtr elementPtr = GetElementPtr(arrayLengthNew, VarRef(arrayPointer),operandList);
         Translator.curBlock.add(elementPtr);
-        //again, put the length in the 0 position.
+        //put the length in the position 0.
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
 
-        System.out.println(arrayPointer.calculateType());
-        System.out.println(VarRef(arrayPointer).calculateType());
 
         return VarRef(arrayPointer);
     }
@@ -438,15 +434,46 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     /**
      *
      * @param arrayLookup(@code MJArrayLookup)
-     * @return
+     * @return address of position being accessed (if valid)
      */
     @Override
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
         //make sure index is within range of array
         checkArrayIndexInRange(arrayLookup);
+        //if in range, continue...
+        MJExpr exprIndex = arrayLookup.getArrayIndex();
+        Operand operIndex = exprIndex.match(this);
 
-        return ConstInt(0);
+        //increase tempvar by 1, as position 0 contains length
+        TemporaryVar tempIndexIncr = TemporaryVar("temp index increased");
+        BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
+        Translator.curBlock.add(binOpIncr);
+
+        //now get back the original array's address
+        MJExpr exprArray = arrayLookup.getArrayExpr();
+        ExprMatcherL exprMatcherL = new ExprMatcherL();
+        Operand arrayTemp = exprArray.match(exprMatcherL);
+
+        //array address stored in arrayRef
+        TemporaryVar arrayRef = TemporaryVar("array ref");
+        Translator.curBlock.add(Load(arrayRef, arrayTemp));
+
+        TemporaryVar pointerElementArray = TemporaryVar("element pointer");
+        //start from the base address and get the value stored at index 0 --> length.
+        Operand lengthBase = ConstInt(0);
+        //get value at index i in array --> i = tempIndexIncr.
+        OperandList operandList = OperandList(lengthBase, VarRef(tempIndexIncr));
+        GetElementPtr elementPtr = GetElementPtr(pointerElementArray, VarRef(arrayRef), operandList);
+        Translator.curBlock.add(elementPtr);
+
+        //convert pointer into actual integer
+        TemporaryVar tempVar = TemporaryVar("temp");
+        Translator.curBlock.add(Load(tempVar, VarRef(pointerElementArray)));
+
+
+        //return pointer to the element desired --> store value into it
+        return VarRef(tempVar);
     }
 
     /**
@@ -463,8 +490,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
 
         //then get the array index we're trying to access
         MJExpr exprArrayIndex = arrayLookup.getArrayIndex();
-        ExprMatcherR exprMatcherR = new ExprMatcherR();
-        Operand arrayIndex = exprArrayIndex.match(exprMatcherR);
+        //ExprMatcherR exprMatcherR = new ExprMatcherR();
+        Operand arrayIndex = exprArrayIndex.match(this);
 
         //make sure the arrayIndex is not < 0, i.e: negative
         Operand operZero = ConstInt(0);
