@@ -320,6 +320,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_NewIntArray(MJNewIntArray newIntArray)
     {
+        //no need to use any static methods here
         MJExpr exprSize = newIntArray.getArraySize();
         //store size of the array into this
         Operand operArraySize = exprSize.match(this);
@@ -348,7 +349,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Translator.curBlock = blockOkay;
         Translator.blocks.add(blockOkay);
 
-        //size needs to be given + 1
+        //size needs to be given + 1 as we store the length into the first slot
         TemporaryVar arraySizeIncr = TemporaryVar("array size adjusted");
         Operand operOne = ConstInt(1);
         BinaryOperation binAddSize = BinaryOperation(arraySizeIncr, operArraySize.copy(), Add(), operOne);
@@ -364,7 +365,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
 
 
         Operand sizeTotalArray = VarRef(sizeArrayMembers);
-        //good, now allocate the space for the array.
+        //good, now allocate the space for the array onto the heap
         TemporaryVar arrayHeapVar = TemporaryVar("array");
         Alloc allocHeap = Alloc(arrayHeapVar, sizeTotalArray);
         Translator.curBlock.add(allocHeap);
@@ -388,7 +389,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //put the length in the position 0.
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
-
 
         return VarRef(arrayPointer);
     }
@@ -416,7 +416,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         MJExpr exprArray = arrayLength.getArrayExpr();
         //returns reference to the array's declaration (i.e: base address)
         //in form of a temporary variable
-        return this.returnArrayLength(exprArray);
+        return StaticMethods.returnArrayLength(exprArray);
     }
 
 
@@ -439,116 +439,18 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
-        ExprMatcherL exprMatcherL = new ExprMatcherL();
-        TemporaryVar pointerElementArray =  exprMatcherL.accessIndexArray(arrayLookup);
+        TemporaryVar pointerElementArray =  StaticMethods.accessIndexArray(arrayLookup);
 
         //convert pointer into actual integer for accessing the value
         TemporaryVar tempVar = TemporaryVar("temp");
         Translator.curBlock.add(Load(tempVar, VarRef(pointerElementArray)));
 
-
         //return pointer to the element desired --> store value into it
         return VarRef(tempVar);
     }
 
-    /**
-     *
-     * @param arrayLookup
-     * Checks that index is not negative ( out of lower bound)
-     * checks that index is not beyond the array's length (out of upper bound)
-     */
-    public void checkArrayIndexInRange(MJArrayLookup arrayLookup)
-    {
-        MJExpr exprArray = arrayLookup.getArrayExpr();
-        //firstly, get the array size
-        Operand arraySize = returnArrayLength(exprArray);
-
-        //then get the array index we're trying to access
-        MJExpr exprArrayIndex = arrayLookup.getArrayIndex();
-        //ExprMatcherR exprMatcherR = new ExprMatcherR();
-        Operand arrayIndex = exprArrayIndex.match(this);
-
-        //make sure the arrayIndex is not < 0, i.e: negative
-        Operand operZero = ConstInt(0);
-        TemporaryVar tempNegative = TemporaryVar("negative");
-        BinaryOperation binNotNegative = BinaryOperation(tempNegative, arrayIndex, Slt(), operZero);
-        Translator.curBlock.add(binNotNegative);
-        Operand operIsNegative = VarRef(tempNegative);
-
-        //case where index is < 0
-        BasicBlock blockLessZero = BasicBlock();
-        //case where index > 0
-        BasicBlock blockOkayNotNeg = BasicBlock();
-
-        Translator.curBlock.add(Branch(operIsNegative, blockLessZero, blockOkayNotNeg));
-
-        //if we are indeed trying to use a negative index
-        Translator.curBlock = blockLessZero;
-        Translator.blocks.add(blockLessZero);
-        //then add error
-        Translator.curBlock.add(HaltWithError("Index Out of Lower Bound error: Array access indexes cannot be negative!"));
-
-        //it's alright, accessing a valid element (index >= 0)
-        Translator.curBlock = blockOkayNotNeg;
-        Translator.blocks.add(blockOkayNotNeg);
 
 
-        //now check if we're accessing an index too high, i.e: size = 5 --> max index = 4
 
-        //now check if accessing a value beyond the size --> a[size] --> make sure indexAccess < size
-        TemporaryVar tempIndexOutHigh = TemporaryVar("out of upper bound");
-        BinaryOperation binOpTooHigh = BinaryOperation(tempIndexOutHigh,arrayIndex.copy(), Slt(), arraySize);
-        Translator.curBlock.add(binOpTooHigh);
-        //true if index smaller than size. false if index greater than size
-        Operand operTooHigh = VarRef(tempIndexOutHigh);
-
-        //case where index is > 0
-        BasicBlock blockOutUpperBound = BasicBlock();
-        //case where index > 0
-        BasicBlock blockOkayUpper = BasicBlock();
-
-        Translator.curBlock.add(Branch(operTooHigh, blockOkayUpper, blockOutUpperBound ));
-
-        //if we are indeed trying to use a negative index
-        Translator.curBlock = blockOutUpperBound;
-        Translator.blocks.add(blockOutUpperBound);
-        //then add error
-        Translator.curBlock.add(HaltWithError("Index Out of Upper Bound error: you cannot access a value that is beyond the array's size!"));
-
-        //it's alright, accessing a valid element (index >= 0)
-        Translator.curBlock = blockOkayUpper;
-        Translator.blocks.add(blockOkayUpper);
-    }
-
-    /**
-     *
-     * @param exprArray contains the expression with the array.
-     * ex: e.length --> get e or e[5] --> get e
-     * @return Operand --> VarRef(lengthVarReturn) = VarRef(tempVar)
-     */
-
-    public Operand returnArrayLength(MJExpr exprArray)
-    {
-        ExprMatcherL matcherL = new ExprMatcherL();
-        Operand arrayTemp = exprArray.match(matcherL);
-
-
-        TemporaryVar arrayRef = TemporaryVar("array ref");
-        //store reference of reference /credits to Joseff for double referencing arrays
-        Translator.curBlock.add(Load(arrayRef, arrayTemp));
-        TemporaryVar lengthArray = TemporaryVar("arrayLength");
-        //start from the base address and get the value stored at index 0 --> length.
-        Operand lengthBase = ConstInt(0);
-        //get value at index 0 in the array
-        OperandList operandList = OperandList(lengthBase, lengthBase.copy());
-        GetElementPtr elementPtr = GetElementPtr(lengthArray, VarRef(arrayRef), operandList);
-        Translator.curBlock.add(elementPtr);
-        //assign it to a variable and return
-        TemporaryVar lengthVarReturn =  TemporaryVar("length return");
-        Load loadVar =  Load(lengthVarReturn, VarRef(lengthArray));
-        Translator.curBlock.add(loadVar);
-
-        return VarRef(lengthVarReturn);
-    }
 
 }

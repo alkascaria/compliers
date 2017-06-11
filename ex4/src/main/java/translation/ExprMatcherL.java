@@ -137,51 +137,12 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      */
     public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
     {
-
-        TemporaryVar pointerElementArray = accessIndexArray(arrayLookup);
+        TemporaryVar pointerElementArray = StaticMethods.accessIndexArray(arrayLookup);
 
         //return pointer to the element desired --> store value into it
         return VarRef(pointerElementArray);
     }
 
 
-    /**
-     * Input: arrayLookup. an access to an array element (ex: a[5])
-     * @return
-     */
-    public TemporaryVar accessIndexArray(MJArrayLookup arrayLookup)
-    {
-        //make sure the index is within range first
-        ExprMatcherR exprMatcherR = new ExprMatcherR();
-        //firstly, check if the index is within range
-        exprMatcherR.checkArrayIndexInRange(arrayLookup);
-        //if in range, continue...
-        MJExpr exprIndex = arrayLookup.getArrayIndex();
-        Operand operIndex = exprIndex.match(exprMatcherR);
 
-        //increase tempvar by 1, as position 0 contains length
-        TemporaryVar tempIndexIncr = TemporaryVar("temp index increased");
-        BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
-        Translator.curBlock.add(binOpIncr);
-
-        //now get back the original array's address
-        MJExpr exprArray = arrayLookup.getArrayExpr();
-        ExprMatcherL exprMatcherL = new ExprMatcherL();
-        Operand arrayTemp = exprArray.match(exprMatcherL);
-
-        //array address stored in arrayRef
-        TemporaryVar arrayRef = TemporaryVar("array ref");
-        Translator.curBlock.add(Load(arrayRef, arrayTemp));
-
-        TemporaryVar pointerElementArray = TemporaryVar("element pointer");
-        //start from the base address and get the value stored at index 0 --> length.
-        Operand lengthBase = ConstInt(0);
-        //get value at index i in array --> i = tempIndexIncr.
-        OperandList operandList = OperandList(lengthBase, VarRef(tempIndexIncr));
-        GetElementPtr elementPtr = GetElementPtr(pointerElementArray, VarRef(arrayRef), operandList);
-        Translator.curBlock.add(elementPtr);
-
-        return pointerElementArray;
-
-    }
 }

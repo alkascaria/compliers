@@ -21,6 +21,7 @@ import java.util.Arrays;
 public class Translator extends MJElement.DefaultVisitor
 {
 
+
     private final MJProgram javaProg;
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
@@ -39,6 +40,8 @@ public class Translator extends MJElement.DefaultVisitor
     public Translator(MJProgram javaProg) {
         this.javaProg = javaProg;
     }
+
+
 
     public Prog translate()
     {
@@ -280,4 +283,6 @@ public class Translator extends MJElement.DefaultVisitor
         this.curBlock.add(storeValue);
 
     }
+
+
 }
