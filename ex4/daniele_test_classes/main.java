@@ -1,12 +1,9 @@
-class addition
-{
-	public static void main(String[] args)
-	{
-		int[] b;
+class addition {
+	public static void main(String[] args) {
 		
-		b = new int[6];
+		System.out.println(new int[-10].length);
 		
-		System.out.println(b[6]);
+		
 		
 	}
 }

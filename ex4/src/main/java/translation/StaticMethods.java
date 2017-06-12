@@ -28,8 +28,8 @@ public class StaticMethods
         Operand operIndex = exprIndex.match(exprMatcherR);
 
         //increase tempvar by 1, as position 0 contains length
-        TemporaryVar tempIndexIncr = Ast.TemporaryVar("temp index increased");
-        BinaryOperation binOpIncr = Ast.BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
+        TemporaryVar tempIndexIncr = TemporaryVar("temp index increased");
+        BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
         Translator.curBlock.add(binOpIncr);
 
         //now get back the original array's address

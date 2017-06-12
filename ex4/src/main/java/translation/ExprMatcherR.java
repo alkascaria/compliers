@@ -323,7 +323,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //no need to use any static methods here
         MJExpr exprSize = newIntArray.getArraySize();
 
-
         Operand operArraySize = StaticMethods.checkValidArraySize(exprSize);
 
         //size needs to be given + 1 as we store the length into the first slot
@@ -349,7 +348,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
 
         //now cast pointer into array
         TemporaryVar arrayPointer = TemporaryVar("cast array pointer");
-        TypeArray typeArray = TypeArray(TypeInt(),0 );
+        TypeArray typeArray = TypeArray(TypeInt(),0);
         //thanks to Joseff for bitcasting, i.e: converting into an actual array
         //arrayPointer will then contain the converted array
         Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(typeArray), VarRef(arrayHeapVar));
@@ -393,11 +392,13 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         MJExpr exprArray = arrayLength.getArrayExpr();
         System.out.println(exprArray);
 
-        //trying to get length of an array not yet instantiated - not allowed in minijava
-
+        //something like new int[5].length --> 5
         if(exprArray instanceof MJNewIntArray)
         {
             StaticMethods.checkValidArraySize(((MJNewIntArray) exprArray).getArraySize());
+
+            MJExpr exprSize = ((MJNewIntArray) exprArray).getArraySize();
+            return exprSize.match(this);
         }
 
         //returns reference to the array's declaration (i.e: base address)
