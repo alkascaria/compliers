@@ -52,6 +52,44 @@ public class StaticMethods
         return pointerElementArray;
     }
 
+    //Input: an expression containing the size of the array
+    //Output: the size of the array being initialized
+    //Returns an error in case the size passed is negative
+    public static Operand checkValidArraySize(MJExpr exprSize)
+    {
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+
+        //store size of the array into this
+        Operand operArraySize = exprSize.match(exprMatcherR);
+        Operand operZero = ConstInt(0);
+        //boolean. true or false
+        TemporaryVar varIsNegativeSize = TemporaryVar("isSizeNegative");
+        //first of all, check if size is negative
+        Translator.curBlock.add(BinaryOperation(varIsNegativeSize, operArraySize, Slt(), operZero));
+
+        BasicBlock blockOkay = BasicBlock();
+        BasicBlock blockWrong = BasicBlock();
+
+        Operand checkNegSize = VarRef(varIsNegativeSize);
+
+        //choose the right block to jump to
+        Branch branchIsNeg = Branch(checkNegSize, blockWrong, blockOkay);
+        Translator.curBlock.add(branchIsNeg);
+
+        //not good, we got something negative here.
+        Translator.curBlock = blockWrong;
+        Translator.blocks.add(blockWrong);
+        //then add error to it and stop execution.
+        blockWrong.add(HaltWithError("An array cannot be initialized with negative size."));
+
+
+        //OKAY, we got a valid value (also 0 is valid here). then continue...
+        Translator.curBlock = blockOkay;
+        Translator.blocks.add(blockOkay);
+
+        return operArraySize;
+    }
+
     /**
      *
      * @param arrayLookup

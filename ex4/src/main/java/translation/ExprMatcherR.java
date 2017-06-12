@@ -322,32 +322,9 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     {
         //no need to use any static methods here
         MJExpr exprSize = newIntArray.getArraySize();
-        //store size of the array into this
-        Operand operArraySize = exprSize.match(this);
-        Operand operZero = ConstInt(0);
-        //boolean. true or false
-        TemporaryVar varIsNegativeSize = TemporaryVar("isSizeNegative");
-        //first of all, check if size is negative
-        Translator.curBlock.add(BinaryOperation(varIsNegativeSize, operArraySize, Slt(), operZero));
 
-        BasicBlock blockOkay = BasicBlock();
-        BasicBlock blockWrong = BasicBlock();
 
-        Operand checkNegSize = VarRef(varIsNegativeSize);
-
-        //choose the right block to jump to
-        Branch branchIsNeg = Branch(checkNegSize, blockWrong, blockOkay);
-        Translator.curBlock.add(branchIsNeg);
-
-        //not good, we got something negative here.
-        Translator.curBlock = blockWrong;
-        Translator.blocks.add(blockWrong);
-        //then add error to it and stop execution.
-        blockWrong.add(HaltWithError("An array cannot be initialized with negative size."));
-
-        //OKAY, we got a valid value (also 0 is valid here). then continue...
-        Translator.curBlock = blockOkay;
-        Translator.blocks.add(blockOkay);
+        Operand operArraySize = StaticMethods.checkValidArraySize(exprSize);
 
         //size needs to be given + 1 as we store the length into the first slot
         TemporaryVar arraySizeIncr = TemporaryVar("array size adjusted");
@@ -414,6 +391,15 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     public Operand case_ArrayLength(MJArrayLength arrayLength)
     {
         MJExpr exprArray = arrayLength.getArrayExpr();
+        System.out.println(exprArray);
+
+        //trying to get length of an array not yet instantiated - not allowed in minijava
+
+        if(exprArray instanceof MJNewIntArray)
+        {
+            StaticMethods.checkValidArraySize(((MJNewIntArray) exprArray).getArraySize());
+        }
+
         //returns reference to the array's declaration (i.e: base address)
         //in form of a temporary variable
         return StaticMethods.returnArrayLength(exprArray);
