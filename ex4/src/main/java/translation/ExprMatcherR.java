@@ -48,21 +48,26 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //Operator of the binaryExpr
         MJOperator operator = exprBinary.getOperator();
 
-        Operand operand1 , operand2;
+        Operand operandL , operandR;
 
         //Matching it with the expr and getting the operands
         //ExprMatcherR exprMatchR = new ExprMatcherR();
-        operand1 = exprLeft.match(this);
-        operand2 = exprRight.match(this);
+        operandL = exprLeft.match(this);
+        operandR = exprRight.match(this);
+
+
+
+        OperatorMatcher operatorMatcher = new OperatorMatcher(operandL, operandR);
+        Operator operMatched = operator.match(operatorMatcher);
+
 
         //Doing the operation operand1 operator operand2
-        OperatorMatcher operatorMatcher = new OperatorMatcher(operand1, operand2);
+        TemporaryVar binaryExprResult = TemporaryVar("bin expr result");
+        BinaryOperation binExpression = BinaryOperation(binaryExprResult, operandL.copy(), operMatched, operandR.copy());
+        System.out.println(binaryExprResult);
+        Translator.curBlock.add(binExpression);
 
-        //this will already kinda contain a VarRef. return it directly
-        Operand value = operator.match(operatorMatcher);
-
-
-        return (value);
+        return VarRef(binaryExprResult);
     }
 
     /**

@@ -8,42 +8,36 @@ import minillvm.ast.*;
 
 import static minillvm.ast.Ast.*;
 
-import minillvm.analysis.*;
 
-import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import static javafx.scene.input.KeyCode.T;
+import static minillvm.ast.Ast.Add;
+import static minillvm.ast.Ast.Sdiv;
 
 /**
  * Created by alka on 6/6/2017.
  * Modified by Daniele on 8/6/2017
  */
 
-public class OperatorMatcher implements MJOperator.Matcher<Operand>
+public class OperatorMatcher implements MJOperator.Matcher<Operator>
 {
-
     Operand operLeft, operRight;
 
-    OperatorMatcher(Operand operInput1, Operand operInput2)
+    public OperatorMatcher(Operand operInputL, Operand operInputR)
     {
-        this.operLeft = operInput1;
-        this.operRight = operInput2;
+        this.operLeft = operInputL;
+        this.operRight = operInputR;
     }
+
     /**
      *
      * @param plus(@code MJPlus)
      * @return
      */
     @Override
-    public Operand case_Plus(MJPlus plus)
+    public Operator case_Plus(MJPlus plus)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binSum = BinaryOperation(tempVar, this.operLeft, Add(), this.operRight);
-        Translator.curBlock.add(binSum);
+        return Add();
 
-        return VarRef(tempVar);
     }
 
     /**
@@ -52,13 +46,10 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_Minus(MJMinus minus)
+    public Operator case_Minus(MJMinus minus)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binSub = BinaryOperation(tempVar, this.operLeft, Sub(), this.operRight);
-        Translator.curBlock.add(binSub);
 
-        return VarRef(tempVar);
+        return Sub();
     }
 
     /**
@@ -67,14 +58,9 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_Equals(MJEquals equals)
+    public Operator case_Equals(MJEquals equals)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binEq = BinaryOperation(tempVar, this.operLeft, Eq(), this.operRight);
-        Translator.curBlock.add(binEq);
-
-        return VarRef(tempVar);
-
+      return Eq();
     }
 
     /**
@@ -83,13 +69,10 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_And(MJAnd and)
+    public Operator case_And(MJAnd and)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binAnd = BinaryOperation(tempVar, this.operLeft, And(), this.operRight);
-        Translator.curBlock.add(binAnd);
 
-        return VarRef(tempVar);
+        return And();
     }
 
     /**
@@ -98,13 +81,10 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_Less(MJLess less)
+    public Operator case_Less(MJLess less)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binLess = BinaryOperation(tempVar, this.operLeft, Slt(), this.operRight);
-        Translator.curBlock.add(binLess);
 
-        return VarRef(tempVar);
+        return Slt();
     }
 
     /**
@@ -113,7 +93,7 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_Div(MJDiv div)
+    public Operator case_Div(MJDiv div)
     {
         //operaRight == zero?
         TemporaryVar tempVarZero = TemporaryVar("temp");
@@ -141,12 +121,8 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
         Translator.blocks.add(blockRest);
 
 
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binDiv = BinaryOperation(tempVar, this.operLeft, Sdiv(), this.operRight.copy());
-
-        Translator.curBlock.add(binDiv);
-
-        return VarRef(tempVar);
+       //if it's good, just evaluate it in ExprMatcherR
+        return Sdiv();
     }
 
     /**
@@ -155,12 +131,8 @@ public class OperatorMatcher implements MJOperator.Matcher<Operand>
      * @return
      */
     @Override
-    public Operand case_Times(MJTimes times)
+    public Operator case_Times(MJTimes times)
     {
-        TemporaryVar tempVar = TemporaryVar("temp");
-        BinaryOperation binTimes = BinaryOperation(tempVar, this.operLeft, Mul(), this.operRight);
-        Translator.curBlock.add(binTimes);
-
-        return VarRef(tempVar);
+        return Mul();
     }
 }
