@@ -340,8 +340,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Translator.curBlock.add(binSizeMember);
 
 
-
-
         Operand sizeTotalArray = VarRef(sizeArrayMembers);
         //good, now allocate the space for the array onto the heap
         TemporaryVar arrayHeapVar = TemporaryVar("array");
@@ -368,68 +366,14 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         Store storeArr = Store(VarRef(arrayLengthNew),operArraySize.copy());
         Translator.curBlock.add(storeArr);
 
-
+        StaticMethods.initializeArrayValuesToZero(arrayPointer, operArrSizeInc);
 
 
 
         //DANIELE AND ALKA BEGIN
 
-        //we can assume never acces index [0] in an array with size 0.
-        //loop through all "cells" in the array and assign 0 to them
-        //operArraySize contains the size of the array (where to stop)
-
-        TemporaryVar varIndex = TemporaryVar("index");
-        Alloca alloc = Alloca(varIndex, TypeInt());
-        Translator.curBlock.add(alloc);
-        //initialize temp var to 1
-        Store storeOne = Store(VarRef(varIndex), ConstInt(1));
-        Translator.curBlock.add(storeOne);
-
-        BasicBlock conditionBlock = BasicBlock();
-        BasicBlock bodyBlock = BasicBlock();
-        BasicBlock restBlock = BasicBlock();
 
 
-        //firstly, jump to the condition block
-        Translator.curBlock.add(Jump(conditionBlock));
-        Translator.curBlock = conditionBlock;
-        Translator.blocks.add(conditionBlock);
-
-
-
-        //now check if the condition is matched
-        //boolean. true or false. check if operIndex < operArraySizeIncreased
-
-
-        TemporaryVar tempIndex = TemporaryVar("index obtained");
-        Translator.curBlock.add(Load(tempIndex, VarRef(varIndex)));
-        TemporaryVar atEndOfArray = TemporaryVar("at end of array");
-        BinaryOperation binOpCompare = BinaryOperation(atEndOfArray, VarRef(tempIndex), Slt(), operArrSizeInc.copy());
-        Translator.curBlock.add(binOpCompare);
-
-        Branch branchAtEnd = Branch(VarRef(atEndOfArray), bodyBlock, restBlock );
-        Translator.curBlock.add(branchAtEnd);
-
-        //now handle true case: putting element into index of array
-        Translator.blocks.add(bodyBlock);
-        Translator.curBlock = bodyBlock;
-
-        //store 0 into current position(i) of array
-        TemporaryVar tempIndexStored = TemporaryVar("temp index stored");
-        Translator.curBlock.add(GetElementPtr(tempIndexStored, VarRef(arrayPointer), OperandList(addressZero.copy(), VarRef(tempIndex ))));
-        Translator.curBlock.add(Store(VarRef(tempIndexStored),ConstInt(0)));
-
-        //now increase index by 1: i++
-        TemporaryVar tempIndexIncreased = TemporaryVar("index increased temp");
-        Translator.curBlock.add(BinaryOperation(tempIndexIncreased, VarRef(tempIndex), Add(), ConstInt(1)));
-        //put the updated value into the actual index
-        Translator.curBlock.add(Store(VarRef(varIndex), VarRef(tempIndexIncreased)));
-        Translator.curBlock.add(Jump(conditionBlock));
-
-
-        //handle rest of code, i.e: leave while loop's body
-        Translator.blocks.add(restBlock);
-        Translator.curBlock = restBlock;
 
 
 
