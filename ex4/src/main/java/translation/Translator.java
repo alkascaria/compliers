@@ -249,8 +249,8 @@ public class Translator extends MJElement.DefaultVisitor
             TemporaryVar tempArray = TemporaryVar("arrayPointer");
             //allocate onto the heap an array with size 0 to allow for pointers to refer to it
             TypeArray typeArray = TypeArray(TypeInt(), 0);
-            Alloc allocHeap = Alloc(tempArray, ConstInt(0));
-            this.curBlock.add(allocHeap);
+            Alloca allocVar = Alloca(tempArray,TypePointer(TypePointer(typeArray)));
+            this.curBlock.add(allocVar);
             TemporaryVar tempVarReturn = TemporaryVar("arrayCasted");
             //converting to array. credits to Joseff for this tip!
             Bitcast arrayConverted = Bitcast(tempVarReturn,TypePointer(TypePointer(typeArray)),VarRef(tempArray));
