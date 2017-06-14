@@ -82,7 +82,7 @@ Compilers and Language Processing Tools - SS17
 \author{	
 		\textbf{Exercise 4}\\
 		Group 03\\
-        Daniele Gadler, Gopal Praveen\\Alka Scaria, Stephen Banin Payin \\[-1pt]		\normalsize
+        Daniele Gadler, Gopal Praveen, Alka Scaria, Stephen Banin Payin \\[-1pt]		\normalsize
 }
 
 
@@ -94,18 +94,18 @@ Compilers and Language Processing Tools - SS17
 
 \section*{Overview}
 In the report, we describe the Translator from Minijava to $\mu$-LLVM. The resulting Translator is able to translate the following statements and expressions: Block, StmtIf, StmtWhile, StmtReturn, StmtPrint, StmtExpr, StmtAssign, ExprBinary, ExprUnary, BoolConst, VarUse, Number, as well as ArrayLookup, ArrayLength, ExprNull, NewIntArray. \\
-The translator passes all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases. \\
+The translator passes all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases.
 We implemented our solution through the visitor pattern, breaking down the implementation into different classes for order, understandability and especially functionality purposes. Following, we describe the classes' role in the program. 
 
 
 \section*{Classes' description}
 \begin{itemize}
-	\item \textbf{Translator}: Contains the Default Visitor Pattern for the following  Minijava expressions and statements: MJStmtIf, MJBlock, MJStmtWhile, MJStmtPrint, MJVarDecl, MJStmtAssign. Content of these expressions and statements is handled separately in other classes, again through the visitor pattern. This class also contains the current block into which the expressions are added and the Hashmap for variables' declarations.
-	\item \textbf{ExprMatcherR}:Implements the visitor pattern for "MJExpr" . It matches expressions that can occur on the right-hand side of an assignment operation (e.g: MJExprBinary, MJExprNull in an array assignment, MJExprUnary for MJUnaryMinus, MJNegate, MJBoolConst, MJNumber, MJVarUse for different types, MJNewIntArray, MJArrayLength, MJArrayLookup). 
-	\item \textbf{ExprMatcherL}: Implements the visitor pattern for "MJExpr". It matches expressions that can occur on the left-hand side of an assignment operation (e.g: MJVarUse with different types and MJArrayLookup). 
-	\item \textbf{OperatorMatcher}: Implements the visitor pattern for "Operator" and the operation type being used in a binary expressions (e.g: MJPlus, MJMinus, MJLess, MJAnd, MJDiv, MJTimes). 
-	\item \textbf{StaticMethods}: Contains static methods being invoked repeatedly throughout the program for handling operations on arrays. 
-	\item \textbf{TestOutputLLVM}: Class used for testing the program and invoked by the "Main" class in the "frontend" folder. It compares the output of the LLVM-generated program with the Minijava program and checks whether these are equal. 
+	\item \textbf{Translator}: Contains Default Visitor Pattern for the expressions and statements: MJStmtIf, MJBlock, MJStmtWhile, MJStmtPrint, MJVarDecl, MJStmtAssign. The class also has current block into which expressions are added and the Hashmap for variables' declarations.
+	\item \textbf{ExprMatcherR}: Implements the visitor pattern for "MJExpr" . It matches expressions that occur on the right-hand side of an assignment operation (e.g: MJExprBinary, MJExprNull, MJExprUnary, MJArrayLookup). 
+	\item \textbf{ExprMatcherL}: Implements the visitor pattern for "MJExpr". It matches expressions that occur on the left-hand side of an assignment operation (e.g: MJVarUse and MJArrayLookup). 
+	\item \textbf{OperatorMatcher}: Implements the visitor pattern for "Operator" and the operation type used in a binary expressions (e.g: MJPlus, MJMinus, MJLess, MJAnd, MJDiv, MJTimes). 
+	\item \textbf{StaticMethods}: Contains static methods being invoked repeatedly throughout the program for handling arrays. 
+	\item \textbf{TestOutputLLVM}: Class used for testing the program and invoked by the "Main" class ("frontend"). It compares the output of the LLVM-generated program with the Minijava program and checks whether these are equal. 
 \end{itemize}
 
 \section*{Technical Description}
@@ -113,13 +113,13 @@ We implemented our solution through the visitor pattern, breaking down the imple
 \subsection*{Task 1 - Translation of Statements and Expressions}
 
 \begin{itemize}
-	\item \textbf{Block}: A Block is a handled as an iterable list of statements. Each statement is matched to its type in the Translator class.
-	\item \textbf{StmtIf}: An If-else statement is handled through three different Basic Blocks, respectively the "IF body" (condition true), the "ELSE body" (condition false) and the remaining code. Initially, the if condition is checked and a Branch operation picks the Basicblock where execution should be done. After the evaluation, execution continues for the remaining code. 
-	\item \textbf{StmtWhile}: A While statement is also handled through three different Basic Blocks, the condition to be checked, the while loop's body and the rest of the code. In every iteration, the condition block containing a Branch statement with the while's condition  is checked: if the condition is true, the statements contained in the loop's body are evaluated (afterwards, we jump back to the condition block and check the condition again). If the condition is false, we simply continue to the rest of the code.
-	\item \textbf{StmtAssign} We handle assignment statement by matching expressions that can occur on the left-hand side (ExprMatcherL) and on the right-hand side (ExprMatcherR) by making use of the visitor pattern and overriding the adequate cases as outlined in the Classes Description. Expressions matched on the left or right hand side that are not allowed in the current implementation (e.g: MethodCall or ExprThis throws an error). We also make use of a class "OperatorMatcher", which returns the operator being used in the expression. Then we store the value of the expression matched on the right-hand side into the left-hand side. 
-	\item \textbf{StmtPrint}: In print statement, we simply check if the expression to be printed is an Interger.
-	\item \textbf{Variable Declaration}: We allocate all newly declared variables onto the stack with space depending on their type and also store them into a HashMap.
-	\item \textbf{VarUse} Here, we distinguish between the usage on left or right hand side (left means store into it, right means load from it). In both cases, we get the corresponding temporary variable definition (Hashmap) and the type (Type and Name Analysis). 
+	\item \textbf{Block}: A Block is handled as an iterable list of statements. Each statement is matched to its type in the Translator class.
+	\item \textbf{StmtIf}: There are three Basic Blocks, "IF body" (condition true), "ELSE body" (condition false) and remaining code. Initially, if condition is checked and a Branch operation picks the corresponding Basicblock for execution. After evaluation of the Basicblock, execution continues for the remaining code. 
+	\item \textbf{StmtWhile}: This also has three Basic Blocks, condition to be checked, while loop's body and rest of the code. The while's condition is checked: if true the condition block with a Branch statement to the while's condition is evaluated. If the condition is false, continue to remaining code.
+	\item \textbf{StmtAssign} Handled by matching expressions that occur on left-hand side (ExprMatcherL) and right-hand side (ExprMatcherR) by using the visitor pattern. Invalid Expressions in the current implementation (e.g: MethodCall or ExprThis) throws an error. The class "OperatorMatcher", returns operator used in the expression. The value of matched expression on right-hand side is assigned into the left-hand side. 
+	\item \textbf{StmtPrint}: In print statement, we simply check if the expression to be printed is an Integer.
+	\item \textbf{VarDecl}: We allocate all newly declared variables onto the stack with space depending on their type and also store them into a HashMap.
+	\item \textbf{VarUse} We distinguish between the usage on left (store) or right (load) hand side. In both cases, get the corresponding temporary variable definition (Hashmap) and the type (Type and Name Analysis). 
 	\item \textbf{UnaryMinus}: Implemented the unary minus expression (ex: -b) through a binary expression, where it is multiplied by -1. 
 	\item \textbf{UnaryNeg}: Implemented the unary negation expression ( ex: !b) through a XOR with a true value to invert the boolean value. 
 \end{itemize}
@@ -127,11 +127,11 @@ We implemented our solution through the visitor pattern, breaking down the imple
 \subsection*{Task 2 - Translation of Arrays}
 \begin{itemize}
 
-\item \textbf{NewIntArray}: Array instantiation (ex: a = new int[5]) was implemented as suggested in the lecture slides of the course. Let $s$ = array size (ex: 5), $b$ = size of each element in (ex: ConstInt(4)). Since we will need to store the array size in position 0, we will then need to allocate the following amount of space ($p$) onto the heap:\\
+\item \textbf{NewIntArray}: Array instantiation (ex: a = new int[5]) was implemented as per the lecture slides. Let $s$ = array size (ex: 5), $b$ = size of each element (ex: ConstInt(4)). Since the array size is assigned to position 0, the amount of space ($p$) allocated for the heap is:\\
 \begin{center}
  $p = (s + 1) * b$
 \end{center}
-More specifically, we allocate $s + 1$ blocks of size $b$ in contiguous heap space for the storage of elements and the array size. Let $e_1... e_n$, where $n < s$ be a list of elements that will be contained in the array at a later time: these elements will be stored in the array according to the following scheme:
+More specifically, we allocate $s + 1$ blocks of size $b$ in contiguous heap space for storaging the elements and array size. Let $e_1... e_n$, where $n < s$ be a list of elements in the array at a later time: these elements will be stored according to following scheme:
 \begin{center}
 \begin{table}[h]
 \centering
@@ -142,23 +142,23 @@ More specifically, we allocate $s + 1$ blocks of size $b$ in contiguous heap spa
 \end{tabular}
 \end{table}
 \end{center}
-In order to prevent LLVM from generating random integer values when performing an ArrayLookup operation on an instantiated array containing no value yet, we instantiate all blocks $1...n$ of an array to integer value 0. 
-Finally, we check that the array is not being instantiated with a negative value: this case would rise an HaltWithError exception in LLVM. 
+Inorder to prevent LLVM from generating random memory address on ArrayLookup for an instantiated array containing no value yet, we instantiate all blocks $1...n$ of an array to default integer value 0. 
+If the array is instantiated with a negative value: the case would rise an HaltWithError exception in LLVM. 
 
-\item \textbf{Array Length}: Since the length of the array was stored at position 0, we simply get the array address get the the first value stored on the heap corresponding to the array. 
-\item \textbf{Array Lookup}: Whenever looking up a value in an array, we check for two cases not to be matched:
+\item \textbf{ArrayLength}: Since the length of array is stored at position 0, we simply get the array address and its first value from the heap storage.
+\item \textbf{ArrayLookup}: On looking up for a value in an array, we check for these two cases.
 \begin{enumerate}
-	\item \textbf{Negative Index}: We ensure a negative index was not passed and throw an error in case that happens. 
-	\item \textbf{Out of bounds index}: We ensure we do not access a value that is beyond the array size by ensuring that for an index $i$ the following always holds: $i < s$ and throwing and error should this condition not be met.
+	\item \textbf{Negative Index}: We ensure that a negative index was not passed and if so throw an error.
+	\item \textbf{Out of bounds index}: We also ensure that a value beyond the array size is not accessed by an index $i$ that always holds: $i < s$ and throwing an error should this condition be false.
 \end{enumerate}
-Should these two cases not be met, then the elemented is retrieved from the array by increasing the index by 1 (since the length is contained at position 0).
+Should these two cases are not met, then the element is retrieved by increasing the index by 1 (since the length is contained at position 0).
 
 \end{itemize}
 
 
 \begin{thebibliography}{9}% 2nd arg is the width of the widest label.
 \bibitem{Joseff}
-We would like to thank our study colleague Joseff for support with bitcasting arrays into the right format.
+We would like to thank our study colleague Joseph for support with bitcasting arrays into the right format.
 \end{thebibliography}
 
 
