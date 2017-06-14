@@ -59,7 +59,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_Number(MJNumber number)
     {
-        return ConstInt(number.getIntValue());
+        throw new InvalidParameterException("Integer constant not supported as left-hand side expression!");
     }
 
     public Operand case_VarUse(MJVarUse varUse)
@@ -67,8 +67,6 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
         String varName = varUse.getVarName();
         MJVarDecl varDecl = varUse.getVariableDeclaration();
         MJType type = varDecl.getType();
-
-        //just try for integer for now.
 
         //now match the type of the variable being used
         return type.match(new MJType.Matcher<Operand>() {

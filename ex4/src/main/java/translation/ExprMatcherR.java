@@ -253,6 +253,13 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         MJVarDecl varDecl = varUse.getVariableDeclaration();
         MJType type = varDecl.getType();
 
+        //return boolean value
+        //return int
+        TemporaryVar tempVar = TemporaryVar("tempvar");
+        //put the value of the varUse found into the tempVar
+        Load loadBool = Load(tempVar, VarRef(Translator.varsTemp.get(varName)));
+        Translator.curBlock.add(loadBool);
+
 
         //now match the type of the variable being used
         return type.match(new MJType.Matcher<Operand>() {
@@ -275,14 +282,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             @Override
             public Operand case_TypeBool(MJTypeBool typeBool)
             {
-                //return boolean value
-                //return int
-                TemporaryVar tempBool = TemporaryVar("tempvar");
-                //put the value of the varUse found into the tempVar
-                Load loadBool = Load(tempBool, VarRef(Translator.varsTemp.get(varName)));
-                Translator.curBlock.add(loadBool);
-
-                return VarRef(tempBool);
+                return VarRef(tempVar);
             }
 
             /**
@@ -293,11 +293,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             @Override
             public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
             {
-                TemporaryVar tempIntArray = TemporaryVar("tempVarArr");
-                Load loadArray = Load(tempIntArray, VarRef(Translator.varsTemp.get(varName)));
-                Translator.curBlock.add(loadArray);
 
-                return VarRef(tempIntArray);
+                return VarRef(tempVar);
             }
 
             /**
@@ -309,12 +306,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             public Operand case_TypeInt(MJTypeInt typeInt)
             {
                 //return int
-                TemporaryVar tempInt = TemporaryVar("tempvar");
-                //put the value of the varUse found into the tempVar
-                Load loadInt = Load(tempInt, VarRef(Translator.varsTemp.get(varName)));
-                Translator.curBlock.add(loadInt);
-
-                return VarRef(tempInt);
+                return VarRef(tempVar);
             }
         });
     }

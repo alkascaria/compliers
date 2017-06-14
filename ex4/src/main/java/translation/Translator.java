@@ -1,18 +1,13 @@
 package translation;
 
-import main.MiniJavaCompiler;
 import minijava.ast.*;
 import minillvm.ast.*;
 
 import static minillvm.ast.Ast.*;
 
-import minillvm.analysis.*;
 
-import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Arrays;
+
 
 //Statements, visitor like here is fine.
 //expressions, separate class MJExpr.Matcher<Operand> to pass back an operand when evaluating something
