@@ -6,6 +6,10 @@ import minillvm.ast.BinaryOperation;
 import minillvm.ast.Load;
 import minillvm.ast.TemporaryVar;
 
+
+import java.io.InvalidObjectException;
+import java.security.InvalidParameterException;
+
 import static minillvm.ast.Ast.*;
 
 
@@ -30,7 +34,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
-        return null;
+        throw new InvalidParameterException("Field access " + fieldAccess.toString() + " as right-hand side expression is not supported!");
     }
 
     /**
@@ -56,7 +60,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         operandR = exprRight.match(this);
 
 
-
         OperatorMatcher operatorMatcher = new OperatorMatcher(operandL, operandR);
         Operator operMatched = operator.match(operatorMatcher);
 
@@ -64,7 +67,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //Doing the operation operand1 operator operand2
         TemporaryVar binaryExprResult = TemporaryVar("bin expr result");
         BinaryOperation binExpression = BinaryOperation(binaryExprResult, operandL.copy(), operMatched, operandR.copy());
-        System.out.println(binaryExprResult);
         Translator.curBlock.add(binExpression);
 
         return VarRef(binaryExprResult);
@@ -90,7 +92,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
-        return null;
+        throw new InvalidParameterException("Method call " + methodCall.toString() + " as right-hand side expression is not supported!");
     }
 
     /**
@@ -108,7 +110,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         //unaryExpression
         MJExpr unary = exprUnary.getExpr();
 
-        ExprMatcherR exprMatcher=new ExprMatcherR();
+        ExprMatcherR exprMatcher = new ExprMatcherR();
 
         return unaryOperator.match(new MJUnaryOperator.Matcher<Operand>()
         {
@@ -262,7 +264,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
             @Override
             public Operand case_TypeClass(MJTypeClass typeClass)
             {
-                return null;
+                throw new InvalidParameterException("Class usage " + typeClass.toString() +  " is not supported as right-hand side expression!");
             }
 
             /**
@@ -374,19 +376,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
         StaticMethods.initializeArrayValuesToZero(arrayPointer, operArrSizeInc);
 
 
-
-        //DANIELE AND ALKA BEGIN
-
-
-
-
-
-
-
-        //DANIELE AND ALKA END
-
-
-
         return VarRef(arrayPointer);
     }
 
@@ -398,7 +387,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_ExprThis(MJExprThis exprThis)
     {
-        return null;
+        throw new InvalidParameterException("References to 'this' " + exprThis.toString() + " are not supported as right-hand side expression!");
     }
 
     /**
@@ -436,7 +425,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand>
     @Override
     public Operand case_NewObject(MJNewObject newObject)
     {
-        return null;
+        throw new InvalidParameterException("New object instantiation " + newObject.toString() + " not supported as right-hand side expression!");
     }
 
     /**

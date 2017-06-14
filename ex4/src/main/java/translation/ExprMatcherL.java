@@ -3,6 +3,9 @@ package translation;
 import minijava.ast.*;
 import minillvm.ast.*;
 
+import java.io.InvalidObjectException;
+import java.security.InvalidParameterException;
+
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.TypePointer;
 
@@ -11,44 +14,51 @@ import static minillvm.ast.Ast.TypePointer;
  * Matches the correct left-hand side
  */
 
-//TODO: add throw IllegalStatementException on expressions not allowed
 
 public class ExprMatcherL implements MJExpr.Matcher<Operand> {
     @Override
-    public Operand case_FieldAccess(MJFieldAccess fieldAccess)
+    public Operand case_FieldAccess(MJFieldAccess fieldAccess)  {
+        throw new InvalidParameterException("Field access " + fieldAccess.toString() + " not supported as left-hand side expression!");
+    }
+
+    @Override
+    public Operand case_ExprBinary(MJExprBinary exprBinary)
     {
-        return null;
+        throw new InvalidParameterException("Binary expression " + exprBinary.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_ExprBinary(MJExprBinary exprBinary) {
-        return null;
+    public Operand case_ExprNull(MJExprNull exprNull)
+    {
+        throw new InvalidParameterException("Null reference  " +  exprNull.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_ExprNull(MJExprNull exprNull) {
-        return null;
+    public Operand case_MethodCall(MJMethodCall methodCall)
+    {
+        throw new InvalidParameterException("Method call " + methodCall.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_MethodCall(MJMethodCall methodCall) {
-        return null;
+    public Operand case_ExprUnary(MJExprUnary exprUnary)
+    {
+        throw new InvalidParameterException("Unary expression " + exprUnary.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_ExprUnary(MJExprUnary exprUnary) {
-        return null;
+    public Operand case_BoolConst(MJBoolConst boolConst)
+    {
+        throw new InvalidParameterException("Boolean constant " + boolConst.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_BoolConst(MJBoolConst boolConst) {
-        return null;
-    }
-
-    @Override
-    public Operand case_Number(MJNumber number) {
-        System.out.println("Matching here");
-
+    public Operand case_Number(MJNumber number)
+    {
         return ConstInt(number.getIntValue());
     }
 
@@ -70,7 +80,8 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeClass(MJTypeClass typeClass)
             {
-                return null;
+                throw new InvalidParameterException("Variable class usage  " + typeClass.toString() + " not supported as left-hand side expression!");
+
             }
 
             /**
@@ -110,22 +121,27 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
 
     @Override
     public Operand case_NewIntArray(MJNewIntArray newIntArray) {
-        return null;
+        throw new InvalidParameterException("New integer array instantiation " + newIntArray.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_ExprThis(MJExprThis exprThis) {
-        return null;
+    public Operand case_ExprThis(MJExprThis exprThis)
+    {
+        throw new InvalidParameterException("'this' reference " + exprThis.toString() + " not supported as left-hand side expression!");
+
     }
 
     @Override
-    public Operand case_ArrayLength(MJArrayLength arrayLength) {
-        return null;
+    public Operand case_ArrayLength(MJArrayLength arrayLength)
+    {
+        throw new InvalidParameterException("Array length "  + arrayLength.toString() + " not supported as left-hand side expression!");
     }
 
     @Override
-    public Operand case_NewObject(MJNewObject newObject) {
-        return null;
+    public Operand case_NewObject(MJNewObject newObject)
+    {
+        throw new InvalidParameterException("New object instantiation "  + newObject.toString() + " not supported as left-hand side expression!");
     }
 
     @Override
