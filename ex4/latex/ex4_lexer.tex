@@ -81,7 +81,7 @@ Compilers and Language Processing Tools - SS17
 
 \author{	
 		\textbf{Exercise 4}\\
-		Group 04\\
+		Group 03\\
         Daniele Gadler, Gopal Praveen\\Alka Scaria, Stephen Banin Payin \\[-1pt]		\normalsize
 }
 
@@ -95,46 +95,71 @@ Compilers and Language Processing Tools - SS17
 \section*{Overview}
 In the present report, we describe the Translator from Minijava to $\mu$-LLVM. The resulting Translator is able to translate the following statements and expressions: Block, StmtIf, StmtWhile, StmtReturn, StmtPrint, StmtExpr,
 StmtAssign, ExprBinary, ExprUnary, BoolConst, VarUse, Number, as well as ArrayLookup, ArrayLength, ExprNull, NewIntArray. \\
-The translator passes both all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases. 
+The translator passes both all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases. \\
+We implemented our solution through the visitor pattern, breaking down the implementation into different classes for order, understandability and especially functionality purposes. Following, we describe the classes' role in the program. 
 
-\subsection*{Features}
 
+\section*{Classes' description}
 \begin{itemize}
-
-\item \textbf{} 
+	\item \textbf{Translator}: Contains the Default Visitor Pattern for the following principal Minijava expressions and statements: MJStmtIf, MJBlock, MJStmtWhile, MJStmtPrint, MJVarDecl, MJStmtAssign. Content of these expressions and statements is handled separately in other classes, again through the visitor pattern. \\ This class also contains the current block into that expressions are to added and the Hashmap for variables' declarations.
+	\item \textbf{ExprMatcherR}:Implements the visitor pattern for "MJExpr" . It matches expressions that can occur on the right-hand side of an assignment operation (e.g: MJExprBinary, MJExprNull in an array assignment, MJExprUnary for MJUnaryMinus and MJNegate, MJBoolConst, MJNumber, MJVarUse for different types, MJNewIntArray, MJArrayLength, MJArrayLookup). 
+	\item \textbf{ExprMatcherL}: Implements the visitor pattern for "MJExpr". It matches expressions that can occur on the left-hand side of an assignment operation (e.g: MJVarUse with different types and MJArrayLookup). 
+	\item \textbf{OperatorMatcher}: Implements the visitor pattern for "Operator" and the operation type being used in a binary expressions (e.g: MJPlus, MJMinus, MJLess, MJAnd, MJDiv, MJTimes). 
+	\item \textbf{StaticMethods}: Contains static methods being invoked repeatedly throughout the program for handling operations on arrays. 
+	\item \textbf{TestOutputLLVM}: Class used for testing the program and invoked by the "Main" class in the "frontend" folder. It compares the output of the LLVM-generated program with the Minijava program and checks whether these are equal. 
 \end{itemize}
 
 \section*{Technical Description}
 
-\subsection*{Task 1 - Class Hierarchy and Uniqueness of Elements}
-We made use of a linked list data structure for checking if circular references exist among classes. Instead, for ensuring the uniqueness of classes, methods, fields and methods, we opted for a \textit{Hashmap}, as it allows for the storage of a <Key, Value> pair. 
-\subsection*{Task 2 - Types representation and Subtyping checking}
-We represented types with a \textbf{symbol table}, which contains three hash maps: hash\_main for the main class, hash\_class for non-main classes and hash\_method for all methods inside non-main classes \cite{California}.\\
+\subsection*{Task 1 - Translation of Statements and Expressions}
+
 \begin{itemize}
-	\item \textbf{hash\_class}: Upon entering a class scope', the class' fields, and methods' declarations are stored into this data structure. Upon leaving the class' scope, the hash\_class is cleared.
-	\item \textbf{hash\_method}: Upon entering a method's scope, the method's body(block) inside it are stored. Upon leaving the method's scope, the hash\_method is cleared.
-	\item \textbf{hash\_main}: Same as hash\_class, but for the class containing the main method and contains all names of declared classes and extended classes. 
+	\item \textbf{Block}: A Block is a handled as an iterable list of statements. Each statement is matched to its type in the Translator class.
+	\item \textbf{StmtIf}: An If-else statement is handled through three different Basic Blocks, corresponding respectively the "IF body" (condition true), the "ELSE body" (condition false) and the remaining code. Initially, the if condition is checked and a Branch operation picks the Basicblock where execution should continue on. After evaluating expressions and statements containing in either of these blocks, execution continues in the block for the remaining code. 
+	\item \textbf{StmtWhile}: A While statement is also handled through three different Basic Blocks, containing respectively the condition to be checked, the while loop's body and the rest of the code. In every iteration,  the condition block containing a Branch statement with the while's condition  is checked: if the condition is true, the statements contained in the loop's body are evaluated (afterwards, we jump back to the condition block and check the condition again). If the condition is false, we simply continue with the basic block for the remaining code outside the while. 
+	\item \textbf{StmtAssign} We handle assignment statements by matching expressions that can occur on the left-hand side (ExprMatcherL) and expressions that can occur on the right-hand side (ExprMatcherR) by making use of the visitor pattern and overriding the adequate cases as outlined in the Classes Description. Expressions being matched on the left or right hand side that are not allowed in the current implementation (e.g: MethodCall or ExprThis throw an error). We also make use of a class "OperatorMatcher", which returns the operator being used in the expression being translated. We then store the value of the expression matched on the right-hand side into the left-hand side. 
+	\item \textbf{StmtPrint}: In a print statement, we simply check for it to contain expressions that can occur on the right-hand side of an assignment expressions and print it out. 
+	\item \textbf{Variable Declaration}: We allocate all newly declared variables onto the stack with space depending on their type also store them into a HashMap.
+	\item \textbf{VarUse} Whenever making use of a variable, we distinguishing between its usage on the left or right hand side (left means store into it, right means load from it). In both cases, we still need to get the corresponding temporary variable definition from the Hashmap and the type, which is obtained from the extra information provided by the previous phase (Type and Name Analysis). 
+	\item \textbf{UnaryMinus}: We implemented the unary minus expression (ex: -b) through a binary expression, where the expression with a minus in front of it is multiplied by -1. 
+	\item \textbf{UnaryNeg}: We implemented the unary negation expression ( ex: !b) through a XOR with a true value so as to invert the boolean value. 
 \end{itemize}
 
-\subsection*{Task 3 - Method overriding}
-We ensured that the return type and all parameters' types of a method overriding a parent method are of the same type or a subtype of the parent's by making use of the method 'SubTypeOff' writting in Task 2 for types' subtype checking. We also checked that the amount of parameters in methods' overridden matches their parent's amount. 
-\subsection*{Task 4 - Name and Type Analysis}
-Type checking was implemented in the class 'typechecker', where we check for the type rules provided in the assignment's description. Analogously to exercise 2, we made use of matchers for identifying the proper cases to check in statements (e.g: MJReturn or MJWhile). \\
-Name analysis was implemented in the symbol table: when a new identifier (either as a local variable or as a field) occurs, the hash corresponding to the scope (hash\_class, hash\_method or hash\_main) is checked for that identifier, raising appropriate errors in case the latter is not defined. 
-\subsection*{Theory}
-Please see files 'Theory\_4.jpg' and 'Theory\_5.jpg' in 'ex3' folder.
+\subsection*{Task 2 - Translation of Arrays}
+\begin{itemize}
 
+\item \textbf{NewIntArray}: Array instantiation (ex: a = new int[5]) was implemented as suggested in the lecture slides of the course. Let $s$ = array size (ex: 5), $b$ = size of each element in (ex: ConstInt(4)). Since we will need to store the array size in position 0, we will then need to allocate the following amount of space ($p$) onto the heap:\\
+\begin{center}
+ $p = (s + 1) * b$
+\end{center}
+More specifically, we allocate $s + 1$ blocks of size $b$ in contiguous heap space for the storage of elements and the array size. Let $e_1... e_n$, where $n < s$ be a list of elements that will be contained in the array at a later time: these elements will be stored in the array according to the following scheme:
+\begin{center}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{value}    & $s$ & $e_1$ & $e_n$ \\ \hline
+\textbf{position} & 0      & 1  & n  \\ \hline
+\end{tabular}
+\end{table}
+\end{center}
+In order to prevent LLVM from generating random integer values when performing an ArrayLookup operation on an instantiated array containing no value yet, we instantiate all blocks $1...n$ of an array to integer value 0. 
+Finally, we check that the array is not being instantiated with a negative value: this case would rise an HaltWithError exception in LLVM. 
 
+\item \textbf{Array Length}: Since the length of the array was stored at position 0, we simply get the array address get the the first value stored on the heap corresponding to the array. 
+\item \textbf{Array Lookup}: Whenever looking up a value in an array, we check for two cases not to be matched:
+\begin{enumerate}
+	\item \textbf{Negative Index}: We ensure a negative index was not passed and throw an error in case that happens. 
+	\item \textbf{Out of bounds index}: We ensure we do not access a value that is beyond the array size by ensuring that for an index $i$ the following always holds: $i < s$ and throwing and error should this condition not be met.
+\end{enumerate}
+Should these two cases not be met, then the elemented is retrieved from the array by increasing the index by 1 (since the length is contained at position 0).
+
+\end{itemize}
 
 
 \begin{thebibliography}{9}% 2nd arg is the width of the widest label.
 \bibitem{Joseff}
-We would like to thank our study colleague Joseff for support with subtyping checking. 
-\bibitem{California}
-Reference for Symbol Table Creation with hash maps. Accessed on 25th May 2017.
-\hyperref[label_name]{''http://alumni.cs.ucr.edu/~vladimir/cs152/assignments.html\#A5
-''}
-
+We would like to thank our study colleague Joseff for support with bitcasting arrays into the right format.
 \end{thebibliography}
 
 
