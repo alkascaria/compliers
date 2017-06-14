@@ -1,0 +1,141 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Example: Project Report
+%
+% Source: http://www.howtotex.com
+%
+% Feel free to distribute this example, but please keep the referral
+% to howtotex.com
+% Date: March 2011 
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+% If you're new to LaTeX, the wikibook is a great place to start:
+% http://en.wikibooks.org/wiki/LaTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Edit the title below to update the display in My Documents
+%\title{Project Report}
+%
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\usepackage{hyperref}
+
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+\usepackage{times}
+\usepackage{listings}
+\usepackage{filecontents}
+
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+\usepackage[bottom=0.5in]{geometry}
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{\centering \normalfont\scshape}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\normalfont \normalsize \textsc{Department of Computer Science, Technische Universit\"at Kaiserslautern\\
+Compilers and Language Processing Tools - SS17
+		} \\ [2pt]
+		\horrule{0.5pt} \\[0.4cm]
+		\huge A Minijava to $\mu$-LLVM Translator\\
+		\horrule{2pt} \\[0.5cm]
+}
+
+\author{	
+		\textbf{Exercise 4}\\
+		Group 04\\
+        Daniele Gadler, Gopal Praveen\\Alka Scaria, Stephen Banin Payin \\[-1pt]		\normalsize
+}
+
+
+\date{June 14, 2017}
+
+%%% Begin document
+\begin{document}
+\maketitle
+
+\section*{Overview}
+In the present report, we describe the Translator from Minijava to $\mu$-LLVM. The resulting Translator is able to translate the following statements and expressions: Block, StmtIf, StmtWhile, StmtReturn, StmtPrint, StmtExpr,
+StmtAssign, ExprBinary, ExprUnary, BoolConst, VarUse, Number, as well as ArrayLookup, ArrayLength, ExprNull, NewIntArray. \\
+The translator passes both all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases. 
+
+\subsection*{Features}
+
+\begin{itemize}
+
+\item \textbf{} 
+\end{itemize}
+
+\section*{Technical Description}
+
+\subsection*{Task 1 - Class Hierarchy and Uniqueness of Elements}
+We made use of a linked list data structure for checking if circular references exist among classes. Instead, for ensuring the uniqueness of classes, methods, fields and methods, we opted for a \textit{Hashmap}, as it allows for the storage of a <Key, Value> pair. 
+\subsection*{Task 2 - Types representation and Subtyping checking}
+We represented types with a \textbf{symbol table}, which contains three hash maps: hash\_main for the main class, hash\_class for non-main classes and hash\_method for all methods inside non-main classes \cite{California}.\\
+\begin{itemize}
+	\item \textbf{hash\_class}: Upon entering a class scope', the class' fields, and methods' declarations are stored into this data structure. Upon leaving the class' scope, the hash\_class is cleared.
+	\item \textbf{hash\_method}: Upon entering a method's scope, the method's body(block) inside it are stored. Upon leaving the method's scope, the hash\_method is cleared.
+	\item \textbf{hash\_main}: Same as hash\_class, but for the class containing the main method and contains all names of declared classes and extended classes. 
+\end{itemize}
+
+\subsection*{Task 3 - Method overriding}
+We ensured that the return type and all parameters' types of a method overriding a parent method are of the same type or a subtype of the parent's by making use of the method 'SubTypeOff' writting in Task 2 for types' subtype checking. We also checked that the amount of parameters in methods' overridden matches their parent's amount. 
+\subsection*{Task 4 - Name and Type Analysis}
+Type checking was implemented in the class 'typechecker', where we check for the type rules provided in the assignment's description. Analogously to exercise 2, we made use of matchers for identifying the proper cases to check in statements (e.g: MJReturn or MJWhile). \\
+Name analysis was implemented in the symbol table: when a new identifier (either as a local variable or as a field) occurs, the hash corresponding to the scope (hash\_class, hash\_method or hash\_main) is checked for that identifier, raising appropriate errors in case the latter is not defined. 
+\subsection*{Theory}
+Please see files 'Theory\_4.jpg' and 'Theory\_5.jpg' in 'ex3' folder.
+
+
+
+
+\begin{thebibliography}{9}% 2nd arg is the width of the widest label.
+\bibitem{Joseff}
+We would like to thank our study colleague Joseff for support with subtyping checking. 
+\bibitem{California}
+Reference for Symbol Table Creation with hash maps. Accessed on 25th May 2017.
+\hyperref[label_name]{''http://alumni.cs.ucr.edu/~vladimir/cs152/assignments.html\#A5
+''}
+
+\end{thebibliography}
+
+
+\end{document}
