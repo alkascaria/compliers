@@ -9,14 +9,5 @@ class ArrayDoSomeThing3{
         System.out.println(b[0]);
         System.out.println(b[1]);
 
-
-
-       /* String[] c;
-        c = new String[4];
-        c[0] = "2";
-        c[1] = "33";
-        System.out.println(c[0]);
-        System.out.println(c[1]);
-        */
     }
 }
