@@ -216,7 +216,7 @@ public class Translator extends MJElement.DefaultVisitor
         String varName = varDecl.getName();
         TemporaryVar tempVar = TemporaryVar(varName);
 
-        //a = null by defau.t
+        //a = null by default
         //int a;
         if(typeName instanceof MJTypeInt)
         {
@@ -242,7 +242,7 @@ public class Translator extends MJElement.DefaultVisitor
         {
             //create a pointer to an array.
             TemporaryVar tempArray = TemporaryVar("arrayPointer");
-            //allocate onto the heap an array with size 0 to allow for pointers to refer to it
+            //allocate onto stack an array with size 0 to allow for pointers to refer to it
             TypeArray typeArray = TypeArray(TypeInt(), 0);
             Alloca allocVar = Alloca(tempArray,TypePointer(TypePointer(typeArray)));
             this.curBlock.add(allocVar);

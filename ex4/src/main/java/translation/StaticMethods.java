@@ -5,6 +5,7 @@ import minijava.ast.MJExpr;
 import minillvm.ast.*;
 
 import static minillvm.ast.Ast.*;
+import static minillvm.ast.Ast.Nullpointer;
 import static minillvm.ast.Ast.VarRef;
 
 /**
@@ -19,6 +20,37 @@ public class StaticMethods
      */
     public static TemporaryVar accessIndexArray(MJArrayLookup arrayLookup)
     {
+        //now get back the original array's address
+        MJExpr exprArray = arrayLookup.getArrayExpr();
+        //check if it's null
+
+        ExprMatcherL exprMatcherL = new ExprMatcherL();
+        Operand arrayTemp = exprArray.match(exprMatcherL);
+
+        //array address stored in arrayRef
+        TemporaryVar arrayRef = Ast.TemporaryVar("array ref");
+        Translator.curBlock.add(Load(arrayRef, arrayTemp));
+
+        //checks for null array
+        BasicBlock blockNull = BasicBlock();
+        BasicBlock blockRest = BasicBlock();
+        TemporaryVar tempNull = TemporaryVar("null array");
+        BinaryOperation binCheckNull = BinaryOperation(tempNull, VarRef(arrayRef), Eq(), Ast.Nullpointer());
+        Translator.curBlock.add(binCheckNull);
+
+        Branch branchIfNull = Branch(VarRef(tempNull), blockNull, blockRest);
+        Translator.curBlock.add(branchIfNull);
+
+        //if null...
+        Translator.curBlock = blockNull;
+        Translator.blocks.add(blockNull);
+        Translator.curBlock.add(HaltWithError("Cannot perform an array look on an array that is null"));
+
+        //no problem, all good!
+        Translator.curBlock = blockRest;
+        Translator.blocks.add(blockRest);
+
+
         //make sure the index is within range first
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         //firstly, check if the index is within range
@@ -32,14 +64,10 @@ public class StaticMethods
         BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
         Translator.curBlock.add(binOpIncr);
 
-        //now get back the original array's address
-        MJExpr exprArray = arrayLookup.getArrayExpr();
-        ExprMatcherL exprMatcherL = new ExprMatcherL();
-        Operand arrayTemp = exprArray.match(exprMatcherL);
 
-        //array address stored in arrayRef
-        TemporaryVar arrayRef = Ast.TemporaryVar("array ref");
-        Translator.curBlock.add(Load(arrayRef, arrayTemp));
+
+
+
 
         TemporaryVar pointerElementArray = Ast.TemporaryVar("element pointer");
         //start from the base address and get the value stored at index 0 --> length.
