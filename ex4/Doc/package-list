@@ -1,0 +1,12 @@
+analysis
+frontend
+main
+minijava.analysis
+minijava.ast
+minijava.parser
+minijava.syntax
+minijava.translation
+minillvm.analysis
+minillvm.ast
+minillvm.printer
+translation
