@@ -25,6 +25,7 @@ public class TestOutputLLVM {
     public static final String LLVM_LLI_EXE;
     public static final String LLVM_OPT_EXE;
     private static File testOutputFolder = new File("testoutput");
+
     static {
         Map<String, String> env = System.getenv();
         if (env.containsKey("LLVM_COMPILER_PATH")) {
@@ -43,10 +44,10 @@ public class TestOutputLLVM {
         MiniJavaCompiler compiler = new MiniJavaCompiler();
         compiler.compileString(inputName, miniJavaProgram);
 
-        System.out.println("No Syntax errors: " +  Collections.emptyList().equals(compiler.getTypeErrors()));
+        System.out.println("No Syntax errors: " + Collections.emptyList().equals(compiler.getTypeErrors()));
 
-       // assertEquals(Collections.emptyList(), compiler.getSyntaxErrors());
-       // assertEquals(Collections.emptyList(), compiler.getTypeErrors());
+        // assertEquals(Collections.emptyList(), compiler.getSyntaxErrors());
+        // assertEquals(Collections.emptyList(), compiler.getTypeErrors());
         Prog llvmProg = compiler.getLlvmProg();
 
         String llvmOut = llvmProg.toString();
@@ -64,7 +65,6 @@ public class TestOutputLLVM {
         String programInput = randomInput();
 
         MJProgram program = compiler.getJavaProgram();
-
 
 
         // run java program and record the output
@@ -97,7 +97,7 @@ public class TestOutputLLVM {
             }
         } catch (ProgramExecutionException e) {
             if (e.exitCode == 222) { // special error code returned by LLVM-error instruction
-                System.out.println(("LLVM exception Output: \n" + e.getOutput() + "\n Java output:" +  runtimeErrorInJava));
+                System.out.println(("LLVM exception Output: \n" + e.getOutput() + "\n Java output:" + runtimeErrorInJava));
             } else {
                 throw e;
             }
@@ -114,7 +114,6 @@ public class TestOutputLLVM {
     }
 
 
-
     private static String runJavaProgAndGetOut(String inputName, String miniJavaProgram, String mainClassName, String input) throws Exception {
         File tempDir = new File("temp/");
         File tempFile = new File(tempDir, inputName);
@@ -128,7 +127,7 @@ public class TestOutputLLVM {
             compiler.run(null, null, null, tempFile.getAbsolutePath(), fakeSystem.getAbsolutePath());
 
             URLClassLoader classLoader = URLClassLoader
-                    .newInstance(new URL[] { tempDir.toURI().toURL() });
+                    .newInstance(new URL[]{tempDir.toURI().toURL()});
             Class<?> cls = Class.forName(mainClassName, true, classLoader);
             String[] args = new String[0];
             Method main = cls.getMethod("main", args.getClass());
@@ -144,7 +143,7 @@ public class TestOutputLLVM {
                 System.setOut(ps);
                 System.setIn(new ByteArrayInputStream(input.getBytes()));
 
-                main.invoke(null, new Object[] { args });
+                main.invoke(null, new Object[]{args});
                 return os.toString();
             } finally {
                 System.setOut(originalOut);
@@ -198,7 +197,7 @@ public class TestOutputLLVM {
         try {
             runProgram(new ProcessBuilder(LLVM_OPT_EXE, "-analyze", "-verify"), code);
         } catch (ProgramExecutionException e) {
-            throw new RuntimeException("The LLVM verifier found a problem : \n"  + new String(e.errs));
+            throw new RuntimeException("The LLVM verifier found a problem : \n" + new String(e.errs));
         }
     }
 
