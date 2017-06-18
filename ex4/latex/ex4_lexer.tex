@@ -92,7 +92,7 @@ Compilers and Language Processing Tools - SS17
 \maketitle
 
 \section*{Overview}
-In the report, we describe the Translator from Minijava to $\mu$-LLVM. The resulting Translator is able to translate the following statements and expressions: Block, StmtIf, StmtWhile, StmtReturn, StmtPrint, StmtExpr, StmtAssign, ExprBinary, ExprUnary, BoolConst, VarUse, Number, as well as ArrayLookup, ArrayLength, ExprNull, NewIntArray. \\
+In this report, we describe our group's Translator from Minijava to $\mu$-LLVM. The resulting Translator is able to translate the following statements and expressions: Block, StmtIf, StmtWhile, StmtReturn, StmtPrint, StmtExpr, StmtAssign, ExprBinary, ExprUnary, BoolConst, VarUse, Number, as well as ArrayLookup, ArrayLength, ExprNull, NewIntArray. \\
 The translator passes all test cases provided in the exercise' template and all test cases laid out by the group mates covering further edge cases. \\
 We implemented our solution through the visitor pattern, breaking down the implementation into different classes for order, understandability and especially functionality purposes. Following, we describe the classes' role in the program. 
 
@@ -100,11 +100,11 @@ We implemented our solution through the visitor pattern, breaking down the imple
 \section*{Classes' description}
 \begin{itemize}
 	\item \textbf{Translator}: Contains the Default Visitor Pattern for the following  Minijava expressions and statements: MJStmtIf, MJBlock, MJStmtWhile, MJStmtPrint, MJVarDecl, MJStmtAssign. Content of these expressions and statements is handled separately in other classes, again through the visitor pattern. This class also contains the current block into which the expressions are added and the Hashmap for variables' declarations.
-	\item \textbf{ExprMatcherR}:Implements the visitor pattern for "MJExpr" . It matches expressions that can occur on the right-hand side of an assignment operation (e.g: MJExprBinary, MJExprNull in an array assignment, MJExprUnary, MJNegate, MJBoolConst, MJNumber, MJVarUse for different types, MJNewIntArray, MJArrayLength, MJArrayLookup). 
-	\item \textbf{ExprMatcherL}: Implements the visitor pattern for "MJExpr". It matches expressions that can occur on the left-hand side of an assignment operation (e.g: MJVarUse with different types and MJArrayLookup). 
+	\item \textbf{ExprMatcherR}:Implements the visitor pattern for "MJExpr" . It matches expressions that can occur on the right-hand side of an operation (e.g: MJExprBinary, MJExprNull in an array assignment, MJExprUnary, MJNegate, MJBoolConst, MJNumber, MJVarUse, MJNewIntArray, MJArrayLength, MJArrayLookup). 
+	\item \textbf{ExprMatcherL}: Implements the visitor pattern for "MJExpr". It matches expressions that can occur on the left-hand side of an operation (e.g: MJVarUse with different types and MJArrayLookup). 
 	\item \textbf{OperatorMatcher}: Implements the visitor pattern for "Operator" and the operation type being used in a binary expressions (e.g: MJPlus, MJMinus, MJLess, MJAnd, MJDiv, MJTimes). 
 	\item \textbf{StaticMethods}: Contains static methods being invoked repeatedly throughout the program for handling operations on arrays. 
-	\item \textbf{TestOutputLLVM}: Class used for testing the program and invoked by the "Main" class in the "frontend" package. It compares the output of the $\mu$-LLVM-generated program with the  Minijava program and checks whether these are equal. 
+	\item \textbf{TestOutputLLVM}: Class used for testing the program and invoked by the "Main" class in the "frontend" package. It compares the output of the $\mu$-LLVM-generated program with the  Minijava program and checks whether the output produced by the $\mu$-LLVM program version and Minijava are equal. 
 \end{itemize}
 
 \section*{Technical Description}
@@ -145,8 +145,9 @@ In order to prevent LLVM from generating random integer values when performing a
 Finally, we check that the array is not being instantiated with a negative value: this case would rise an HaltWithError in $\mu$-LLVM. 
 
 \item \textbf{Array Length}: Since the length of the array was stored at position 0, we simply get the array address and access the the first value stored on the heap space allocated for the array (hence, we access index 0). We also implemented in-line length returning for a new int array  (e.g: System.out.println(new int[5].length) will produce 5), with adequate checks for preventing the length provided to be negative. 
-\item \textbf{Array Lookup}: Whenever looking up a value in an array, we check for two cases not to be matched:
+\item \textbf{Array Lookup}: Whenever looking up a value in an array, we check for three cases not to be matched:
 \begin{enumerate}
+	\item \textbf{Array instantiated as null}: If an array was assigned a value "null", then an array lookup operation is not meaningful, and an HaltWithError is added. 
 	\item \textbf{Negative Index}: We ensure a negative index was not passed and add an HaltWithError in case that happens. 
 	\item \textbf{Out of bounds index}: We ensure we do not access a value that is beyond the array size by ensuring that for an index $i$ the following always holds: $i < s$ and add an HaltWithError should this condition not be met.
 \end{enumerate}
