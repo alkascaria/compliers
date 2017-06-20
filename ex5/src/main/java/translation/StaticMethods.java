@@ -11,15 +11,14 @@ import static minillvm.ast.Ast.VarRef;
 /**
  * Created by Daniele on 11/06/2017.
  */
-public class StaticMethods
-{
+public class StaticMethods {
 
     /**
      * Input: arrayLookup. an access to an array element (ex: a[5])
-     * @return
+     *
+     * @return value(@code TemporaryVar) returns the reference to the starting index of an array
      */
-    public static TemporaryVar accessIndexArray(MJArrayLookup arrayLookup)
-    {
+    public static TemporaryVar accessIndexArray(MJArrayLookup arrayLookup) {
         //now get back the original array's address
         MJExpr exprArray = arrayLookup.getArrayExpr();
         //check if it's null
@@ -50,7 +49,6 @@ public class StaticMethods
         Translator.curBlock = blockRest;
         Translator.blocks.add(blockRest);
 
-
         //make sure the index is within range first
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         //firstly, check if the index is within range
@@ -64,11 +62,6 @@ public class StaticMethods
         BinaryOperation binOpIncr = BinaryOperation(tempIndexIncr, operIndex, Add(), ConstInt(1));
         Translator.curBlock.add(binOpIncr);
 
-
-
-
-
-
         TemporaryVar pointerElementArray = Ast.TemporaryVar("element pointer");
         //start from the base address and get the value stored at index 0 --> length.
         Operand lengthBase = ConstInt(0);
@@ -80,11 +73,14 @@ public class StaticMethods
         return pointerElementArray;
     }
 
-    //Input: an expression containing the size of the array
-    //Output: the size of the array being initialized
-    //Returns an error in case the size passed is negative
-    public static Operand checkValidArraySize(MJExpr exprSize)
-    {
+    /**
+     * @param exprSize(@code MJExpr)
+     *                       Returns an Operand
+     *                       Input: an expression containing the size of the array
+     *                       Output: the size of the array being initialized
+     * @return the value {@code Operand) returns an error in case the size passed is negative else the totalsize of an array+1
+     */
+    public static Operand checkValidArraySize(MJExpr exprSize) {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
 
         //store size of the array into this
@@ -110,7 +106,6 @@ public class StaticMethods
         //then add error to it and stop execution.
         blockWrong.add(HaltWithError("An array cannot be initialized with negative size."));
 
-
         //OKAY, we got a valid value (also 0 is valid here). then continue...
         Translator.curBlock = blockOkay;
         Translator.blocks.add(blockOkay);
@@ -119,13 +114,10 @@ public class StaticMethods
     }
 
     /**
-     *
-     * @param arrayLookup
-     * Checks that index is not negative ( out of lower bound)
-     * checks that index is not beyond the array's length (out of upper bound)
+     * @param arrayLookup Checks that index is not negative ( out of lower bound)
+     *                    checks that index is not beyond the array's length (out of upper bound)
      */
-    public static void checkArrayIndexInRange(MJArrayLookup arrayLookup)
-    {
+    public static void checkArrayIndexInRange(MJArrayLookup arrayLookup) {
         MJExpr exprArray = arrayLookup.getArrayExpr();
         //firstly, get the array size
         Operand arraySize = StaticMethods.returnArrayLength(exprArray);
@@ -161,12 +153,11 @@ public class StaticMethods
         Translator.curBlock = blockOkayNotNeg;
         Translator.blocks.add(blockOkayNotNeg);
 
-
         //now check if we're accessing an index too high, i.e: size = 5 --> max index = 4
 
         //now check if accessing a value beyond the size --> a[size] --> make sure indexAccess < size
         TemporaryVar tempIndexOutHigh = TemporaryVar("out of upper bound");
-        BinaryOperation binOpTooHigh = BinaryOperation(tempIndexOutHigh,arrayIndex.copy(), Slt(), arraySize);
+        BinaryOperation binOpTooHigh = BinaryOperation(tempIndexOutHigh, arrayIndex.copy(), Slt(), arraySize);
         Translator.curBlock.add(binOpTooHigh);
         //true if index smaller than size. false if index greater than size
         Operand operTooHigh = VarRef(tempIndexOutHigh);
@@ -176,7 +167,7 @@ public class StaticMethods
         //case where index > 0
         BasicBlock blockOkayUpper = BasicBlock();
 
-        Translator.curBlock.add(Branch(operTooHigh, blockOkayUpper, blockOutUpperBound ));
+        Translator.curBlock.add(Branch(operTooHigh, blockOkayUpper, blockOutUpperBound));
 
         //if we are indeed trying to use a negative index
         Translator.curBlock = blockOutUpperBound;
@@ -190,14 +181,12 @@ public class StaticMethods
     }
 
     /**
-     *
      * @param exprArray contains the expression with the array.
-     * ex: e.length --> get e or e[5] --> get e
+     *                  ex: e.length --> get e or e[5] --> get e
      * @return Operand --> VarRef(lengthVarReturn) = VarRef(tempVar)
      */
 
-    public static Operand returnArrayLength(MJExpr exprArray)
-    {
+    public static Operand returnArrayLength(MJExpr exprArray) {
         ExprMatcherL matcherL = new ExprMatcherL();
         Operand arrayTemp = exprArray.match(matcherL);
 
@@ -213,24 +202,22 @@ public class StaticMethods
         GetElementPtr elementPtr = GetElementPtr(lengthArray, VarRef(arrayRef), operandList);
         Translator.curBlock.add(elementPtr);
         //assign it to a variable and return
-        TemporaryVar lengthVarReturn =  TemporaryVar("length return");
-        Load loadVar =  Load(lengthVarReturn, VarRef(lengthArray));
+        TemporaryVar lengthVarReturn = TemporaryVar("length return");
+        Load loadVar = Load(lengthVarReturn, VarRef(lengthArray));
         Translator.curBlock.add(loadVar);
 
         return VarRef(lengthVarReturn);
     }
 
     /**
-     *
-     * @param arrayPointer: pointer to the current array
+     * @param arrayPointer:   pointer to the current array
      * @param operArrSizeInc: size of the array + 1 (where the while loop will loop to)
-     * Initializes all values of an array to 0 with a while loop.
-     *we can assume never acces index [0] in an array with size 0.
-     * loop through all "cells" in the array and assign 0 to them
+     *                        Initializes all values of an array to 0 with a while loop.
+     *                        we can assume never acces index [0] in an array with size 0.
+     *                        loop through all "cells" in the array and assign 0 to them
      */
 
-    public static void initializeArrayValuesToZero(TemporaryVar arrayPointer, Operand operArrSizeInc)
-    {
+    public static void initializeArrayValuesToZero(TemporaryVar arrayPointer, Operand operArrSizeInc) {
 
         TemporaryVar varIndex = TemporaryVar("index");
         Alloca alloc = Alloca(varIndex, TypeInt());
@@ -242,7 +229,6 @@ public class StaticMethods
         BasicBlock conditionBlock = BasicBlock();
         BasicBlock bodyBlock = BasicBlock();
         BasicBlock restBlock = BasicBlock();
-
 
         //firstly, jump to the condition block
         Translator.curBlock.add(Jump(conditionBlock));
@@ -258,7 +244,7 @@ public class StaticMethods
         BinaryOperation binOpCompare = BinaryOperation(atEndOfArray, VarRef(tempIndex), Slt(), operArrSizeInc.copy());
         Translator.curBlock.add(binOpCompare);
 
-        Branch branchAtEnd = Branch(VarRef(atEndOfArray), bodyBlock, restBlock );
+        Branch branchAtEnd = Branch(VarRef(atEndOfArray), bodyBlock, restBlock);
         Translator.curBlock.add(branchAtEnd);
 
         //now handle true case: putting element into index of array
@@ -267,8 +253,8 @@ public class StaticMethods
 
         //store 0 into current position(i) of array
         TemporaryVar tempIndexStored = TemporaryVar("temp index stored");
-        Translator.curBlock.add(GetElementPtr(tempIndexStored, VarRef(arrayPointer), OperandList(ConstInt(0), VarRef(tempIndex ))));
-        Translator.curBlock.add(Store(VarRef(tempIndexStored),ConstInt(0)));
+        Translator.curBlock.add(GetElementPtr(tempIndexStored, VarRef(arrayPointer), OperandList(ConstInt(0), VarRef(tempIndex))));
+        Translator.curBlock.add(Store(VarRef(tempIndexStored), ConstInt(0)));
 
         //now increase index by 1: i++
         TemporaryVar tempIndexIncreased = TemporaryVar("index increased temp");
@@ -278,12 +264,9 @@ public class StaticMethods
         //go back up and check condition
         Translator.curBlock.add(Jump(conditionBlock));
 
-
         //handle rest of code, i.e: leave while loop's body
         Translator.blocks.add(restBlock);
         Translator.curBlock = restBlock;
 
     }
-
-
 }

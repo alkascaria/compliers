@@ -14,56 +14,89 @@ import static minillvm.ast.Ast.TypePointer;
  * Matches the correct left-hand side
  */
 
-
 public class ExprMatcherL implements MJExpr.Matcher<Operand> {
+
+    /**
+     * @param fieldAccess(@code MJFieldAccess)
+     *                          Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_FieldAccess(MJFieldAccess fieldAccess)  {
+    public Operand case_FieldAccess(MJFieldAccess fieldAccess) {
         throw new InvalidParameterException("Field access " + fieldAccess.toString() + " not supported as left-hand side expression!");
     }
 
+    /**
+     * @param exprBinary(@code MJExprBinary)
+     *                         Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_ExprBinary(MJExprBinary exprBinary)
-    {
+    public Operand case_ExprBinary(MJExprBinary exprBinary) {
         throw new InvalidParameterException("Binary expression " + exprBinary.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param exprNull(@code MJExprNull)
+     *                       Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_ExprNull(MJExprNull exprNull)
-    {
-        throw new InvalidParameterException("Null reference  " +  exprNull.toString() + " not supported as left-hand side expression!");
+    public Operand case_ExprNull(MJExprNull exprNull) {
+        throw new InvalidParameterException("Null reference  " + exprNull.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param methodCall(@code MJMethodCall)
+     *                         Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_MethodCall(MJMethodCall methodCall)
-    {
+    public Operand case_MethodCall(MJMethodCall methodCall) {
         throw new InvalidParameterException("Method call " + methodCall.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param exprUnary(@code MJExprUnary)
+     *                        Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_ExprUnary(MJExprUnary exprUnary)
-    {
+    public Operand case_ExprUnary(MJExprUnary exprUnary) {
         throw new InvalidParameterException("Unary expression " + exprUnary.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param boolConst(@code MJBoolConst)
+     *                        Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_BoolConst(MJBoolConst boolConst)
-    {
+    public Operand case_BoolConst(MJBoolConst boolConst) {
         throw new InvalidParameterException("Boolean constant " + boolConst.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param number(@code MJNumber)
+     *                     Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_Number(MJNumber number)
-    {
+    public Operand case_Number(MJNumber number) {
         throw new InvalidParameterException("Integer constant not supported as left-hand side expression!");
     }
 
-    public Operand case_VarUse(MJVarUse varUse)
-    {
+    /**
+     * @param varUse(@code MJVarUse)
+     *                     Returns an Operand
+     * @return the value {@code Operand) returns an Operand
+     */
+    public Operand case_VarUse(MJVarUse varUse) {
         String varName = varUse.getVarName();
         MJVarDecl varDecl = varUse.getVariableDeclaration();
         MJType type = varDecl.getType();
@@ -76,8 +109,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeClass(MJTypeClass typeClass)
-            {
+            public Operand case_TypeClass(MJTypeClass typeClass) {
                 throw new InvalidParameterException("Variable class usage  " + typeClass.toString() + " not supported as left-hand side expression!");
 
             }
@@ -98,8 +130,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
-            {
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray) {
                 return VarRef(Translator.varsTemp.get(varName));
             }
 
@@ -109,54 +140,71 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeInt(MJTypeInt typeInt)
-            {
+            public Operand case_TypeInt(MJTypeInt typeInt) {
                 //the corresponding variable in the hashmap
                 return VarRef(Translator.varsTemp.get(varName));
             }
         });
     }
 
+    /**
+     * @param newIntArray(@code MJNewIntArray)
+     *                          Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
     public Operand case_NewIntArray(MJNewIntArray newIntArray) {
         throw new InvalidParameterException("New integer array instantiation " + newIntArray.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param exprThis(@code MJExprThis)
+     *                       Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_ExprThis(MJExprThis exprThis)
-    {
+    public Operand case_ExprThis(MJExprThis exprThis) {
         throw new InvalidParameterException("'this' reference " + exprThis.toString() + " not supported as left-hand side expression!");
 
     }
 
+    /**
+     * @param arrayLength(@code MJArrayLength)
+     *                          Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_ArrayLength(MJArrayLength arrayLength)
-    {
-        throw new InvalidParameterException("Array length "  + arrayLength.toString() + " not supported as left-hand side expression!");
+    public Operand case_ArrayLength(MJArrayLength arrayLength) {
+        throw new InvalidParameterException("Array length " + arrayLength.toString() + " not supported as left-hand side expression!");
     }
 
+    /**
+     * @param newObject(@code MJNewObject)
+     *                        Returns an Operand
+     * @return the exception {@code Operand) returns an InvalidParameterException
+     */
     @Override
-    public Operand case_NewObject(MJNewObject newObject)
-    {
-        throw new InvalidParameterException("New object instantiation "  + newObject.toString() + " not supported as left-hand side expression!");
+    public Operand case_NewObject(MJNewObject newObject) {
+        throw new InvalidParameterException("New object instantiation " + newObject.toString() + " not supported as left-hand side expression!");
     }
 
     @Override
     /***
+     *
+     * @param exprNull(@code MJArrayLookup)
+     *                          Returns an Operand
+     * @return the value {@code Operand) returns an Operand
      * a[7] = b
      *Set into an array
      * Input: arrayLookup. an expression containing something like a[7]
      * Output: reference to the address where a value should be stored
      */
-    public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
-    {
+    public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
         TemporaryVar pointerElementArray = StaticMethods.accessIndexArray(arrayLookup);
 
         //return pointer to the element desired --> store value into it
         return VarRef(pointerElementArray);
     }
-
-
 
 }

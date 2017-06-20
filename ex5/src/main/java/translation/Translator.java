@@ -13,8 +13,7 @@ import java.util.HashMap;
 //expressions, separate class MJExpr.Matcher<Operand> to pass back an operand when evaluating something
 
 
-public class Translator extends MJElement.DefaultVisitor
-{
+public class Translator extends MJElement.DefaultVisitor {
 
 
     private final MJProgram javaProg;
@@ -36,14 +35,11 @@ public class Translator extends MJElement.DefaultVisitor
         this.javaProg = javaProg;
     }
 
-
-
-    public Prog translate()
-    {
-         prog = Prog(TypeStructList(), GlobalList(), ProcList());
+    public Prog translate() {
+        prog = Prog(TypeStructList(), GlobalList(), ProcList());
 
         //fill this with other blocks in the future
-         blocks = BasicBlockList();
+        blocks = BasicBlockList();
 
         //main method
         Proc mainProc = Proc("main", TypeInt(), ParameterList(), blocks);
@@ -70,10 +66,14 @@ public class Translator extends MJElement.DefaultVisitor
 
     /**
      * @param stmtIf(@code MJStmtIf)
-     * Parses content of an IF statement.
+     *                     Parses content of an IF statement.
+     *                     BeforeBlock
+     *                     if(exprCondtion)
+     *                     {ifBlock}
+     *                     else
+     *                     {elseBlock}
      */
-    public void visit(MJStmtIf stmtIf)
-    {
+    public void visit(MJStmtIf stmtIf) {
 
         //need to check if it's false or true to decide which body we should enter
         MJExpr exprCondition = stmtIf.getCondition();
@@ -123,25 +123,24 @@ public class Translator extends MJElement.DefaultVisitor
     }
 
     /**
-     *
      * @param (@code MJBlock)
      */
-    public void visit(MJBlock block)
-    {
-        for(MJStatement statement: block)
-        {
+    public void visit(MJBlock block) {
+        for (MJStatement statement : block) {
             statement.accept(this);
         }
     }
 
 
     /**
-     *
      * @param stmtWhile(@code MJStmtWhile)
+     *                        BeforeBlock
+     *                        while(exprCondition)
+     *                        {ConditionBlock}
+     *                        AfterBlock
      */
     @Override
-    public void visit(MJStmtWhile stmtWhile)
-    {
+    public void visit(MJStmtWhile stmtWhile) {
 
         BasicBlock conditionBlock = BasicBlock();
         BasicBlock bodyBlock = BasicBlock();
@@ -158,7 +157,7 @@ public class Translator extends MJElement.DefaultVisitor
         Operand operCondition = exprCondition.match(exprMatchR);
 
         //if condition met, go to the while body, if not met, go ahead with rest
-        Branch branchWhile = Branch(operCondition,  bodyBlock, restBlock);
+        Branch branchWhile = Branch(operCondition, bodyBlock, restBlock);
         this.blocks.add(conditionBlock);
         conditionBlock.add(branchWhile);
 
@@ -176,26 +175,29 @@ public class Translator extends MJElement.DefaultVisitor
     }
 
     /**
-     *
      * @param stmtReturn(@code MJStmtReturn)
+     *                         return expr
      */
     @Override
-    public void visit(MJStmtReturn stmtReturn)
-    {
-         throw new RuntimeException();
+    public void visit(MJStmtReturn stmtReturn) {
+        throw new RuntimeException();
     }
 
 
+    /**
+     * @param stmtPrint(@code MJStmtPrint)
+     *                        eg: System.out.println(expr)
+     *                        System.out.println(5*7+9)
+     */
     @Override
-    public void visit(MJStmtPrint stmtPrint)
-    {
+    public void visit(MJStmtPrint stmtPrint) {
         //constant or variable
         MJExpr expr = stmtPrint.getPrinted();
         Operand operand;
         ExprMatcherR exprMatchR = new ExprMatcherR();
         //check which operand type it is
         //operand=Ast.ConstInt((int)expr.match(exprMatcher));
-        operand=expr.match(exprMatchR);
+        operand = expr.match(exprMatchR);
         Print print = Print(operand);
         this.curBlock.add(print);
 
@@ -205,12 +207,12 @@ public class Translator extends MJElement.DefaultVisitor
      * Variable --> parameter declaration
      *
      * @param varDecl(@code MJVarDecl)
+     *                      Type id
+     *                      eg: int a;
+     *                      boolean b;
      */
-
-
     @Override
-    public void visit(MJVarDecl varDecl)
-    {
+    public void visit(MJVarDecl varDecl) {
 
         MJType typeName = varDecl.getType();
         String varName = varDecl.getName();
@@ -218,8 +220,7 @@ public class Translator extends MJElement.DefaultVisitor
 
         //a = null by default
         //int a;
-        if(typeName instanceof MJTypeInt)
-        {
+        if (typeName instanceof MJTypeInt) {
             Type typeInt = TypeInt();
             //put variable declaration onto stack
             Alloca allocVar = Alloca(tempVar, typeInt);
@@ -228,8 +229,7 @@ public class Translator extends MJElement.DefaultVisitor
             this.varsTemp.put(varName, tempVar);
         }
         //boolean a;
-        else if (typeName instanceof MJTypeBool)
-        {
+        else if (typeName instanceof MJTypeBool) {
             Type typeBool = TypeBool();
             //put variable declaration onto stack
             Alloca allocVar = Alloca(tempVar, typeBool);
@@ -238,17 +238,16 @@ public class Translator extends MJElement.DefaultVisitor
             this.varsTemp.put(varName, tempVar);
         }
         //int[] a;
-        else if(typeName instanceof MJTypeIntArray)
-        {
+        else if (typeName instanceof MJTypeIntArray) {
             //create a pointer to an array.
             TemporaryVar tempArray = TemporaryVar("arrayPointer");
             //allocate onto stack an array with size 0 to allow for pointers to refer to it
             TypeArray typeArray = TypeArray(TypeInt(), 0);
-            Alloca allocVar = Alloca(tempArray,TypePointer(TypePointer(typeArray)));
+            Alloca allocVar = Alloca(tempArray, TypePointer(TypePointer(typeArray)));
             this.curBlock.add(allocVar);
             TemporaryVar tempVarReturn = TemporaryVar("arrayCasted");
             //converting to array. credits to Joseff for this tip!
-            Bitcast arrayConverted = Bitcast(tempVarReturn,TypePointer(TypePointer(typeArray)),VarRef(tempArray));
+            Bitcast arrayConverted = Bitcast(tempVarReturn, TypePointer(TypePointer(typeArray)), VarRef(tempArray));
             this.curBlock.add(arrayConverted);
             //finally, add to hashmap
             this.varsTemp.put(varName, tempVarReturn);
@@ -257,11 +256,15 @@ public class Translator extends MJElement.DefaultVisitor
 
     }
 
-
-
+    /**
+     * @param stmtAssign(@code MJStmtAssign)FieldAccess)
+     *                         parses the assignment instuctions
+     *                         expr=expr
+     *                         eg: a=5;
+     *                         a[]=new int[10]
+     */
     @Override
-    public void visit(MJStmtAssign stmtAssign)
-    {
+    public void visit(MJStmtAssign stmtAssign) {
         MJExpr exprLeft = stmtAssign.getLeft();
         MJExpr exprRight = stmtAssign.getRight();
 
