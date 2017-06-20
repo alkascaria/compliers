@@ -26,9 +26,6 @@ public class Translator extends MJElement.DefaultVisitor {
     //stores all blocks we are
     public static BasicBlockList blocks;
 
-    //stores all classes in form of structs
-    public static TypeStructList structsList;
-
 
 
     public Prog prog;
@@ -37,6 +34,7 @@ public class Translator extends MJElement.DefaultVisitor {
     public Translator(MJProgram javaProg) {
         this.javaProg = javaProg;
     }
+
 
     public Prog translate()
     {
@@ -50,9 +48,6 @@ public class Translator extends MJElement.DefaultVisitor {
         //this.curProc = mainProc; useless
 
         prog.getProcedures().add(mainProc);
-
-        structsList = TypeStructList();
-        prog.getStructTypes().addAll(structsList);
 
         //main block
         BasicBlock mainBlock = BasicBlock();
@@ -80,9 +75,33 @@ public class Translator extends MJElement.DefaultVisitor {
             //class with the fields
             TypeStruct classStruct = Ast.TypeStruct(classDecl.getName(), fieldsStruct);
 
-            structsList.add(classStruct);
+            //now create constructor for class
+            this.createConstructorProcedure(classDecl, classStruct);
+            prog.getStructTypes().add(classStruct);
         }
+    }
 
+    public void createConstructorProcedure(MJClassDecl classDecl, TypeStruct classStruct)
+    {
+        //add allocate instruction for struct
+        TemporaryVar tempClass = TemporaryVar(classDecl.getName());
+
+        Operand sizeStruct = Sizeof(classStruct);
+        BasicBlockList basicBlocksConst = BasicBlockList();
+
+
+        //create a single basic block containing the alloc instruction,
+        // //i.e: when calling the constructor, space is allocated onto the heap
+        // and virtual method table is
+        BasicBlock blockConstructor = BasicBlock();
+        Alloc allocClass = Alloc(tempClass, sizeStruct);
+        blockConstructor.add(allocClass);
+        blockConstructor.add(ReturnVoid());
+
+        basicBlocksConst.add(blockConstructor);
+
+        Proc constructorProc = Proc(classDecl.getName(), TypeVoid(), ParameterList(), basicBlocksConst );
+        this.prog.getProcedures().add(constructorProc);
     }
 
 

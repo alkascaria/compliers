@@ -51,8 +51,8 @@ public class TestOutputLLVM {
         Prog llvmProg = compiler.getLlvmProg();
 
         String llvmOut = llvmProg.toString();
-        //System.out.println("LLVM Output:");
-        //System.out.println(llvmOut);
+        System.out.println("LLVM Output:");
+        System.out.println(llvmOut);
 
         File llvmOutFile = new File(testOutputFolder, inputName.replace(".java", "") + ".ll");
         Files.write(llvmOutFile.toPath(), llvmOut.getBytes(StandardCharsets.UTF_8));

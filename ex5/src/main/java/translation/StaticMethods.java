@@ -23,6 +23,14 @@ public class StaticMethods
     {
         StructFieldList fieldsStruct = StructFieldList();
 
+       //create a virtual methods table as first field in the struct
+        //for now, just empty fields for methods to be put in it. to be filled later with methods
+        StructFieldList structFieldsVirtual = StructFieldList();
+        //type of the virtual method is a struct
+        TypeStruct virtualMethodsTable = TypeStruct("Virtual Method s Table", structFieldsVirtual);
+        StructField fieldVirtual = StructField(virtualMethodsTable, "Virtual Methods Table");
+        fieldsStruct.add(fieldVirtual);
+
         for(MJVarDecl varDecl : varDeclList)
         {
             //get the type
