@@ -1,7 +1,6 @@
 package translation;
 
-import minijava.ast.MJArrayLookup;
-import minijava.ast.MJExpr;
+import minijava.ast.*;
 import minillvm.ast.*;
 
 import static minillvm.ast.Ast.*;
@@ -11,7 +10,39 @@ import static minillvm.ast.Ast.VarRef;
 /**
  * Created by Daniele on 11/06/2017.
  */
-public class StaticMethods {
+public class StaticMethods
+{
+    /**
+     *
+     * @param varDeclList
+     * @return StructFieldList
+     * It converts all the fields of a Minijava class into struct fields
+     */
+
+    public static StructFieldList convertClassFieldsToStructFields(MJVarDeclList varDeclList)
+    {
+        StructFieldList fieldsStruct = StructFieldList();
+
+        for(MJVarDecl varDecl : varDeclList)
+        {
+            //get the type
+            MJType fieldType = varDecl.getType();
+            //get the name
+            String fieldName = varDecl.getName();
+            TypeMatcher matchType = new TypeMatcher();
+            Type typeField = fieldType.match(matchType);
+
+            StructField structField = StructField(typeField, fieldName);
+
+            fieldsStruct.add(structField);
+        }
+
+        return fieldsStruct;
+    }
+
+
+
+
 
     /**
      * Input: arrayLookup. an access to an array element (ex: a[5])

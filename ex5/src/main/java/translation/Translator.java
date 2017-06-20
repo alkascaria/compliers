@@ -21,12 +21,15 @@ public class Translator extends MJElement.DefaultVisitor {
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
 
-
-    //stores which Proc and Block we are currently in.
-    public static Proc curProc;
+    //stores which Block we are currently in.
     public static BasicBlock curBlock;
-
+    //stores all blocks we are
     public static BasicBlockList blocks;
+
+    //stores all classes in form of structs
+    public static TypeStructList structsList;
+
+
 
     public Prog prog;
 
@@ -35,7 +38,8 @@ public class Translator extends MJElement.DefaultVisitor {
         this.javaProg = javaProg;
     }
 
-    public Prog translate() {
+    public Prog translate()
+    {
         prog = Prog(TypeStructList(), GlobalList(), ProcList());
 
         //fill this with other blocks in the future
@@ -43,18 +47,20 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //main method
         Proc mainProc = Proc("main", TypeInt(), ParameterList(), blocks);
-        this.curProc = mainProc;
+        //this.curProc = mainProc; useless
 
         prog.getProcedures().add(mainProc);
+
+        structsList = TypeStructList();
+        prog.getStructTypes().addAll(structsList);
 
         //main block
         BasicBlock mainBlock = BasicBlock();
 
-        //get the list of instruction
+        //get the list of instructions
         mainBlock.setName("entry");
         blocks.add(mainBlock);
         this.curBlock = mainBlock;
-
 
         javaProg.accept(this);
 
@@ -62,6 +68,24 @@ public class Translator extends MJElement.DefaultVisitor {
 
         return prog;
     }
+
+
+    public void visit(MJClassDeclList classDeclList)
+    {
+        //loop through all classes in the class decl list
+        for (MJClassDecl classDecl : classDeclList)
+        {
+            //store all fields of a class in here
+            StructFieldList fieldsStruct = StaticMethods.convertClassFieldsToStructFields(classDecl.getFields());
+            //class with the fields
+            TypeStruct classStruct = Ast.TypeStruct(classDecl.getName(), fieldsStruct);
+
+            structsList.add(classStruct);
+        }
+
+    }
+
+
 
 
     /**
