@@ -70,17 +70,19 @@ public class Translator extends MJElement.DefaultVisitor {
         //loop through all classes in the class decl list
         for (MJClassDecl classDecl : classDeclList)
         {
-            //store all fields of a class in here
-            StructFieldList fieldsStruct = StaticMethods.convertClassFieldsToStructFields(classDecl.getFields());
-            //class with the fields
-            TypeStruct classStruct = Ast.TypeStruct(classDecl.getName(), fieldsStruct);
+            //for every class, get its fields and the ones of their parents, adding them to it ( replication)
+            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
-            //now create constructor for class
-            this.createConstructorProcedure(classDecl, classStruct);
-            prog.getStructTypes().add(classStruct);
+            //now create a struct for the class with the fields found
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+
+            prog.getStructTypes().add(structClass);
         }
     }
 
+
+
+    /*
     public void createConstructorProcedure(MJClassDecl classDecl, TypeStruct classStruct)
     {
         //add allocate instruction for struct
@@ -103,6 +105,8 @@ public class Translator extends MJElement.DefaultVisitor {
         Proc constructorProc = Proc(classDecl.getName(), TypeVoid(), ParameterList(), basicBlocksConst );
         this.prog.getProcedures().add(constructorProc);
     }
+
+    */
 
 
 

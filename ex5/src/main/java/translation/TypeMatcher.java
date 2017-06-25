@@ -1,10 +1,9 @@
 package translation;
 
 import minijava.ast.*;
-import minillvm.ast.Ast;
-import minillvm.ast.StructFieldList;
-import minillvm.ast.Type;
-import minillvm.ast.TypeStruct;
+import minillvm.ast.*;
+
+import static minillvm.ast.Ast.*;
 
 import static minillvm.ast.Ast.TypeArray;
 import static minillvm.ast.Ast.TypeBool;
@@ -17,10 +16,10 @@ public class TypeMatcher implements MJType.Matcher<Type> {
     @Override
     public Type case_TypeClass(MJTypeClass typeClass)
     {
-        //store all fields of a class in here
-        StructFieldList fieldsStruct = StaticMethods.convertClassFieldsToStructFields(typeClass.getClassDeclaration().getFields());
-        //class with the fields
-        TypeStruct classStruct = Ast.TypeStruct(typeClass.getClassDeclaration().getName(), fieldsStruct);
+
+        StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(typeClass.getClassDeclaration(), StructFieldList());
+
+        TypeStruct classStruct = TypeStruct(typeClass.getClassDeclaration().getName(), structFieldList);
 
         return classStruct;
     }

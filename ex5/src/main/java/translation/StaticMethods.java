@@ -12,43 +12,43 @@ import static minillvm.ast.Ast.VarRef;
  */
 public class StaticMethods
 {
+
+
     /**
-     *
-     * @param varDeclList
-     * @return StructFieldList
-     * It converts all the fields of a Minijava class into struct fields
+     * Tail-recursive function for creating the struct of classes so that
+     * classes' structs are are compatible with the classes they inherit fields from
+     * @param classDecl
+     * @param strutsReturn
+     * @return
      */
 
-    public static StructFieldList convertClassFieldsToStructFields(MJVarDeclList varDeclList)
+    public static StructFieldList returnStructsFieldsInClassAndParents(MJClassDecl classDecl, StructFieldList strutsReturn)
     {
-        StructFieldList fieldsStruct = StructFieldList();
-
-       //create a virtual methods table as first field in the struct
-        //for now, just empty fields for methods to be put in it. to be filled later with methods
-        StructFieldList structFieldsVirtual = StructFieldList();
-        //type of the virtual method is a struct
-        TypeStruct virtualMethodsTable = TypeStruct("Virtual Method s Table", structFieldsVirtual);
-        StructField fieldVirtual = StructField(virtualMethodsTable, "Virtual Methods Table");
-        fieldsStruct.add(fieldVirtual);
-
-        for(MJVarDecl varDecl : varDeclList)
+        //add all fields found to the front of the class
+        for(MJVarDecl varDecl: classDecl.getFields())
         {
-            //get the type
-            MJType fieldType = varDecl.getType();
-            //get the name
+            TypeMatcher typeMatcher = new TypeMatcher();
+            //convert all fields
             String fieldName = varDecl.getName();
-            TypeMatcher matchType = new TypeMatcher();
-            Type typeField = fieldType.match(matchType);
+            Type fieldType = varDecl.getType().match(typeMatcher);
 
-            StructField structField = StructField(typeField, fieldName);
+            //now create a field with these
+            StructField fieldStruct = StructField(fieldType, fieldName);
 
-            fieldsStruct.add(structField);
+            strutsReturn.addFront(fieldStruct);
         }
 
-        return fieldsStruct;
+        //if it does have a parent, then go ahead and visit its parent
+        if(classDecl.getDirectSuperClass() != null)
+        {
+            return returnStructsFieldsInClassAndParents(classDecl.getDirectSuperClass(), strutsReturn);
+        }
+        //else, just return what has been found so far if reaching top of tree, kinda.
+        else
+        {
+            return strutsReturn;
+        }
     }
-
-
 
 
 
