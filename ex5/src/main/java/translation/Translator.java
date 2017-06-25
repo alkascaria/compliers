@@ -86,7 +86,7 @@ public class Translator extends MJElement.DefaultVisitor {
             StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
             //add all procedures to the global procedures list
-            initMethodsDeclarations(classDecl, classDecl.getMethods());
+            initMethodsDeclarations(classDecl.getMethods());
 
             TypeStruct virtualMethodTable = createVirtualMethodTable(classDecl);
 
@@ -111,31 +111,36 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public TypeStruct createVirtualMethodTable(MJClassDecl classDecl)
     {
+        System.out.println("Creating V-Table for " + classDecl.getName());
+
         StructFieldList fieldsVirtualMethodTable  = StructFieldList();
 
         //initialize functions in the current class
-        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, fieldsVirtualMethodTable);
+        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, fieldsVirtualMethodTable, classDecl);
 
-        System.out.println("Super class of" + classDecl.getName() + " is class " + classDecl.getDirectSuperClass().getName());
+        //now check all parents
+        MJClassDecl parentClass = classDecl.getDirectSuperClass();
 
         //and now get all the functions
-        while(classDecl.getDirectSuperClass() != null)
+        while(parentClass != null)
         {
-            System.out.println("Checking parent" + classDecl.getDirectSuperClass() + " of class " + classDecl.getName());
 
-            StructFieldList structFieldList = getFunctionsInClass(classDecl.getDirectSuperClass(), functionsCurClass);
+            StructFieldList structFieldList = getFunctionsInClass(parentClass, functionsCurClass, classDecl);
 
             //need to "unrol" the functions and add them before the current one, if there are any in the parent
-            for(StructField structField: structFieldList)
+            for(StructField structField: structFieldList.copy())
             {
-                functionsCurClass.addFront(structField);
+                functionsCurClass.addFront(structField.copy());
             }
+            parentClass = parentClass.getDirectSuperClass();
         }
 
         TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , fieldsVirtualMethodTable);
 
 
         return structVirtualTable;
+
+        //return null;
     }
 
     /**
@@ -146,11 +151,12 @@ public class Translator extends MJElement.DefaultVisitor {
      * @return a structFieldList that has pointers to the different procedures invokable in the class
      */
     //TODO: DONE?: check if there is already the pointer to a function with the same name. if there is, no need to add it
-    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldList)
+    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldList, MJClassDecl classCur)
     {
         //loop through all functions and create a pointer to the procedures previously stored
         for(MJMethodDecl methodDecl: classDecl.getMethods())
         {
+
             //get the corresponding procedure from the list of all procedures and add it to current method
             //Proc procMethod = methodsProcs.get(methodDecl);
 
@@ -173,7 +179,7 @@ public class Translator extends MJElement.DefaultVisitor {
             //check for not adding overridden procedures
             if(!(procedureSameNameExists(methodDecl.getName(), structFieldList)))
             {
-                System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName());
+                System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName() + " to cur Class " + classCur.getName());
                 //and put it as field with the corresponding proc name into the list
                 structFieldList.add(StructField(typePointerProc, methodDecl.getName()));
             }
@@ -226,7 +232,7 @@ public class Translator extends MJElement.DefaultVisitor {
      * @param classDecl
      * @param methodDeclList
      */
-    public void initMethodsDeclarations(MJClassDecl classDecl, MJMethodDeclList methodDeclList)
+    public void initMethodsDeclarations(MJMethodDeclList methodDeclList)
     {
 
         for(MJMethodDecl methodDecl : methodDeclList)
