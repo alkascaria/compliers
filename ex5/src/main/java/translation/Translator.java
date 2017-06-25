@@ -6,6 +6,7 @@ import minillvm.ast.*;
 import static minillvm.ast.Ast.*;
 
 
+import java.sql.Struct;
 import java.util.HashMap;
 
 
@@ -20,11 +21,12 @@ public class Translator extends MJElement.DefaultVisitor {
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
 
-    public static HashMap<String, MJMemberDecl> methodsDecl = new HashMap<>();
+    public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
+
 
     //stores which Block we are currently in.
     public static BasicBlock curBlock;
-    //stores all blocks we are
+    //stores all blocks considered
     public static BasicBlockList blocks;
 
 
@@ -68,12 +70,10 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public void visit(MJMainClass mainClass)
     {
-        System.out.println("Parsing main class");
 
         mainClass.getMainBody().accept(this);
 
         curBlock.add(ReturnExpr(ConstInt(0)));
-        System.out.println("Finished parsing main class and adding return 0");
     }
 
 
@@ -85,7 +85,16 @@ public class Translator extends MJElement.DefaultVisitor {
             //for every class, get its fields and the ones of their parents, adding them to it ( replication)
             StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
-            handleMethodsDeclarations(classDecl, classDecl.getMethods());
+            //add all procedures to the global procedures list
+            initMethodsDeclarations(classDecl, classDecl.getMethods());
+
+            TypeStruct virtualMethodTable = createVirtualMethodTable(classDecl);
+
+            //dont' store the full table, but just a reference to it
+
+            //and put the virtual method table in front
+            //getFunctionsInClassAndParents
+
 
             //now create a struct for the class with the fields found
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
@@ -95,12 +104,129 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
     /**
-     * Stores procedures into the list of prog procedures
+     * Creates a virtual method table with all corresponding functions for a class passed
+     * @param classDecl
+     * @return
+     */
+
+    public TypeStruct createVirtualMethodTable(MJClassDecl classDecl)
+    {
+        StructFieldList fieldsVirtualMethodTable  = StructFieldList();
+
+        //initialize functions in the current class
+        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, fieldsVirtualMethodTable);
+
+        System.out.println("Super class of" + classDecl.getName() + " is class " + classDecl.getDirectSuperClass().getName());
+
+        //and now get all the functions
+        while(classDecl.getDirectSuperClass() != null)
+        {
+            System.out.println("Checking parent" + classDecl.getDirectSuperClass() + " of class " + classDecl.getName());
+
+            StructFieldList structFieldList = getFunctionsInClass(classDecl.getDirectSuperClass(), functionsCurClass);
+
+            //need to "unrol" the functions and add them before the current one, if there are any in the parent
+            for(StructField structField: structFieldList)
+            {
+                functionsCurClass.addFront(structField);
+            }
+        }
+
+        TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , fieldsVirtualMethodTable);
+
+
+        return structVirtualTable;
+    }
+
+    /**
+     * Tail recursive function that does the following:
+     * Adds pointers to functions of the current class to the StructFieldList to be returned
+     * @param classDecl
+     * @param structFieldList: fields filled so far with pointers
+     * @return a structFieldList that has pointers to the different procedures invokable in the class
+     */
+    //TODO: DONE?: check if there is already the pointer to a function with the same name. if there is, no need to add it
+    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldList)
+    {
+        //loop through all functions and create a pointer to the procedures previously stored
+        for(MJMethodDecl methodDecl: classDecl.getMethods())
+        {
+            //get the corresponding procedure from the list of all procedures and add it to current method
+            //Proc procMethod = methodsProcs.get(methodDecl);
+
+            //get type of all parameters and store it into this list
+            TypeRefList typeRefList = TypeRefList();
+            TypeMatcher typeMatcher = new TypeMatcher();
+
+            for(MJVarDecl paramDecl : methodDecl.getFormalParameters())
+            {
+                Type typeParam = paramDecl.getType().match(typeMatcher);
+                typeRefList.add(typeParam);
+            }
+
+            Type resultType = methodDecl.getReturnType().match(typeMatcher);
+            TypeProc typeProcedures = TypeProc(typeRefList, resultType);
+            //finally, pointer to the procedure created
+            TypePointer typePointerProc = TypePointer(typeProcedures);
+
+
+            //check for not adding overridden procedures
+            if(!(procedureSameNameExists(methodDecl.getName(), structFieldList)))
+            {
+                System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName());
+                //and put it as field with the corresponding proc name into the list
+                structFieldList.add(StructField(typePointerProc, methodDecl.getName()));
+            }
+            //else, no need to do anything
+        }
+        return structFieldList;
+    }
+
+    /**
+     * Check for overriding procedures  (if they were already stored in the v-table
+     * @param name
+     * @param structFieldList
+     * @return
+     */
+    public boolean procedureSameNameExists(String name, StructFieldList structFieldList)
+    {
+        for(StructField structField: structFieldList)
+        {
+            if(structField.getName().equals(name))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public Proc getProcedureFromGlobalProcs(Proc procGet)
+    {
+        Proc procReturn = null;
+        for(int i = 0; i < prog.getProcedures().size(); i++)
+        {
+            Proc procCurIndex = prog.getProcedures().get(i);
+
+            if(procCurIndex.equals(procGet))
+            {
+                return procCurIndex;
+            }
+        }
+
+        System.err.println("No procedure found with name: " + procGet.getName() + " in list of procedures");
+        return null;
+
+
+    }
+
+    /**
+     * Stores procedures into the list of prog procedures and hashMap
+     * Transforms methods into procedures
      * @param classDecl
      * @param methodDeclList
      */
-
-    public void handleMethodsDeclarations(MJClassDecl classDecl, MJMethodDeclList methodDeclList)
+    public void initMethodsDeclarations(MJClassDecl classDecl, MJMethodDeclList methodDeclList)
     {
 
         for(MJMethodDecl methodDecl : methodDeclList)
@@ -130,11 +256,12 @@ public class Translator extends MJElement.DefaultVisitor {
             //add all stuff to the method block
             methodDecl.getMethodBody().accept(this);
 
-            Proc mainProc = Proc(methodName, returnType, parameterList, blocks);
+            Proc methodProc = Proc(methodName, returnType, parameterList, blocks);
 
-            prog.getProcedures().add(mainProc);
+            prog.getProcedures().add(methodProc);
 
-            methodsDecl.put(classDecl.getName(), methodDecl);
+            //hashmap maps a method with the corresponding procedure
+            methodsProcs.put(methodDecl, methodProc);
 
         }
     }
