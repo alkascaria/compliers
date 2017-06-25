@@ -15,11 +15,12 @@ import java.util.HashMap;
 
 public class Translator extends MJElement.DefaultVisitor {
 
-
     private final MJProgram javaProg;
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
+
+    public static HashMap<String, MJMemberDecl> methodsDecl = new HashMap<>();
 
     //stores which Block we are currently in.
     public static BasicBlock curBlock;
@@ -45,7 +46,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //main method
         Proc mainProc = Proc("main", TypeInt(), ParameterList(), blocks);
-        //this.curProc = mainProc; useless
 
         prog.getProcedures().add(mainProc);
 
@@ -57,11 +57,23 @@ public class Translator extends MJElement.DefaultVisitor {
         blocks.add(mainBlock);
         this.curBlock = mainBlock;
 
+        //javaProg.accept(this);
         javaProg.accept(this);
 
-        curBlock.add(ReturnExpr(ConstInt(0)));
+
+
 
         return prog;
+    }
+
+    public void visit(MJMainClass mainClass)
+    {
+        System.out.println("Parsing main class");
+
+        mainClass.getMainBody().accept(this);
+
+        curBlock.add(ReturnExpr(ConstInt(0)));
+        System.out.println("Finished parsing main class and adding return 0");
     }
 
 
@@ -73,12 +85,60 @@ public class Translator extends MJElement.DefaultVisitor {
             //for every class, get its fields and the ones of their parents, adding them to it ( replication)
             StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
+            handleMethodsDeclarations(classDecl, classDecl.getMethods());
+
             //now create a struct for the class with the fields found
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
 
             prog.getStructTypes().add(structClass);
         }
     }
+
+    /**
+     * Stores procedures into the list of prog procedures
+     * @param classDecl
+     * @param methodDeclList
+     */
+
+    public void handleMethodsDeclarations(MJClassDecl classDecl, MJMethodDeclList methodDeclList)
+    {
+
+        for(MJMethodDecl methodDecl : methodDeclList)
+        {
+            TypeMatcher typeMatcher = new TypeMatcher();
+            String methodName = methodDecl.getName();
+            Type returnType = methodDecl.getReturnType().match(typeMatcher);
+
+
+            ParameterList parameterList = ParameterList();
+            //for all parameters, convert their type
+            for (MJVarDecl paramDecl : methodDecl.getFormalParameters())
+            {
+                String paramName = paramDecl.getName();
+                Type paramType = paramDecl.getType().match(typeMatcher);
+
+                Parameter parameter = Parameter(paramType, paramName);
+                parameterList.add(parameter);
+            }
+
+            //create new blocks for the procedure
+            blocks = BasicBlockList();
+            BasicBlock methodBlock = BasicBlock();
+            methodBlock.setName(methodDecl.getName());
+            blocks.add(methodBlock);
+            curBlock = methodBlock;
+            //add all stuff to the method block
+            methodDecl.getMethodBody().accept(this);
+
+            Proc mainProc = Proc(methodName, returnType, parameterList, blocks);
+
+            prog.getProcedures().add(mainProc);
+
+            methodsDecl.put(classDecl.getName(), methodDecl);
+
+        }
+    }
+
 
 
 
@@ -226,8 +286,13 @@ public class Translator extends MJElement.DefaultVisitor {
      *                         return expr
      */
     @Override
-    public void visit(MJStmtReturn stmtReturn) {
-        throw new RuntimeException();
+    public void visit(MJStmtReturn stmtReturn)
+    {
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+
+        Operand operReturn = stmtReturn.getResult().match(exprMatcherR);
+
+        Translator.curBlock.add(ReturnExpr(operReturn));
     }
 
 
