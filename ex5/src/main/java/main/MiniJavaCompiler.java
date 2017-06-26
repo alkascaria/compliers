@@ -48,7 +48,7 @@ public class MiniJavaCompiler {
         // translate
         // TODO you can pass analysis results to your translator here:
         Translator translator = new Translator(javaProgram);
-        llvmProg = translator.translate();
+        llvmProg = translator.translate(javaProgram);
 
     }
 

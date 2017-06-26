@@ -11,12 +11,13 @@ import java.util.HashMap;
 public class ClassData
 {
 
-    //list of all procedures stored in the current class
+    //list of all procedures stored in the current class, also inherited from parents
     ProcList procList;
 
-    //list of all structField
+    //list of all structField, also inherites from parents
     StructFieldList structFieldList ;
 
+    //virtual table
     TypeStruct typeStructVirtualTable;
 
 

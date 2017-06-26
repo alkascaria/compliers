@@ -1,14 +1,20 @@
 package translation;
 
+import analysis.Analysis;
+import analysis.ClassTable;
+import analysis.*;
+import analysis.ClassType;
 import minijava.ast.*;
 import minijava.ast.MJMethodDeclList;
 import minillvm.ast.*;
+import minillvm.ast.Type;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.StructFieldList;
 
 
 import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +36,8 @@ public class Translator extends MJElement.DefaultVisitor {
     //global corresponding to the V-Table of ClassDecl
     public static HashMap<MJClassDecl, Global> vTableClass = new HashMap<>();
 
+    public static HashMap<String, TypeStruct> structsMap = new HashMap<>();
+
 
     //stores which Block we are currently in.
     public static BasicBlock curBlock;
@@ -41,14 +49,28 @@ public class Translator extends MJElement.DefaultVisitor {
     public Prog prog;
 
 
-    public Translator(MJProgram javaProg) {
+    public Translator(MJProgram javaProg)
+    {
         this.javaProg = javaProg;
+
+
     }
 
 
-    public Prog translate()
+    public Prog translate(MJProgram javaProg)
     {
+
         prog = Prog(TypeStructList(), GlobalList(), ProcList());
+        //handle all classes declarations before going on with the main
+        this.handleClassDeclList(javaProg.getClassDecls());
+
+        this.handleMainClass(javaProg.getMainClass());
+
+
+        return prog;
+    }
+
+    public void handleMainClass(MJMainClass mainClass) {
 
         //fill this with other blocks in the future
         blocks = BasicBlockList();
@@ -66,17 +88,6 @@ public class Translator extends MJElement.DefaultVisitor {
         blocks.add(mainBlock);
         this.curBlock = mainBlock;
 
-        //javaProg.accept(this);
-        javaProg.accept(this);
-
-
-
-
-        return prog;
-    }
-
-    public void visit(MJMainClass mainClass)
-    {
 
         mainClass.getMainBody().accept(this);
 
@@ -84,9 +95,8 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
-    public void visit(MJClassDeclList classDeclList)
+    public void handleClassDeclList(MJClassDeclList classDeclList)
     {
-
 
         //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
         for(MJClassDecl classDecl : classDeclList)
@@ -94,13 +104,14 @@ public class Translator extends MJElement.DefaultVisitor {
             initMethodsDeclarations(classDecl);
         }
 
+
         //System.out.println("All methods in hash:");
        // System.out.println(Translator.methodsProcs.toString());
 
         //loop through all classes in the class decl list
         for (MJClassDecl classDecl : classDeclList)
         {
-            //for every class, get its fields and the ones of their parents, adding them to it ( replication)
+            //for every class, get its fields and the ones of their parents, adding them to it ( replication
 
             ClassData dataClass = createVirtualMethodTable(classDecl);
             //get all the elements obtained from the class instantiation
@@ -125,15 +136,11 @@ public class Translator extends MJElement.DefaultVisitor {
 
             //will need to be used later on in the constructor
             Translator.vTableClass.put(classDecl, globalRefVirtualTable);
-            //TODO: put pointer to V-Table into class constructor. move this to the construtor and add a hashmap to link them
 
-
-            //TODO: move this to the constructor part
-            //StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
-
-            //TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-            //prog.getStructTypes().add(structClass);
-
+            //generate a struct for every class and save this into a hashMap
+            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+            structsMap.put(classDecl.getName() ,structClass);
 
         }
 
@@ -148,7 +155,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public ClassData createVirtualMethodTable(MJClassDecl classDecl)
     {
-         System.out.println("Creating V-Table for " + classDecl.getName());
+        // System.out.println("Creating V-Table for " + classDecl.getName());
 
         //initialize functions pointers as fields of the current class as TypeStruct
         ClassData classDataBaseClass = getFunctionsInClass(classDecl, StructFieldList(), StructFieldList(), new ClassData());
@@ -198,7 +205,6 @@ public class Translator extends MJElement.DefaultVisitor {
         classDataReturn.setStructFieldList(structFieldListReturn);
         classDataReturn.setVirtualTable(structVirtualTable);
         classDataReturn.setProcList(procListAll);
-
 
 
         return classDataReturn;
@@ -269,9 +275,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
 
-
-
-
     /**
      * Check for overriding procedures  (if they were already stored in the v-table
      * @param name
@@ -291,11 +294,6 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
-
-
-
-
-
     /**
      * Stores procedures into the list of prog procedures and hashMap
      * Transforms methods into procedures
@@ -303,10 +301,11 @@ public class Translator extends MJElement.DefaultVisitor {
     public void initMethodsDeclarations(MJClassDecl classDecl)
     {
         //firstly,
-        System.out.println("For class" + classDecl.getName());
 
         for(MJMethodDecl methodDecl : classDecl.getMethods())
         {
+            System.out.println("Adding method " + methodDecl.getName());
+
             TypeMatcher typeMatcher = new TypeMatcher();
             String methodName = methodDecl.getName();
             Type returnType = methodDecl.getReturnType().match(typeMatcher);
@@ -348,33 +347,28 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
-
-
-    /*
-    public void createConstructorProcedure(MJClassDecl classDecl, TypeStruct classStruct)
+    public void visit(MJNewObject newObject)
     {
-        //add allocate instruction for struct
-        TemporaryVar tempClass = TemporaryVar(classDecl.getName());
 
-        Operand sizeStruct = Sizeof(classStruct);
-        BasicBlockList basicBlocksConst = BasicBlockList();
-
-
-        //create a single basic block containing the alloc instruction,
-        // //i.e: when calling the constructor, space is allocated onto the heap
-        // and virtual method table is
-        BasicBlock blockConstructor = BasicBlock();
-        Alloc allocClass = Alloc(tempClass, sizeStruct);
-        blockConstructor.add(allocClass);
-        blockConstructor.add(ReturnVoid());
-
-        basicBlocksConst.add(blockConstructor);
-
-        Proc constructorProc = Proc(classDecl.getName(), TypeVoid(), ParameterList(), basicBlocksConst );
-        this.prog.getProcedures().add(constructorProc);
     }
 
-    */
+
+    /**
+     * Creates contructor for a class
+     * @param classDecl
+     */
+
+    public void createConstructorForClass(MJClassDecl classDecl)
+    {
+        StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
+        TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+        prog.getStructTypes().add(structClass);
+
+
+
+    }
+
+
 
 
 
@@ -543,7 +537,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //a = null by default
         //int a;
-        if (typeName instanceof MJTypeInt) {
+        if (typeName instanceof MJTypeInt)
+        {
             Type typeInt = TypeInt();
             //put variable declaration onto stack
             Alloca allocVar = Alloca(tempVar, typeInt);
@@ -552,7 +547,8 @@ public class Translator extends MJElement.DefaultVisitor {
             this.varsTemp.put(varName, tempVar);
         }
         //boolean a;
-        else if (typeName instanceof MJTypeBool) {
+        else if (typeName instanceof MJTypeBool)
+        {
             Type typeBool = TypeBool();
             //put variable declaration onto stack
             Alloca allocVar = Alloca(tempVar, typeBool);
@@ -561,7 +557,8 @@ public class Translator extends MJElement.DefaultVisitor {
             this.varsTemp.put(varName, tempVar);
         }
         //int[] a;
-        else if (typeName instanceof MJTypeIntArray) {
+        else if (typeName instanceof MJTypeIntArray)
+        {
             //create a pointer to an array.
             TemporaryVar tempArray = TemporaryVar("arrayPointer");
             //allocate onto stack an array with size 0 to allow for pointers to refer to it
@@ -574,6 +571,19 @@ public class Translator extends MJElement.DefaultVisitor {
             this.curBlock.add(arrayConverted);
             //finally, add to hashmap
             this.varsTemp.put(varName, tempVarReturn);
+        }
+        else if(typeName instanceof MJTypeClass)
+        {
+            //store it into the hash map too
+           // String className = ((MJTypeClass) typeName).getClassDeclaration().getName();
+
+            //TemporaryVar classTemp = TemporaryVar("class_var_"+ className);
+           // this.curBlock.add(Alloc(classTemp,ConstInt(0)));
+            //TemporaryVar tempClassReturn = TemporaryVar("return class" + className);
+            //this.curBlock.add(Bitcast(tempClassReturn, TypePointer(structsMap.get(className)), VarRef(classTemp)));
+
+          //  this.varsTemp.put(varName, tempClassReturn);
+
 
         }
 
