@@ -116,14 +116,15 @@ public class Translator extends MJElement.DefaultVisitor {
 
             //assign a value as constant for every field in the V-Table --> Procedure ref to the corresponding procedure
 
-           // System.out.println("And fields:");
-            //for(StructField structField : virtualMethodTable.getFields())
-           // {
+            System.out.println("And fields:");
+            for(StructField structField : virtualMethodTable.getFields())
+           {
                 //System.out.println(structField.getType().toString());
-            //    System.out.println(structField.getName().toString());
-           // }
+             System.out.println(structField.getName().toString());
+            }
 
             //fields and procs need to match. we will now create a list of consts with references to procedures
+
 
 
             ConstStruct constVirtualTable =  ConstStruct(virtualMethodTable, constListVirtual);
@@ -131,21 +132,24 @@ public class Translator extends MJElement.DefaultVisitor {
 
             System.out.println("Fields for V-Table: " + virtualMethodTable.getFields().size());
 
+            prog.getStructTypes().add(virtualMethodTable);
 
             Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, constVirtualTable);
             this.prog.getGlobals().add(globalRefVirtualTable);
 
-            //dont' store the full table, but just a reference to it
+
+            //above is broken stuff: now try to do something
+
+      //dont' store the full table, but just a reference to it
 
             //and put the virtual method table in front
             //getFunctionsInClassAndParents
 
 
-            //TODO: put pointer to V-Table into class constructor
+            //TODO: put pointer to V-Table into class constructor. move this to the construtor and add a hashmap to link them
             //now create a struct for the class with the fields found
-           // TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-
-           // prog.getStructTypes().add(structClass);
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+            prog.getStructTypes().add(structClass);
 
 
         }
