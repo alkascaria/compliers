@@ -50,6 +50,33 @@ public class StaticMethods
         }
     }
 
+    public static ConstList initializeFieldsClass(StructFieldList fieldsStruct)
+    {
+        ConstList constListReturn = ConstList();
+
+        //create one const for every struct, i.e: initialize all fields
+        for(StructField structField: fieldsStruct)
+        {
+            //integer, instantiate to 0
+            if(structField.getType().equalsType(TypeInt()))
+            {
+                constListReturn.add(ConstInt(0));
+            }
+            else if(structField.getType().equalsType(TypeBool()))
+            {
+                constListReturn.add(ConstBool(false));
+            }
+            //array or class, return null
+            else
+            {
+                constListReturn.add(Nullpointer());
+            }
+        }
+
+        return constListReturn;
+
+    }
+
 
 
     /**

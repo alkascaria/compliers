@@ -380,14 +380,30 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_NewObject(MJNewObject newObject)
     {
+        //this whole case is kinda like the class' constructor
+
+
         TemporaryVar tempClass = TemporaryVar("temp class");
 
+        TypeStruct typeNewObj = Translator.structsMap.get(newObject.getClassName());
+
         //allocate space on the heap for the class' struct
+        Translator.curBlock.add(Alloc(tempClass, Sizeof(typeNewObj)));
 
-        Translator.curBlock.add(Alloc(tempClass, Sizeof(Translator.structsMap.get(newObject.getClassName()))));
+        TemporaryVar bitCastClass = TemporaryVar("casted obj pointer");
+        Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(typeNewObj),VarRef(tempClass)));
 
-        TemporaryVar bitCastClass = TemporaryVar("byte_new_obj_ptr");
-        Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(Translator.structsMap.get(newObject.getClassName())),VarRef(tempClass)));
+        ConstList constValuesStruct = StaticMethods.initializeFieldsClass(typeNewObj.getFields());
+
+        Translator.valuesStructs.put(typeNewObj, ConstStruct(typeNewObj, constValuesStruct));
+
+        //set reference to the virtual table in the class struct as first field
+        //StructFieldList curObjFields = typeNewObj.getFields();
+
+
+        //Global vTableGlobal = Translator.vTableClass.get(newObject.getClassDeclaration());
+        //curObjFields.addFront(refVTable);
+
 
 
         //We store the size of the newint array in the length section of our array struc

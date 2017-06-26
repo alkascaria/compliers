@@ -38,6 +38,10 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<String, TypeStruct> structsMap = new HashMap<>();
 
+    //constants assigned to fields of the structMap
+    public static HashMap<TypeStruct, ConstStruct> valuesStructs = new HashMap<>();
+
+
 
     //stores which Block we are currently in.
     public static BasicBlock curBlock;
@@ -95,15 +99,20 @@ public class Translator extends MJElement.DefaultVisitor {
     public void handleClassDeclList(MJClassDeclList classDeclList)
     {
 
+        //generate a struct for every class and save this into a hashMap
+        for(MJClassDecl classDecl : classDeclList)
+        {
+            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+            structsMap.put(classDecl.getName() ,structClass);
+
+            prog.getStructTypes().add(structClass);
+        }
         //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
         for(MJClassDecl classDecl : classDeclList)
         {
             initMethodsDeclarations(classDecl);
         }
-
-
-        //System.out.println("All methods in hash:");
-       // System.out.println(Translator.methodsProcs.toString());
 
         //loop through all classes in the class decl list
         for (MJClassDecl classDecl : classDeclList)
@@ -133,11 +142,13 @@ public class Translator extends MJElement.DefaultVisitor {
             //will need to be used later on in the constructor
             Translator.vTableClass.put(classDecl, globalRefVirtualTable);
 
-            //generate a struct for every class and save this into a hashMap
-            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
-            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-            structsMap.put(classDecl.getName() ,structClass);
-            prog.getStructTypes().add(structClass);
+
+
+
+
+
+
+
 
         }
 
@@ -332,14 +343,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
             prog.getProcedures().add(methodProc);
 
-           // System.out.println("Adding proc" + methodProc.getName());
-            //hashmap maps a method with the corresponding procedure
             methodsProcs.put(methodDecl, methodProc);
-
-           // System.out.println(" Corresponding proc:");
-            //System.out.println(methodsProcs.toString());
-            //System.err.println(methodsProcs.get(methodDecl));
-
         }
     }
 
@@ -501,7 +505,8 @@ public class Translator extends MJElement.DefaultVisitor {
      *                      boolean b;
      */
     @Override
-    public void visit(MJVarDecl varDecl) {
+    public void visit(MJVarDecl varDecl)
+    {
 
         MJType typeName = varDecl.getType();
         String varName = varDecl.getName();
@@ -552,9 +557,6 @@ public class Translator extends MJElement.DefaultVisitor {
             this.curBlock.add(Alloc(classTemp,ConstInt(0)));
             TemporaryVar tempClassReturn = TemporaryVar("return class" + className);
 
-
-
-            //System.out.println(structsMap.get(className).);
 
             this.curBlock.add(Bitcast(tempClassReturn, TypePointer(TypePointer(structsMap.get(className))), VarRef(classTemp)));
             this.varsTemp.put(varName, tempClassReturn);
