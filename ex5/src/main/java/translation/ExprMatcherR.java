@@ -242,8 +242,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeClass(MJTypeClass typeClass) {
-                throw new InvalidParameterException("Class usage " + typeClass.toString() + " is not supported as right-hand side expression!");
+            public Operand case_TypeClass(MJTypeClass typeClass)
+            {
+                return VarRef(tempVar);
+                //throw new InvalidParameterException("Class usage " + typeClass.toString() + " is not supported as right-hand side expression!");
+
             }
 
             /**
@@ -380,12 +383,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
         TemporaryVar tempClass = TemporaryVar("temp class");
 
         //allocate space on the heap for the class' struct
+
         Translator.curBlock.add(Alloc(tempClass, Sizeof(Translator.structsMap.get(newObject.getClassName()))));
 
         TemporaryVar bitCastClass = TemporaryVar("byte_new_obj_ptr");
         Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(Translator.structsMap.get(newObject.getClassName())),VarRef(tempClass)));
-
-       // this.curBlock.add(Bitcast(tempClassReturn, TypePointer(structsMap.get(className)), VarRef(classTemp)));
 
 
         //We store the size of the newint array in the length section of our array struc
