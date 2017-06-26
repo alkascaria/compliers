@@ -1,6 +1,7 @@
 package translation;
 
 import minijava.ast.*;
+import minijava.ast.MJMethodDeclList;
 import minillvm.ast.*;
 
 import static minillvm.ast.Ast.*;
@@ -9,6 +10,8 @@ import static minillvm.ast.Ast.StructFieldList;
 
 import java.sql.Struct;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 
 //Statements, visitor like here is fine.
@@ -80,33 +83,57 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public void visit(MJClassDeclList classDeclList)
     {
+
+
+        //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
+        for(MJClassDecl classDecl : classDeclList)
+        {
+            initMethodsDeclarations(classDecl);
+        }
+
+        //System.out.println("All methods in hash:");
+       // System.out.println(Translator.methodsProcs.toString());
+
         //loop through all classes in the class decl list
         for (MJClassDecl classDecl : classDeclList)
         {
             //for every class, get its fields and the ones of their parents, adding them to it ( replication)
             StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
-            //add all procedures to the global procedures list
-            initMethodsDeclarations(classDecl.getMethods());
-
-            TypeStruct virtualMethodTable = createVirtualMethodTable(classDecl);
-
+            ClassData dataClass = createVirtualMethodTable(classDecl);
+            //get all the elements obtained from the class instantiation
+            TypeStruct virtualMethodTable = dataClass.getVirtualTable();
+            //System.out.println(virtualMethodTable.getFields().size())
+            ProcList proceduresList = dataClass.getProcList();
             ConstList constListVirtual = ConstList();
-            //assign a value as constant for every field in the V-Table --> Procedure ref to the corresponding procedure
 
-            System.out.println("For class: " + classDecl.getName());
-            for(StructField structField : virtualMethodTable.getFields())
+            //add reference to all procedures to the V-Table
+            for(Proc proc : proceduresList)
             {
-
-                //System.out.println(structField.getType().toString());
-                System.out.println(structField.getName().toString());
-
+                System.out.println(proc.getName().toString());
+                constListVirtual.add(ProcedureRef(proc));
             }
 
+            //assign a value as constant for every field in the V-Table --> Procedure ref to the corresponding procedure
+
+           // System.out.println("And fields:");
+            //for(StructField structField : virtualMethodTable.getFields())
+           // {
+                //System.out.println(structField.getType().toString());
+            //    System.out.println(structField.getName().toString());
+           // }
+
+            //fields and procs need to match. we will now create a list of consts with references to procedures
 
 
-            Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, ConstInt(0));
+            ConstStruct constVirtualTable =  ConstStruct(virtualMethodTable, constListVirtual);
+            System.out.println("Constants for V-Table:" + constVirtualTable.getValues().size());
 
+            System.out.println("Fields for V-Table: " + virtualMethodTable.getFields().size());
+
+
+            Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, constVirtualTable);
+            this.prog.getGlobals().add(globalRefVirtualTable);
 
             //dont' store the full table, but just a reference to it
 
@@ -114,12 +141,17 @@ public class Translator extends MJElement.DefaultVisitor {
             //getFunctionsInClassAndParents
 
 
+            //TODO: put pointer to V-Table into class constructor
             //now create a struct for the class with the fields found
-            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+           // TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
 
-            prog.getStructTypes().add(structClass);
+           // prog.getStructTypes().add(structClass);
+
+
         }
+
     }
+
 
     /**
      * Creates a virtual method table with all corresponding functions for a class passed
@@ -127,45 +159,62 @@ public class Translator extends MJElement.DefaultVisitor {
      * @return
      */
 
-    public TypeStruct createVirtualMethodTable(MJClassDecl classDecl)
+    public ClassData createVirtualMethodTable(MJClassDecl classDecl)
     {
          System.out.println("Creating V-Table for " + classDecl.getName());
 
-        //initialize functions in the current class. These functions may overriden functions in parent classes!
-        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, StructFieldList(), StructFieldList());
+        //initialize functions pointers as fields of the current class as TypeStruct
+        ClassData classDataBaseClass = getFunctionsInClass(classDecl, StructFieldList(), StructFieldList(), new ClassData());
+
+        ProcList procsBaseClass = classDataBaseClass.getProcList();
 
         //contains all struct fields in the correct order, i.e: parent classes and current class
-        StructFieldList structFieldsParentClasses = StructFieldList();
+        ClassData classDataReturn = new ClassData();
         MJClassDecl parentClass = classDecl.getDirectSuperClass();
 
-        //now check all parents in a recursive fashion
+        //now check all parents in a recursive fashion. do not add functions overridden at base class level!
         while(parentClass != null)
         {
             //and now get all the functions in parent classes
-            structFieldsParentClasses = getFunctionsInClass(parentClass, functionsCurClass, structFieldsParentClasses);
+            classDataReturn = getFunctionsInClass(parentClass, classDataBaseClass.getStructFieldList(), classDataReturn.getStructFieldList(), classDataReturn);
             parentClass = parentClass.getDirectSuperClass();
         }
+
+        ProcList procListAll = classDataReturn.getProcList();
+
+        //now all procedures in base class after the ones inherited
+        for(Proc procBase : procsBaseClass)
+        {
+            procListAll.add(procBase.copy());
+        }
+
 
         //firstly, all parents-inherited functions, then the ones of the base class
         StructFieldList structFieldListReturn = StructFieldList();
 
-        //take functions in parents and put them before the ones of current class
-        for(StructField structFieldParent : structFieldsParentClasses)
+        //take functions in parents and put them before the ones of current base class
+        for(StructField structFieldParent : classDataReturn.getStructFieldList())
         {
-            //System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
+           // System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
             structFieldListReturn.add(structFieldParent.copy());
         }
 
         //functions of the base class
-        for(StructField structFieldBase : functionsCurClass)
+        for(StructField structFieldBase : classDataBaseClass.getStructFieldList())
         {
-           // System.out.println("Adding " + structFieldBase.getName().toString() + " from base class");
+          //  System.out.println("Adding " + structFieldBase.getName().toString() + " from base class");
             structFieldListReturn.add(structFieldBase.copy());
         }
 
         TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structFieldListReturn);
 
-        return structVirtualTable;
+        classDataReturn.setStructFieldList(structFieldListReturn);
+        classDataReturn.setVirtualTable(structVirtualTable);
+        classDataReturn.setProcList(procListAll);
+
+
+
+        return classDataReturn;
     }
 
     /**
@@ -176,18 +225,18 @@ public class Translator extends MJElement.DefaultVisitor {
      * @param structFieldsParents: structFieldLsit with functions of the parent classes
      * @return a structFieldList for functions contained in class
      */
-    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldsBaseClass, StructFieldList structFieldsParents)
+    public ClassData getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldsBaseClass, StructFieldList structFieldsParents, ClassData classData)
     {
         //loop through all functions and create a pointer to the procedures previously stored
         for(MJMethodDecl methodDecl: classDecl.getMethods())
         {
-
             //get type of all parameters and store it into this list
             TypeRefList typeRefList = TypeRefList();
             TypeMatcher typeMatcher = new TypeMatcher();
 
             for(MJVarDecl paramDecl : methodDecl.getFormalParameters())
             {
+                // System.out.println("Adding " + structFieldBase.getName().toString() + " from base class");
                 Type typeParam = paramDecl.getType().match(typeMatcher);
                 typeRefList.add(typeParam);
             }
@@ -197,18 +246,44 @@ public class Translator extends MJElement.DefaultVisitor {
             //finally, pointer to the procedure created
             TypePointer typePointerProc = TypePointer(typeProcedures);
 
-
             //check for not adding overridden procedures
             if(!(procedureSameNameExists(methodDecl.getName(), structFieldsBaseClass)))
             {
-                //System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName() + " to cur Class " );
+                //if we're in the base class, then add to the front
+                if(structFieldsBaseClass.isEmpty())
+                {
+                   // System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName() + " to cur Class from base " );
+                    structFieldsParents.add(StructField(typePointerProc, methodDecl.getName()));
+                    Proc procOfMethod = methodsProcs.get(methodDecl);
+                    classData.procList.add(procOfMethod.copy());
+                   // System.out.println("adding proc " + procOfMethod.getName() + " from base class");
+
+                }
+                //not in the base class
+                else
+                {
+                   // System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName() + " to cur Class from parent." );
+                    structFieldsParents.addFront(StructField(typePointerProc, methodDecl.getName()));
+                    Proc procOfMethod = methodsProcs.get(methodDecl);
+                    classData.procList.addFront(procOfMethod.copy());
+                  //  System.out.println("adding proc " + procOfMethod.getName() + " from parent");
+
+                }
+
                 //and put it as field with the corresponding proc name into the list
-                structFieldsParents.addFront(StructField(typePointerProc, methodDecl.getName()));
             }
-            //else, no need to do anything
+
+            classData.setStructFieldList(structFieldsParents);
         }
-        return structFieldsParents;
+
+        return classData;
     }
+
+
+
+
+
+
 
     /**
      * Check for overriding procedures  (if they were already stored in the v-table
@@ -229,15 +304,21 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
+
+
+
+
+
     /**
      * Stores procedures into the list of prog procedures and hashMap
      * Transforms methods into procedures
-     * @param methodDeclList
      */
-    public void initMethodsDeclarations(MJMethodDeclList methodDeclList)
+    public void initMethodsDeclarations(MJClassDecl classDecl)
     {
+        //firstly,
+        System.out.println("For class" + classDecl.getName());
 
-        for(MJMethodDecl methodDecl : methodDeclList)
+        for(MJMethodDecl methodDecl : classDecl.getMethods())
         {
             TypeMatcher typeMatcher = new TypeMatcher();
             String methodName = methodDecl.getName();
@@ -268,8 +349,13 @@ public class Translator extends MJElement.DefaultVisitor {
 
             prog.getProcedures().add(methodProc);
 
+           // System.out.println("Adding proc" + methodProc.getName());
             //hashmap maps a method with the corresponding procedure
             methodsProcs.put(methodDecl, methodProc);
+
+           // System.out.println(" Corresponding proc:");
+            //System.out.println(methodsProcs.toString());
+            //System.err.println(methodsProcs.get(methodDecl));
 
         }
     }
