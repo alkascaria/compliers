@@ -12,7 +12,10 @@ import static minillvm.ast.Ast.TypeInt;
 /**
  * Created by Daniele on 20/06/2017.
  */
-public class TypeMatcher implements MJType.Matcher<Type> {
+public class TypeMatcher implements MJType.Matcher<Type>
+{
+
+    //TODO: usage of classes goes here
     @Override
     public Type case_TypeClass(MJTypeClass typeClass)
     {

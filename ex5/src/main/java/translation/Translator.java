@@ -52,8 +52,6 @@ public class Translator extends MJElement.DefaultVisitor {
     public Translator(MJProgram javaProg)
     {
         this.javaProg = javaProg;
-
-
     }
 
 
@@ -65,7 +63,6 @@ public class Translator extends MJElement.DefaultVisitor {
         this.handleClassDeclList(javaProg.getClassDecls());
 
         this.handleMainClass(javaProg.getMainClass());
-
 
         return prog;
     }
@@ -116,7 +113,6 @@ public class Translator extends MJElement.DefaultVisitor {
             ClassData dataClass = createVirtualMethodTable(classDecl);
             //get all the elements obtained from the class instantiation
             TypeStruct virtualMethodTable = dataClass.getVirtualTable();
-            //System.out.println(virtualMethodTable.getFields().size())
             ProcList proceduresList = dataClass.getProcList();
             ConstList constListVirtual = ConstList();
 
@@ -141,6 +137,7 @@ public class Translator extends MJElement.DefaultVisitor {
             StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
             structsMap.put(classDecl.getName() ,structClass);
+            prog.getStructTypes().add(structClass);
 
         }
 
@@ -347,31 +344,6 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
-    public void visit(MJNewObject newObject)
-    {
-
-    }
-
-
-    /**
-     * Creates contructor for a class
-     * @param classDecl
-     */
-
-    public void createConstructorForClass(MJClassDecl classDecl)
-    {
-        StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
-        TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-        prog.getStructTypes().add(structClass);
-
-
-
-    }
-
-
-
-
-
 
     /**
      * @param stmtIf(@code MJStmtIf)
@@ -575,16 +547,17 @@ public class Translator extends MJElement.DefaultVisitor {
         else if(typeName instanceof MJTypeClass)
         {
             //store it into the hash map too
-           // String className = ((MJTypeClass) typeName).getClassDeclaration().getName();
-
-            //TemporaryVar classTemp = TemporaryVar("class_var_"+ className);
-           // this.curBlock.add(Alloc(classTemp,ConstInt(0)));
-            //TemporaryVar tempClassReturn = TemporaryVar("return class" + className);
-            //this.curBlock.add(Bitcast(tempClassReturn, TypePointer(structsMap.get(className)), VarRef(classTemp)));
-
-          //  this.varsTemp.put(varName, tempClassReturn);
+            String className = ((MJTypeClass) typeName).getClassDeclaration().getName();
+            TemporaryVar classTemp = TemporaryVar("class_var_"+ className);
+            this.curBlock.add(Alloc(classTemp,ConstInt(0)));
+            TemporaryVar tempClassReturn = TemporaryVar("return class" + className);
 
 
+
+            //System.out.println(structsMap.get(className).);
+
+            this.curBlock.add(Bitcast(tempClassReturn, TypePointer(TypePointer(structsMap.get(className))), VarRef(classTemp)));
+            this.varsTemp.put(varName, tempClassReturn);
         }
 
     }
@@ -604,9 +577,12 @@ public class Translator extends MJElement.DefaultVisitor {
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();
         Operand operLeft = exprLeft.match(exprMatchL);
+        System.out.println("Left is type" + operLeft.calculateType().toString());
 
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
+        System.out.println("Right is type " + operRight.calculateType().toString());
+
 
         Store storeValue = Store(operLeft, operRight);
 

@@ -8,6 +8,7 @@ import java.security.InvalidParameterException;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.TypePointer;
+import static translation.Translator.structsMap;
 
 /**
  * Created by Daniele on 09/06/2017.
@@ -109,9 +110,9 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeClass(MJTypeClass typeClass) {
-                throw new InvalidParameterException("Variable class usage  " + typeClass.toString() + " not supported as left-hand side expression!");
-
+            public Operand case_TypeClass(MJTypeClass typeClass)
+            {
+                return VarRef(Translator.varsTemp.get(varName));
             }
 
             /**
