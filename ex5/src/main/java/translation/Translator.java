@@ -27,6 +27,9 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
 
+    //global corresponding to the V-Table of ClassDecl
+    public static HashMap<MJClassDecl, Global> vTableClass = new HashMap<>();
+
 
     //stores which Block we are currently in.
     public static BasicBlock curBlock;
@@ -98,7 +101,6 @@ public class Translator extends MJElement.DefaultVisitor {
         for (MJClassDecl classDecl : classDeclList)
         {
             //for every class, get its fields and the ones of their parents, adding them to it ( replication)
-            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
 
             ClassData dataClass = createVirtualMethodTable(classDecl);
             //get all the elements obtained from the class instantiation
@@ -110,46 +112,27 @@ public class Translator extends MJElement.DefaultVisitor {
             //add reference to all procedures to the V-Table
             for(Proc proc : proceduresList)
             {
-                System.out.println(proc.getName().toString());
+                //System.out.println(proc.getName().toString());
                 constListVirtual.add(ProcedureRef(proc));
             }
 
-            //assign a value as constant for every field in the V-Table --> Procedure ref to the corresponding procedure
-
-            System.out.println("And fields:");
-            for(StructField structField : virtualMethodTable.getFields())
-           {
-                //System.out.println(structField.getType().toString());
-             System.out.println(structField.getName().toString());
-            }
-
-            //fields and procs need to match. we will now create a list of consts with references to procedures
-
-
-
             ConstStruct constVirtualTable =  ConstStruct(virtualMethodTable, constListVirtual);
-            System.out.println("Constants for V-Table:" + constVirtualTable.getValues().size());
-
-            System.out.println("Fields for V-Table: " + virtualMethodTable.getFields().size());
 
             prog.getStructTypes().add(virtualMethodTable);
 
             Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, constVirtualTable);
             this.prog.getGlobals().add(globalRefVirtualTable);
 
-
-            //above is broken stuff: now try to do something
-
-      //dont' store the full table, but just a reference to it
-
-            //and put the virtual method table in front
-            //getFunctionsInClassAndParents
-
-
+            //will need to be used later on in the constructor
+            Translator.vTableClass.put(classDecl, globalRefVirtualTable);
             //TODO: put pointer to V-Table into class constructor. move this to the construtor and add a hashmap to link them
-            //now create a struct for the class with the fields found
-            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-            prog.getStructTypes().add(structClass);
+
+
+            //TODO: move this to the constructor part
+            //StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
+
+            //TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
+            //prog.getStructTypes().add(structClass);
 
 
         }
@@ -420,10 +403,13 @@ public class Translator extends MJElement.DefaultVisitor {
         MJStatement statementsFalse = stmtIf.getIfFalse();
 
         BasicBlock basicBlockTrue = BasicBlock();
+        basicBlockTrue.setName("true IF");
 
         BasicBlock basicBlockFalse = BasicBlock();
+        basicBlockFalse.setName("false IF");
 
         BasicBlock basicBlockAfterIfElse = BasicBlock();
+        basicBlockAfterIfElse.setName("END if-else");
 
         //add the new terminating instruction to the current block
         Branch branchIfElse = Branch(operandCondition, basicBlockTrue, basicBlockFalse);
@@ -438,14 +424,14 @@ public class Translator extends MJElement.DefaultVisitor {
         //evaluate all expressions inside the true block
         statementsTrue.accept(this);
         //once we're done with this block, go on with the remaining code
-        basicBlockTrue.add(Jump(basicBlockAfterIfElse));
+        this.curBlock.add(Jump(basicBlockAfterIfElse));
 
 
         //FALSE code block (else) in IF. same functioning as TRUE block.
         this.curBlock = basicBlockFalse;
         this.blocks.add(basicBlockFalse);
         statementsFalse.accept(this);
-        basicBlockFalse.add(Jump(basicBlockAfterIfElse));
+        this.curBlock.add(Jump(basicBlockAfterIfElse));
 
 
         //done, go ahead with remaining code
