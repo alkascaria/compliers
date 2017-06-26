@@ -97,13 +97,14 @@ public class Translator extends MJElement.DefaultVisitor {
             System.out.println("For class: " + classDecl.getName());
             for(StructField structField : virtualMethodTable.getFields())
             {
+
                 //System.out.println(structField.getType().toString());
                 System.out.println(structField.getName().toString());
 
             }
 
 
-            //now check all parents
+
             Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, ConstInt(0));
 
 
@@ -128,34 +129,41 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public TypeStruct createVirtualMethodTable(MJClassDecl classDecl)
     {
-       // System.out.println("Creating V-Table for " + classDecl.getName());
+         System.out.println("Creating V-Table for " + classDecl.getName());
 
-        //initialize functions in the current class
-        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, StructFieldList());
+        //initialize functions in the current class. These functions may overriden functions in parent classes!
+        StructFieldList functionsCurClass = getFunctionsInClass(classDecl, StructFieldList(), StructFieldList());
 
+        //contains all struct fields in the correct order, i.e: parent classes and current class
+        StructFieldList structFieldsParentClasses = StructFieldList();
         MJClassDecl parentClass = classDecl.getDirectSuperClass();
-
-        StructFieldList structFieldList = StructFieldList();
 
         //now check all parents in a recursive fashion
         while(parentClass != null)
         {
             //and now get all the functions in parent classes
-             structFieldList = getFunctionsInClass(parentClass, functionsCurClass);
+            structFieldsParentClasses = getFunctionsInClass(parentClass, functionsCurClass, structFieldsParentClasses);
             parentClass = parentClass.getDirectSuperClass();
         }
 
-        StructFieldList structsFunctions = StructFieldList();
+        //firstly, all parents-inherited functions, then the ones of the base class
+        StructFieldList structFieldListReturn = StructFieldList();
 
-
-        //need to invert order of functions and add parents before children, if there are any functions in the parents'
-        for(StructField structField : structFieldList)
+        //take functions in parents and put them before the ones of current class
+        for(StructField structFieldParent : structFieldsParentClasses)
         {
-            structsFunctions.addFront(structField.copy());
+            //System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
+            structFieldListReturn.add(structFieldParent.copy());
         }
 
-        TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structsFunctions);
+        //functions of the base class
+        for(StructField structFieldBase : functionsCurClass)
+        {
+           // System.out.println("Adding " + structFieldBase.getName().toString() + " from base class");
+            structFieldListReturn.add(structFieldBase.copy());
+        }
 
+        TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structFieldListReturn);
 
         return structVirtualTable;
     }
@@ -163,11 +171,12 @@ public class Translator extends MJElement.DefaultVisitor {
     /**
      * Adds pointers to functions of the current class to the StructFieldList to be returned.
      * Makes sure overridden functions are not added twice (hence, parent is ignored)
-     * @param classDecl
-     * @param structFieldList: fields filled so far with pointers
-     * @return a structFieldList that has pointers to the different procedures invokable in the class
+     * @param classDecl: current class declaration where we are adding functions to.
+     * @param structFieldsBaseClass: structFieldList with functions of the base class
+     * @param structFieldsParents: structFieldLsit with functions of the parent classes
+     * @return a structFieldList for functions contained in class
      */
-    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldList)
+    public StructFieldList getFunctionsInClass(MJClassDecl classDecl, StructFieldList structFieldsBaseClass, StructFieldList structFieldsParents)
     {
         //loop through all functions and create a pointer to the procedures previously stored
         for(MJMethodDecl methodDecl: classDecl.getMethods())
@@ -190,15 +199,15 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
             //check for not adding overridden procedures
-            if(!(procedureSameNameExists(methodDecl.getName(), structFieldList)))
+            if(!(procedureSameNameExists(methodDecl.getName(), structFieldsBaseClass)))
             {
                 //System.out.println("Adding func " + methodDecl.getName() + " in V-Table of class " + classDecl.getName() + " to cur Class " );
                 //and put it as field with the corresponding proc name into the list
-                structFieldList.add(StructField(typePointerProc, methodDecl.getName()));
+                structFieldsParents.addFront(StructField(typePointerProc, methodDecl.getName()));
             }
             //else, no need to do anything
         }
-        return structFieldList;
+        return structFieldsParents;
     }
 
     /**
