@@ -8,6 +8,7 @@ import minijava.ast.*;
 import minijava.ast.MJMethodDeclList;
 import minillvm.ast.*;
 import minillvm.ast.Type;
+import org.apache.tools.ant.taskdefs.Get;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.StructFieldList;
@@ -213,6 +214,8 @@ public class Translator extends MJElement.DefaultVisitor {
         {
            // System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
             structFieldListReturn.add(structFieldParent.copy());
+
+
         }
 
        // Operand lengthBase = ConstInt(0);
@@ -222,14 +225,31 @@ public class Translator extends MJElement.DefaultVisitor {
         //functions of the base class
         for(StructField structFieldBase : classDataBaseClass.getStructFieldList())
         {
-
-
             structFieldListReturn.add(structFieldBase.copy());
-
-
         }
 
         TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structFieldListReturn);
+        TemporaryVar tempStructVTable = TemporaryVar("v-table");
+
+        StructFieldList structFieldsWithPointers = StructFieldList();
+
+        //System.out.println("V-Table contains:");
+        for(Proc  proc: procListAll)
+        {
+            //Daniele: store pointers to the different procedures here
+
+           // Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(structVirtualTable), VarRef(arrayHeapVar));
+
+
+           // TemporaryVar tempVTable = TemporaryVar("v-table");
+         //  Load loadStructFIeldList = Load(tempVTable, structVirtualTable);
+          // TemporaryVar tempPointer = TemporaryVar("temp pointer");
+           //GetElementPtr elementPtr = GetElementPtr(tempPointer, , OperandList());
+
+        }
+
+
+
 
         classDataReturn.setStructFieldList(structFieldListReturn);
         classDataReturn.setVirtualTable(structVirtualTable);
