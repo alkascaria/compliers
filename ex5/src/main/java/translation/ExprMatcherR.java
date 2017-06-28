@@ -385,7 +385,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
 
         TemporaryVar tempClass = TemporaryVar("temp class");
 
-        TypeStruct typeNewObj = Translator.structsMap.get(newObject.getClassName());
+        TypeStruct typeNewObj = Translator.structsMap.get(newObject.getClassDeclaration());
 
         //allocate space on the heap for the class' struct
         Translator.curBlock.add(Alloc(tempClass, Sizeof(typeNewObj)));
@@ -393,9 +393,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
         TemporaryVar bitCastClass = TemporaryVar("casted obj pointer");
         Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(typeNewObj),VarRef(tempClass)));
 
-        ConstList constValuesStruct = StaticMethods.initializeFieldsClass(typeNewObj.getFields());
+      //  ConstList constValuesStruct = StaticMethods.initializeFieldsClass(typeNewObj.getFields());
 
-        Translator.valuesStructs.put(typeNewObj, ConstStruct(typeNewObj, constValuesStruct));
+      //  Translator.valuesStructs.put(typeNewObj, ConstStruct(typeNewObj, constValuesStruct));
+
+
 
         //set reference to the virtual table in the class struct as first field
         //StructFieldList curObjFields = typeNewObj.getFields();
