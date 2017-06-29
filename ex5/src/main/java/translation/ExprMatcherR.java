@@ -35,35 +35,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
         //firstly, get the class that's being accessed
-        MJExpr exprReceiver = fieldAccess.getReceiver();
-
-        ExprMatcherR exprMatcherR = new ExprMatcherR();
-
-        //a.x
-        if(exprReceiver instanceof MJVarUse)
-        {
-            MJVarUse varUse = (MJVarUse)exprReceiver;
-
-            //if trying to access a class. well, there aren't any other options, right?
-            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
-            {
-                MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
-                MJClassDecl classDecl = objClassReceived.getClassDeclaration();
-                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, true);
-            }
-        }
-        //new A().x
-        else if(exprReceiver instanceof MJNewObject)
-        {
-            //firstly, instantiate the class
-            exprReceiver.match(exprMatcherR);
-
-            //then access the value
-            MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
-            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, true);
-        }
-
-        throw new InvalidParameterException("Nothing matched on right-hand side field access?");
+        return StaticMethods.handleFieldClass(true, fieldAccess);
     }
 
     /**
@@ -277,11 +249,12 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeClass(MJTypeClass typeClass)
             {
-                TemporaryVar tempClassStored = Translator.classesHeap.get(typeClass.getClassDeclaration());
 
-                return VarRef(tempClassStored);
+                //TemporaryVar tempClassStored = Translator.classesHeap.get(typeClass.getClassDeclaration());
+
+                //return VarRef(tempClassStored);
+                return VarRef(Translator.varsTemp.get(tempVar));
                 //throw new InvalidParameterException("Class usage " + typeClass.toString() + " is not supported as right-hand side expression!");
-
             }
 
             /**

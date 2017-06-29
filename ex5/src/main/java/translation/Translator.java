@@ -615,12 +615,12 @@ public class Translator extends MJElement.DefaultVisitor {
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();
         Operand operLeft = exprLeft.match(exprMatchL);
-        System.out.println("Left is type" + operLeft.calculateType().toString());
+        //System.out.println("Left is type" + operLeft.calculateType().toString());
 
 
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
-        System.out.println("Right is type " + operRight.calculateType().toString());
+        //System.out.println("Right is type " + operRight.calculateType().toString());
 
         //if same type or assigning null, go ahead!
         if(operLeft.calculateType().equals(operRight.calculateType()) ||
@@ -629,10 +629,11 @@ public class Translator extends MJElement.DefaultVisitor {
         {
             Store storeValue = Store(operLeft, operRight);
             this.curBlock.add(storeValue);
+
+            System.out.println("Storing null into class on stack" + operLeft.toString() + "" + operLeft.calculateType() + operRight.calculateType());
         }
         else
         {
-            System.out.println("Need to cast");
 
                 //convert left to value of right-hand side
                  TemporaryVar tempCastLeft = TemporaryVar("temp cast left");

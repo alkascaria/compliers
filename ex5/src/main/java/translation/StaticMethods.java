@@ -15,6 +15,32 @@ import static minillvm.ast.Ast.VarRef;
 public class StaticMethods
 {
 
+    public static void checkIfClassNull(TemporaryVar varClassNull)
+    {
+
+        //checks for null array
+        BasicBlock blockNull = BasicBlock();
+        BasicBlock blockRest = BasicBlock();
+        TemporaryVar tempNull = TemporaryVar("null class");
+
+
+
+        BinaryOperation binCheckNull = BinaryOperation(tempNull,VarRef(varClassNull), Eq(), Ast.Nullpointer());
+        Translator.curBlock.add(binCheckNull);
+
+        Branch branchIfNull = Branch(VarRef(tempNull), blockNull, blockRest);
+        Translator.curBlock.add(branchIfNull);
+
+        //if null...
+        Translator.curBlock = blockNull;
+        Translator.blocks.add(blockNull);
+        Translator.curBlock.add(HaltWithError("Cannot perform a field access on a null class."));
+
+        //no problem, all good!
+        Translator.curBlock = blockRest;
+        Translator.blocks.add(blockRest);
+    }
+
 
     /**
      * @param classDecl
@@ -104,6 +130,53 @@ public class StaticMethods
         }
     }
 
+    /** Dereference: true if getting the value (right-hand side)
+     *               false if getting the element (left-hand side)
+     * @param needToDereference
+     * @param fieldAccess
+     * @return
+     */
+
+    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess)
+    {
+        MJExpr exprReceiver = fieldAccess.getReceiver();
+
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+
+        //a.x
+        if(exprReceiver instanceof MJVarUse)
+        {
+            MJVarUse varUse = (MJVarUse)exprReceiver;
+
+
+            //if trying to access a class. well, there aren't any other options, right?
+            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
+            {
+                MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
+                MJClassDecl classDecl = objClassReceived.getClassDeclaration();
+
+                TemporaryVar tempVar =  TemporaryVar("temp Deref");
+                Translator.curBlock.add(Load(tempVar, VarRef(Translator.varsTemp.get(varUse.getVarName()))));
+                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference);
+
+            }
+        }
+        //new A().x
+        else if(exprReceiver instanceof MJNewObject)
+        {
+            //firstly, instantiate the class
+            exprReceiver.match(exprMatcherR);
+
+            //then access the value
+            MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
+
+            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference);
+        }
+
+        throw new InvalidParameterException("Nothing matched on right-hand side field access?");
+
+    }
+
     /**
      *
      * @param classDecl
@@ -116,12 +189,9 @@ public class StaticMethods
     {
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
-        TypeMatcher typeMatcher = new TypeMatcher();
-
         boolean found = false;
 
-
-            //loop through all fields starting from the one in position 1, looking for the correct one.
+        //loop through all fields starting from the one in position 1, looking for the correct one.
         for(int i = 1; i < typeStructClass.getFields().size(); i++)
         {
             MJClassDecl classCurrent = classDecl;
