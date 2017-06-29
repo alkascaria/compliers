@@ -34,13 +34,15 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
 
+    //constants assigned to fields of the structMap
+   // public static HashMap<TypeStruct, ConstStruct> valuesStructs = new HashMap<>();
+
     //global corresponding to the V-Table of ClassDecl
-    public static HashMap<MJClassDecl, Global> vTableClass = new HashMap<>();
+   // public static HashMap<MJClassDecl, Global> vTableClass = new HashMap<>();
 
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
-    //constants assigned to fields of the structMap
-    public static HashMap<TypeStruct, ConstStruct> valuesStructs = new HashMap<>();
+    public static Proc curProc;
 
 
 
@@ -79,8 +81,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
         //main method
         Proc mainProc = Proc("main", TypeInt(), ParameterList(), blocks);
-
         prog.getProcedures().add(mainProc);
+        Translator.curProc = mainProc;
 
         //main block
         BasicBlock mainBlock = BasicBlock();
@@ -210,17 +212,12 @@ public class Translator extends MJElement.DefaultVisitor {
         StructFieldList structFieldListReturn = StructFieldList();
 
         //take functions in parents and put them before the ones of current base class
-        for(StructField structFieldParent : classDataReturn.getStructFieldList())
-        {
-           // System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
+        for(StructField structFieldParent : classDataReturn.getStructFieldList()) {
+            // System.out.println("Adding " + structFieldParent.getName().toString() + " from parents class");
             structFieldListReturn.add(structFieldParent.copy());
-
-
         }
 
-       // Operand lengthBase = ConstInt(0);
-       // TemporaryVar tempIndex = TemporaryVar("index struct field list");
-       // Translator.curBlock.add(Load(tempIndex, ConstInt(0)));
+
 
         //functions of the base class
         for(StructField structFieldBase : classDataBaseClass.getStructFieldList())
@@ -236,7 +233,7 @@ public class Translator extends MJElement.DefaultVisitor {
         //System.out.println("V-Table contains:");
         for(Proc  proc: procListAll)
         {
-            //Daniele: store pointers to the different procedures here
+            //Daniele: store pointers to the different procedures here??
 
            // Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(structVirtualTable), VarRef(arrayHeapVar));
 
@@ -353,7 +350,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
         for(MJMethodDecl methodDecl : classDecl.getMethods())
         {
-            System.out.println("Adding method " + methodDecl.getName());
+            //System.out.println("Adding method " + methodDecl.getName());
 
             TypeMatcher typeMatcher = new TypeMatcher();
             String methodName = methodDecl.getName();
@@ -378,11 +375,12 @@ public class Translator extends MJElement.DefaultVisitor {
             blocks.add(methodBlock);
             curBlock = methodBlock;
             //add all stuff to the method block
-            methodDecl.getMethodBody().accept(this);
 
             Proc methodProc = Proc(methodName, returnType, parameterList, blocks);
 
             prog.getProcedures().add(methodProc);
+            Translator.curProc = methodProc;
+            methodDecl.getMethodBody().accept(this);
 
             methodsProcs.put(methodDecl, methodProc);
         }
@@ -515,6 +513,7 @@ public class Translator extends MJElement.DefaultVisitor {
         Operand operReturn = stmtReturn.getResult().match(exprMatcherR);
 
         Translator.curBlock.add(ReturnExpr(operReturn));
+
     }
 
 
@@ -600,8 +599,9 @@ public class Translator extends MJElement.DefaultVisitor {
             this.curBlock.add(Alloc(classTemp,ConstInt(0)));
             TemporaryVar tempClassReturn = TemporaryVar("return class" + className);
 
-
             this.curBlock.add(Bitcast(tempClassReturn, TypePointer(TypePointer(structsMap.get(classDecl))), VarRef(classTemp)));
+
+            //added to the temp variables once it's instantiated
             this.varsTemp.put(varName, tempClassReturn);
         }
 
@@ -622,11 +622,11 @@ public class Translator extends MJElement.DefaultVisitor {
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();
         Operand operLeft = exprLeft.match(exprMatchL);
-        System.out.println("Left is type" + operLeft.calculateType().toString());
+        //System.out.println("Left is type" + operLeft.calculateType().toString());
 
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
-        System.out.println("Right is type " + operRight.calculateType().toString());
+        //System.out.println("Right is type " + operRight.calculateType().toString());
 
         //if same type or assigning null, go ahead!
         if(operLeft.calculateType().equals(operRight.calculateType()) ||
