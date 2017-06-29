@@ -3,6 +3,8 @@ package translation;
 import minijava.ast.*;
 import minillvm.ast.*;
 
+import java.security.InvalidParameterException;
+
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.Nullpointer;
 import static minillvm.ast.Ast.VarRef;
@@ -67,11 +69,10 @@ public class StaticMethods
 
             Type typeField = tempVar.calculateType();
 
-
             //integer --> default value = 0
             if(typeField.equalsType(TypeInt()))
             {
-                Operand defaultValue = ConstInt(5);
+                Operand defaultValue = ConstInt(0);
                 Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
             //boolean --> default value = false
@@ -101,6 +102,45 @@ public class StaticMethods
                 Translator.curBlock.add(Store(VarRef(classNullCasted), operNull));
             }
         }
+    }
+
+    /**
+     *
+     * @param classDecl
+     * @param fieldAccess
+     * @return
+     */
+
+    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess)
+    {
+        TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
+
+        TypeMatcher typeMatcher = new TypeMatcher();
+        String fieldName = fieldAccess.getFieldName();
+        Type fieldType = fieldAccess.getVariableDeclaration().getType().match(typeMatcher);
+
+        //loop through all fields starting from the one in position 1, looking for the correct one.
+        for(int i = 1; i < typeStructClass.getFields().size(); i++)
+        {
+            StructField structFieldAtPos = typeStructClass.getFields().get(i);
+
+            if(structFieldAtPos.getName().equals(fieldName) && structFieldAtPos.getType().equalsType(fieldType))
+            {
+                TemporaryVar tempVarElement = TemporaryVar("element found");
+
+                GetElementPtr elementPtr = GetElementPtr(tempVarElement, VarRef(Translator.classesHeap.get(classDecl)),  OperandList(ConstInt(0), ConstInt(i)));
+                Translator.curBlock.add(elementPtr);
+
+                TemporaryVar tempVar = TemporaryVar("deref temp");
+                Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
+
+                return VarRef(tempVar);
+                //then compute pointer to the position and return value
+            }
+        }
+
+        throw new InvalidParameterException("Field being accessed was not found!");
+
     }
 
 

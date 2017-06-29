@@ -45,8 +45,8 @@ public class Translator extends MJElement.DefaultVisitor {
     //stores address of a class' temp var on the heap
     public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
 
-    public static Proc curProc;
 
+    public static Proc curProc;
 
 
     //stores which Block we are currently in.

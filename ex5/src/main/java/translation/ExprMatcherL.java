@@ -24,7 +24,40 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_FieldAccess(MJFieldAccess fieldAccess) {
-        throw new InvalidParameterException("Field access " + fieldAccess.toString() + " not supported as left-hand side expression!");
+        //firstly, get the class that's being accessed
+        MJExpr exprReceiver = fieldAccess.getReceiver();
+
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+
+        //a.x
+        if(exprReceiver instanceof MJVarUse)
+        {
+            MJVarUse varUse = (MJVarUse)exprReceiver;
+
+            //if trying to access a class. well, there aren't any other options, right?
+            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
+            {
+                MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
+                MJClassDecl classDecl = objClassReceived.getClassDeclaration();
+                System.out.println("matched here");
+               return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
+                //TemporaryVar tempDeref = TemporaryVar("deref");
+               // Translator.curBlock.add(Load(tempDeref, operRef));
+             //   return operRef.copy();
+            }
+        }
+        //new A().x
+        else if(exprReceiver instanceof MJNewObject)
+        {
+            //firstly, instantiate the class
+            exprReceiver.match(exprMatcherR);
+
+            //then access the value
+            MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
+            return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
+        }
+
+        throw new InvalidParameterException("Nothing matched on right-hand side field access?");
     }
 
     /**
@@ -112,6 +145,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeClass(MJTypeClass typeClass)
             {
+               // return VarRef(Translator.classesHeap.get(varName));
                 return VarRef(Translator.varsTemp.get(varName));
             }
 
