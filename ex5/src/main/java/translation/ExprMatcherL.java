@@ -38,7 +38,6 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
             {
                 MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
                 MJClassDecl classDecl = objClassReceived.getClassDeclaration();
-                System.out.println("matched here");
                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, false);
             }
         }

@@ -32,7 +32,7 @@ public class StaticMethods
         {
             TypeMatcher typeMatcher = new TypeMatcher();
             //convert all fields
-            String fieldName = varDecl.getName();
+            String fieldName = classDecl.getName() + "_" + varDecl.getName();
             Type fieldType = varDecl.getType().match(typeMatcher);
 
             //now create a field with these
@@ -117,39 +117,57 @@ public class StaticMethods
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
         TypeMatcher typeMatcher = new TypeMatcher();
-        String fieldName = fieldAccess.getFieldName();
-        Type fieldType = fieldAccess.getVariableDeclaration().getType().match(typeMatcher);
 
-        //loop through all fields starting from the one in position 1, looking for the correct one.
+        boolean found = false;
+
+
+            //loop through all fields starting from the one in position 1, looking for the correct one.
         for(int i = 1; i < typeStructClass.getFields().size(); i++)
         {
-            StructField structFieldAtPos = typeStructClass.getFields().get(i);
-
-            if(structFieldAtPos.getName().equals(fieldName) && structFieldAtPos.getType().equalsType(fieldType))
+            MJClassDecl classCurrent = classDecl;
+            while(found == false)
             {
-                TemporaryVar tempVarElement = TemporaryVar("element found");
+                String fieldName = classCurrent.getName() + "_" + fieldAccess.getFieldName();
 
-                GetElementPtr elementPtr = GetElementPtr(tempVarElement, VarRef(Translator.classesHeap.get(classDecl)),  OperandList(ConstInt(0), ConstInt(i)));
-                Translator.curBlock.add(elementPtr);
+                StructField structFieldAtPos = typeStructClass.getFields().get(i);
 
-                if(needToDereference == true)
+                if(structFieldAtPos.getName().equals(fieldName))
                 {
-                    TemporaryVar tempVar = TemporaryVar("deref temp");
-                    Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
+                    found = true;
+                    TemporaryVar tempVarElement = TemporaryVar("element found");
 
-                    return VarRef(tempVar);
-                    //then compute pointer to the position and return value
+                    GetElementPtr elementPtr = GetElementPtr(tempVarElement, VarRef(Translator.classesHeap.get(classDecl)), OperandList(ConstInt(0), ConstInt(i)));
+                    Translator.curBlock.add(elementPtr);
+
+                    if (needToDereference == true)
+                    {
+                        TemporaryVar tempVar = TemporaryVar("deref temp");
+                        Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
+
+                        return VarRef(tempVar);
+                    }
+                    else
+                    {
+                        return VarRef(tempVarElement);
+                    }
                 }
                 else
                 {
-                    return VarRef(tempVarElement);
+                    if (classCurrent.getDirectSuperClass() != null)
+                    {
+                        classCurrent = classCurrent.getDirectSuperClass();
+                    }
+                    else
+                    {
+                        break;
+                    }
+
                 }
-
-
+                //if not found, change parent
             }
         }
 
-        throw new InvalidParameterException("Field being accessed was not found!");
+        throw new InvalidParameterException("Field " +  fieldAccess.getFieldName() + " for class" + classDecl.getName() + "  being accessed was not found!");
 
     }
 
