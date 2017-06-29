@@ -34,16 +34,18 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
 
-    //constants assigned to fields of the structMap
-   // public static HashMap<TypeStruct, ConstStruct> valuesStructs = new HashMap<>();
 
-    //global corresponding to the V-Table of ClassDecl
-   // public static HashMap<MJClassDecl, Global> vTableClass = new HashMap<>();
+    public static HashMap<MJClassDecl, TypeStruct> vTablesMap = new HashMap<>();
 
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
     //stores address of a class' temp var on the heap
     public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
+
+    //where a V-Table is stored on the heap
+    public static HashMap<TypeStruct, TemporaryVar> vTablesHeap = new HashMap<>();
+
+    public static HashMap<MJClassDecl, ClassData> vTablesProcs = new HashMap<>();
 
 
     public static Proc curProc;
@@ -157,10 +159,12 @@ public class Translator extends MJElement.DefaultVisitor {
             //for every class, get its fields and the ones of their parents, adding them to it ( replication)
 
             ClassData dataClass = createVirtualMethodTable(classDecl);
+
+            vTablesProcs.put(classDecl, dataClass);
+
             //get all the elements obtained from the class instantiation
             TypeStruct virtualMethodTable = dataClass.getVirtualTable();
             prog.getStructTypes().add(virtualMethodTable);
-            //ProcList proceduresList = dataClass.getProcList();
 
 
             TypeStruct structClass = structsMap.get(classDecl);
@@ -176,11 +180,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
             structsMap.replace(classDecl, structClass);
 
-            System.out.println("Class " + classDecl.getName() + " has fields:");
-            for(StructField structField : structClass.getFields())
-            {
-                System.out.println(structField.getName());
-            }
+
         }
 
 
@@ -239,7 +239,32 @@ public class Translator extends MJElement.DefaultVisitor {
             structFieldListReturn.add(structFieldBase.copy());
         }
 
+
         TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structFieldListReturn);
+
+        /*
+        //now store the V-Table on the heap, together with references to the different procedures in it
+        TemporaryVar tempVTable = TemporaryVar("v-table");
+        Translator.curBlock.add(Alloc(tempVTable, Sizeof(structVirtualTable)));
+
+        vTablesHeap.put(structVirtualTable, tempVTable);
+
+        //put reference to the different procedures into it
+        for(int i = 0; i < procListAll.size(); i++)
+        {
+            Proc procCur = procListAll.get(i);
+            ProcedureRef procedureRef = ProcedureRef(procCur);
+
+            //get pointer to the correct structField of the V-Table
+            TemporaryVar tempPointer = TemporaryVar("struct field");
+            GetElementPtr elementPointer = GetElementPtr(tempPointer, VarRef(tempVTable), OperandList(ConstInt(0), ConstInt(i)));
+            Translator.curBlock.add(elementPointer);
+            System.out.println(tempPointer.calculateType());
+
+        */
+
+
+
 
         classDataReturn.setStructFieldList(structFieldListReturn);
         classDataReturn.setVirtualTable(structVirtualTable);
@@ -622,6 +647,8 @@ public class Translator extends MJElement.DefaultVisitor {
         Operand operRight = exprRight.match(exprMatchR);
         //System.out.println("Right is type " + operRight.calculateType().toString());
 
+
+        //TODO: replace equalsType with subtyping
         //if same type or assigning null, go ahead!
         if(operLeft.calculateType().equals(operRight.calculateType()) ||
                 operLeft.calculateType().equalsType(TypeNullpointer()) ||
@@ -629,12 +656,9 @@ public class Translator extends MJElement.DefaultVisitor {
         {
             Store storeValue = Store(operLeft, operRight);
             this.curBlock.add(storeValue);
-
-            System.out.println("Storing null into class on stack" + operLeft.toString() + "" + operLeft.calculateType() + operRight.calculateType());
         }
         else
         {
-
                 //convert left to value of right-hand side
                  TemporaryVar tempCastLeft = TemporaryVar("temp cast left");
                  Translator.curBlock.add(Bitcast(tempCastLeft,TypePointer(operRight.calculateType()),operLeft));

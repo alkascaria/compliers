@@ -148,7 +148,6 @@ public class StaticMethods
         {
             MJVarUse varUse = (MJVarUse)exprReceiver;
 
-
             //if trying to access a class. well, there aren't any other options, right?
             if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
             {

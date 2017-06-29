@@ -9,6 +9,7 @@ import minillvm.ast.TemporaryVar;
 
 import java.io.InvalidObjectException;
 import java.security.InvalidParameterException;
+import java.sql.Struct;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.Nullpointer;
@@ -81,13 +82,63 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
         return operandNull;
     }
 
+    //get pointer to the V-Table
+    //TypeStruct structVTable = Translator.vTablesMap.get(classDecl);
+    //get all the values inside the V-Table
+    //same order as the structFIeldList, no problem.
+    //for(Proc proc : Translator.vTablesProcs.get(classDecl).getProcList())
+    // {
+    //same is "eindeutig" because of overriding, hence no problem
+    //    if(proc.getName())
+    //}
+
+
     /**
      * @param methodCall(@code MJMethodCall)
      * @return the value(@code Operand) returns an INvalidParameterException
      */
     @Override
-    public Operand case_MethodCall(MJMethodCall methodCall) {
-        throw new InvalidParameterException("Method call " + methodCall.toString() + " as right-hand side expression is not supported!");
+    public Operand case_MethodCall(MJMethodCall methodCall)
+    {/*
+        MJExpr exprReceiver = methodCall.getReceiver();
+        //a.x
+        if(exprReceiver instanceof MJVarUse)
+        {
+            MJVarUse varUse = (MJVarUse) exprReceiver;
+
+            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
+            {
+                MJClassDecl classDecl = ((MJTypeClass) varUse.getVariableDeclaration().getType()).getClassDeclaration();
+                //struct with all the different field, right?
+                TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
+
+*/
+                //MAYBE STUFF ABOVE (ALL THE DAMN CHECKS) are not needed??
+            Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
+
+            TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
+            OperandList parametersToPass = OperandList();
+
+            ExprMatcherR exprMatcherR = new ExprMatcherR();
+            for(MJExpr exprParam : methodCall.getArguments())
+            {
+               Operand operandParam = exprParam.match(exprMatcherR);
+               parametersToPass.add(operandParam);
+            }
+
+            Call callProc = Call(tempCallProc, ProcedureRef(procCalled),parametersToPass);
+            Translator.curBlock.add(callProc);
+
+
+
+
+
+           // }
+       // }
+        //else if(exprReceiver instanceof  MJNewObject)
+        //{
+       // }
+        return VarRef(tempCallProc);
     }
 
     /**

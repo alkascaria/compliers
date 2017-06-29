@@ -55,7 +55,10 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      * @return the exception {@code Operand) returns an InvalidParameterException
      */
     @Override
-    public Operand case_MethodCall(MJMethodCall methodCall) {
+    public Operand case_MethodCall(MJMethodCall methodCall)
+    {
+
+
         throw new InvalidParameterException("Method call " + methodCall.toString() + " not supported as left-hand side expression!");
 
     }
