@@ -11,6 +11,7 @@ import java.io.InvalidObjectException;
 import java.security.InvalidParameterException;
 
 import static minillvm.ast.Ast.*;
+import static minillvm.ast.Ast.Nullpointer;
 
 
 /**
@@ -73,6 +74,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_ExprNull(MJExprNull exprNull) {
         Operand operandNull = Nullpointer();
+        System.out.println("Here matching");
         return operandNull;
     }
 
@@ -390,7 +392,11 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
 
         TemporaryVar bitCastClass = TemporaryVar("casted obj pointer");
         Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(typeNewObjClass),VarRef(tempClass)));
+        //put onto the heap hash Map
+        Translator.classesHeap.put(newObject.getClassDeclaration(), bitCastClass);
 
+        //assign default value to fields and store it. field 0 contains v-Table, so start from 1.
+        StaticMethods.initializeDefaultValueFields(typeNewObjClass, bitCastClass);
 
         return VarRef(bitCastClass);
     }

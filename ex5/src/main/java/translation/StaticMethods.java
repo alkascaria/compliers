@@ -50,33 +50,58 @@ public class StaticMethods
         }
     }
 
-    public static ConstList initializeFieldsClass(StructFieldList fieldsStruct)
-    {
-        ConstList constListReturn = ConstList();
+    //stores default value into the different fields of a class
 
-        //create one const for every struct, i.e: initialize all fields
-        for(StructField structField: fieldsStruct)
+    public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass)
+    {
+        for(int i = 1; i < typeNewObjClass.getFields().size(); i++)
         {
-            //integer, instantiate to 0
-            if(structField.getType().equalsType(TypeInt()))
+            TemporaryVar tempPointer = TemporaryVar("struct field");
+            GetElementPtr elementPointer = GetElementPtr(tempPointer, VarRef(bitCastClass), OperandList(ConstInt(0), ConstInt(i)));
+            Translator.curBlock.add(elementPointer);
+            //dereference, i.e: get rid of the pointer type
+
+            TemporaryVar tempVar = TemporaryVar("deref temp");
+            Translator.curBlock.add(Load(tempVar, VarRef(tempPointer)));
+
+            Type typeField = tempVar.calculateType();
+
+            System.out.println(typeField.toString());
+
+            //integer --> default value = 0
+            if(typeField.equalsType(TypeInt()))
             {
-                constListReturn.add(ConstInt(0));
+                Operand defaultValue = ConstInt(5);
+                Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
-            else if(structField.getType().equalsType(TypeBool()))
+            //boolean --> default value = false
+            else if(typeField.equalsType(TypeBool()))
             {
-                constListReturn.add(ConstBool(false));
+                Operand defaultValue = ConstBool(false);
+                Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
-            //array or class, return null
+            //array default value = null
+            else if(typeField.equalsType(TypeArray(TypeInt(), 0)))
+            {
+                TypeArray typeArray = TypeArray(TypeInt(), 0);
+                TemporaryVar tempArrayCasted = TemporaryVar("arrayCasted");
+                Bitcast arrayConverted = Bitcast(tempArrayCasted, TypePointer(TypePointer(typeArray)), VarRef(bitCastClass));
+                Translator.curBlock.add(arrayConverted);
+                Operand operNull = Nullpointer();
+                Translator.curBlock.add(Store(VarRef(tempArrayCasted), operNull));
+            }
+            //class = null
             else
             {
-                constListReturn.add(Nullpointer());
+                TemporaryVar classNullCasted = TemporaryVar("arrayCasted");
+                Bitcast classConverted = Bitcast(classNullCasted, TypePointer(TypePointer(typeNewObjClass)), VarRef(bitCastClass));
+                Translator.curBlock.add(classConverted);
+                Operand operNull = Nullpointer();
+
+                Translator.curBlock.add(Store(VarRef(classNullCasted), operNull));
             }
         }
-
-        return constListReturn;
-
     }
-
 
 
     /**
@@ -335,4 +360,7 @@ public class StaticMethods
         Translator.curBlock = restBlock;
 
     }
+
+
+
 }

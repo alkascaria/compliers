@@ -42,6 +42,9 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
+    //stores address of a class' temp var on the heap
+    public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
+
     public static Proc curProc;
 
 
@@ -244,8 +247,6 @@ public class Translator extends MJElement.DefaultVisitor {
            //GetElementPtr elementPtr = GetElementPtr(tempPointer, , OperandList());
 
         }
-
-
 
 
         classDataReturn.setStructFieldList(structFieldListReturn);
@@ -467,6 +468,7 @@ public class Translator extends MJElement.DefaultVisitor {
      *                        AfterBlock
      */
     @Override
+
     public void visit(MJStmtWhile stmtWhile) {
 
         BasicBlock conditionBlock = BasicBlock();
@@ -645,8 +647,6 @@ public class Translator extends MJElement.DefaultVisitor {
                  Store storeValue = Store(VarRef(tempCastLeft), operRight);
                  Translator.curBlock.add(storeValue);
         }
-
-
 
 
     }
