@@ -49,7 +49,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
             {
                 MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
                 MJClassDecl classDecl = objClassReceived.getClassDeclaration();
-                return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
+                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, true);
             }
         }
         //new A().x
@@ -60,7 +60,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
 
             //then access the value
             MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
-            return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
+            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, true);
         }
 
         throw new InvalidParameterException("Nothing matched on right-hand side field access?");

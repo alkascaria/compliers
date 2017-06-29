@@ -107,11 +107,12 @@ public class StaticMethods
     /**
      *
      * @param classDecl
-     * @param fieldAccess
+     * @param fieldAccess: true =  need to get the value (right-hand side)
+     *                     false = need to get the reference (left-hand side)
      * @return
      */
 
-    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess)
+    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference)
     {
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
@@ -131,11 +132,20 @@ public class StaticMethods
                 GetElementPtr elementPtr = GetElementPtr(tempVarElement, VarRef(Translator.classesHeap.get(classDecl)),  OperandList(ConstInt(0), ConstInt(i)));
                 Translator.curBlock.add(elementPtr);
 
-                TemporaryVar tempVar = TemporaryVar("deref temp");
-                Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
+                if(needToDereference == true)
+                {
+                    TemporaryVar tempVar = TemporaryVar("deref temp");
+                    Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
 
-                return VarRef(tempVar);
-                //then compute pointer to the position and return value
+                    return VarRef(tempVar);
+                    //then compute pointer to the position and return value
+                }
+                else
+                {
+                    return VarRef(tempVarElement);
+                }
+
+
             }
         }
 

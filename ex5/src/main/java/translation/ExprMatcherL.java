@@ -33,17 +33,13 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
         if(exprReceiver instanceof MJVarUse)
         {
             MJVarUse varUse = (MJVarUse)exprReceiver;
-
             //if trying to access a class. well, there aren't any other options, right?
             if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
             {
                 MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
                 MJClassDecl classDecl = objClassReceived.getClassDeclaration();
                 System.out.println("matched here");
-               return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
-                //TemporaryVar tempDeref = TemporaryVar("deref");
-               // Translator.curBlock.add(Load(tempDeref, operRef));
-             //   return operRef.copy();
+               return StaticMethods.accessFieldInClass(classDecl, fieldAccess, false);
             }
         }
         //new A().x
@@ -54,7 +50,7 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
 
             //then access the value
             MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
-            return StaticMethods.accessFieldInClass(classDecl, fieldAccess);
+            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, false);
         }
 
         throw new InvalidParameterException("Nothing matched on right-hand side field access?");
