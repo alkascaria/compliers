@@ -15,16 +15,17 @@ public class StaticMethods
 
 
     /**
-     * Tail-recursive function for creating the struct of classes so that
-     * classes' structs are are compatible with the classes they inherit fields from
      * @param classDecl
-     * @param strutsReturn
-     * @return
+     * @return StructFieldList: list of structFields in the current class
      */
 
-    public static StructFieldList returnStructsFieldsInClassAndParents(MJClassDecl classDecl, StructFieldList strutsReturn)
+    public static StructFieldList returnStructsFieldsInClass(MJClassDecl classDecl, boolean isBaseClass)
     {
-        //add all fields found to the front of the class
+
+        StructFieldList structFieldListReturn = StructFieldList();
+
+
+       //return all fields found in the class passed
         for(MJVarDecl varDecl: classDecl.getFields())
         {
             TypeMatcher typeMatcher = new TypeMatcher();
@@ -35,23 +36,23 @@ public class StaticMethods
             //now create a field with these
             StructField fieldStruct = StructField(fieldType, fieldName);
 
-            strutsReturn.addFront(fieldStruct);
+            if(isBaseClass == true)
+            {
+                structFieldListReturn.add(fieldStruct);
+            }
+            else
+            {
+                structFieldListReturn.addFront(fieldStruct);
+
+            }
         }
 
-        //if it does have a parent, then go ahead and visit its parent
-        if(classDecl.getDirectSuperClass() != null)
-        {
-            return returnStructsFieldsInClassAndParents(classDecl.getDirectSuperClass(), strutsReturn);
-        }
-        //else, just return what has been found so far if reaching top of tree, kinda.
-        else
-        {
-            return strutsReturn;
-        }
+        return structFieldListReturn;
+
+
     }
 
     //stores default value into the different fields of a class
-
     public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass)
     {
         for(int i = 1; i < typeNewObjClass.getFields().size(); i++)
@@ -66,7 +67,6 @@ public class StaticMethods
 
             Type typeField = tempVar.calculateType();
 
-            System.out.println(typeField.toString());
 
             //integer --> default value = 0
             if(typeField.equalsType(TypeInt()))

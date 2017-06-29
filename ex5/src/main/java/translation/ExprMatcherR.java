@@ -74,7 +74,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_ExprNull(MJExprNull exprNull) {
         Operand operandNull = Nullpointer();
-        System.out.println("Here matching");
         return operandNull;
     }
 
@@ -360,7 +359,6 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_ArrayLength(MJArrayLength arrayLength) {
         MJExpr exprArray = arrayLength.getArrayExpr();
-        System.out.println(exprArray);
 
         //something like new int[5].length --> 5
         if (exprArray instanceof MJNewIntArray) {

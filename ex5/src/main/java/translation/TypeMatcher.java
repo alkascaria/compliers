@@ -19,12 +19,7 @@ public class TypeMatcher implements MJType.Matcher<Type>
     @Override
     public Type case_TypeClass(MJTypeClass typeClass)
     {
-
-        StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(typeClass.getClassDeclaration(), StructFieldList());
-
-        TypeStruct classStruct = TypeStruct(typeClass.getClassDeclaration().getName(), structFieldList);
-
-        return classStruct;
+        return Translator.structsMap.get(typeClass.getClassDeclaration());
     }
 
     @Override

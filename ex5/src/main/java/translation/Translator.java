@@ -108,14 +108,42 @@ public class Translator extends MJElement.DefaultVisitor {
         //generate a struct for every class and save this into a hashMap
         for(MJClassDecl classDecl : classDeclList)
         {
-            StructFieldList structFieldList = StaticMethods.returnStructsFieldsInClassAndParents(classDecl,StructFieldList());
-            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldList);
-            structsMap.put(classDecl ,structClass);
+            //final struct field list with all the fields in correct order
+            StructFieldList structFieldListReturn = StructFieldList();
 
+            StructFieldList structFieldListParents = StructFieldList();
+            MJClassDecl parentClass = classDecl.getDirectSuperClass();
+
+            while(parentClass != null)
+            {
+                //get the current parent's struct fieldList
+                StructFieldList structFieldListCurParent = StaticMethods.returnStructsFieldsInClass(parentClass, false);
+                //add all the current ones in front
+                parentClass = parentClass.getDirectSuperClass();
+                //put them back into the list of parents in inverted order
+                for(StructField structField : structFieldListCurParent)
+                {
+                    structFieldListParents.addFront(structField.copy());
+                }
+            }
+
+            //add all the ones in parents first with the adjusted order
+            for(StructField structFieldParent : structFieldListParents)
+            {
+                structFieldListReturn.add(structFieldParent.copy());
+            }
+            StructFieldList structFieldListBaseClass = StaticMethods.returnStructsFieldsInClass(classDecl, true);
+
+            //and then the ones in the base class
+            for(StructField structFieldBase : structFieldListBaseClass)
+            {
+                structFieldListReturn.add(structFieldBase.copy());
+            }
+
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
+            structsMap.put(classDecl ,structClass);
             prog.getStructTypes().add(structClass);
         }
-
-
 
         //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
         for(MJClassDecl classDecl : classDeclList)
@@ -139,6 +167,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
             //get fields in the structClass
             StructFieldList structFieldsClass = structClass.getFields();
+
             //add the V-Table as the first field
             TypePointer pointerVTable = TypePointer(virtualMethodTable);
             structFieldsClass.addFront(StructField(pointerVTable, virtualMethodTable.getName()));
@@ -147,27 +176,11 @@ public class Translator extends MJElement.DefaultVisitor {
 
             structsMap.replace(classDecl, structClass);
 
+            System.out.println("Class " + classDecl.getName() + " has fields:");
             for(StructField structField : structClass.getFields())
             {
                 System.out.println(structField.getName());
             }
-
-
-            //add reference to all procedures to the V-Table
-            // for(Proc proc : proceduresList)
-            // {
-            // System.out.println(proc.getName().toString());
-            //   constListVirtual.add(ProcedureRef(proc));
-            // }
-
-
-            //now store t
-            //ConstStruct constVirtualTable =  ConstStruct(virtualMethodTable, constListVirtual);
-            //Global globalRefVirtualTable = Global(virtualMethodTable, "v_table" + classDecl.getName(), true, constVirtualTable);
-            //this.prog.getGlobals().add(globalRefVirtualTable);
-
-            //will need to be used later on in the constructor
-            //Translator.vTableClass.put(classDecl, globalRefVirtualTable);
         }
 
 
@@ -220,8 +233,6 @@ public class Translator extends MJElement.DefaultVisitor {
             structFieldListReturn.add(structFieldParent.copy());
         }
 
-
-
         //functions of the base class
         for(StructField structFieldBase : classDataBaseClass.getStructFieldList())
         {
@@ -229,30 +240,10 @@ public class Translator extends MJElement.DefaultVisitor {
         }
 
         TypeStruct structVirtualTable = TypeStruct("virtual_method_table" + classDecl.getName() , structFieldListReturn);
-        TemporaryVar tempStructVTable = TemporaryVar("v-table");
-
-        StructFieldList structFieldsWithPointers = StructFieldList();
-
-        //System.out.println("V-Table contains:");
-        for(Proc  proc: procListAll)
-        {
-            //Daniele: store pointers to the different procedures here??
-
-           // Bitcast binCastPointer = Bitcast(arrayPointer, TypePointer(structVirtualTable), VarRef(arrayHeapVar));
-
-
-           // TemporaryVar tempVTable = TemporaryVar("v-table");
-         //  Load loadStructFIeldList = Load(tempVTable, structVirtualTable);
-          // TemporaryVar tempPointer = TemporaryVar("temp pointer");
-           //GetElementPtr elementPtr = GetElementPtr(tempPointer, , OperandList());
-
-        }
-
 
         classDataReturn.setStructFieldList(structFieldListReturn);
         classDataReturn.setVirtualTable(structVirtualTable);
         classDataReturn.setProcList(procListAll);
-
 
         return classDataReturn;
     }
