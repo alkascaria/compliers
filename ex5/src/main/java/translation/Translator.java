@@ -35,19 +35,21 @@ public class Translator extends MJElement.DefaultVisitor {
     //teaching assistant Zeller approves this HashMap
     public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
 
-    public static HashMap<MJClassDecl, MJClassDecl> classAssigned = new HashMap<>();
-
-    public static HashMap<MJClassDecl, TypeStruct> vTablesMap = new HashMap<>();
-
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
     //stores address of a class' temp var on the heap
     public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
 
+
+
     //where a V-Table is stored on the heap
     public static HashMap<TypeStruct, TemporaryVar> vTablesHeap = new HashMap<>();
 
     public static HashMap<MJClassDecl, ClassData> vTablesProcs = new HashMap<>();
+
+    public static HashMap<MJClassDecl, MJClassDecl> classAssigned = new HashMap<>();
+
+    public static HashMap<MJClassDecl, TypeStruct> vTablesMap = new HashMap<>();
 
 
     public static Proc curProc;
@@ -157,6 +159,9 @@ public class Translator extends MJElement.DefaultVisitor {
             TypePointer pointerVTable = TypePointer(virtualMethodTable);
             typeStructClass.getFields().addFront(StructField(pointerVTable, virtualMethodTable.getName()));
             prog.getStructTypes().set(i, typeStructClass.copy());
+
+            //store the newly updated TypeStruct
+            Translator.structsMap.put(classDecl, prog.getStructTypes().get(i));
 
             i = i + 1;
 
@@ -669,11 +674,11 @@ public class Translator extends MJElement.DefaultVisitor {
         //match left --> put var use into exprmatcher L
         ExprMatcherL exprMatchL = new ExprMatcherL();
         Operand operLeft = exprLeft.match(exprMatchL);
-        //System.out.println("Left is type" + operLeft.calculateType().toString());
+        System.out.println("Left is type" + operLeft.calculateType().toString());
 
         ExprMatcherR exprMatchR = new ExprMatcherR();
         Operand operRight = exprRight.match(exprMatchR);
-        //System.out.println("Right is type " + operRight.calculateType().toString());
+        System.out.println("Right is type " + operRight.calculateType().toString());
 
 
         //TODO: replace equalsType with subtyping
@@ -684,10 +689,10 @@ public class Translator extends MJElement.DefaultVisitor {
         {
             Store storeValue = Store(operLeft, operRight);
             this.curBlock.add(storeValue);
+
         }
         else
         {
-
                 //convert left to value of right-hand side
                  TemporaryVar tempCastLeft = TemporaryVar("temp cast left");
                  Translator.curBlock.add(Bitcast(tempCastLeft,TypePointer(operRight.calculateType()),operLeft));

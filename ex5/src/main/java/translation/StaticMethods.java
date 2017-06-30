@@ -81,7 +81,7 @@ public class StaticMethods
 
     }
 
-    //stores default value into the different fields of a class
+    //stores default value into the different fields of a class (on heap memory)
     public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass)
     {
         for(int i = 1; i < typeNewObjClass.getFields().size(); i++)

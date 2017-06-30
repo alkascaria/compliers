@@ -106,7 +106,8 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
         MJType type = varDecl.getType();
 
         //now match the type of the variable being used
-        return type.match(new MJType.Matcher<Operand>() {
+        return type.match(new MJType.Matcher<Operand>()
+        {
             /**
              *
              * @param typeClass(@code MJTypeClass)
@@ -115,7 +116,6 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
             @Override
             public Operand case_TypeClass(MJTypeClass typeClass)
             {
-               // return VarRef(Translator.classesHeap.get(varName));
                 return VarRef(Translator.varsTemp.get(varName));
             }
 
@@ -125,7 +125,8 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeBool(MJTypeBool typeBool) {
+            public Operand case_TypeBool(MJTypeBool typeBool)
+            {
                 return VarRef(Translator.varsTemp.get(varName));
             }
 
@@ -135,7 +136,8 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray) {
+            public Operand case_TypeIntArray(MJTypeIntArray typeIntArray)
+            {
                 return VarRef(Translator.varsTemp.get(varName));
             }
 
@@ -145,7 +147,8 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
              * @return
              */
             @Override
-            public Operand case_TypeInt(MJTypeInt typeInt) {
+            public Operand case_TypeInt(MJTypeInt typeInt)
+            {
                 //the corresponding variable in the hashmap
                 return VarRef(Translator.varsTemp.get(varName));
             }

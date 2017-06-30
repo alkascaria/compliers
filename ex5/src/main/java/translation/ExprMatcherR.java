@@ -100,6 +100,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
+        return ConstInt(0);
         /*
         MJExpr exprReceiver = methodCall.getReceiver();
         //a.x
@@ -112,6 +113,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
                 //struct with all the different field, right?
                 TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
         */
+
+        /*
             Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
 
             TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
@@ -128,6 +131,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
             Translator.curBlock.add(callProc);
 
 
+*/
 
 
 
@@ -136,7 +140,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
         //else if(exprReceiver instanceof  MJNewObject)
         //{
        // }
-        return VarRef(tempCallProc);
+       // return VarRef(tempCallProc);
     }
 
     /**
@@ -436,22 +440,19 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_NewObject(MJNewObject newObject)
     {
+        MJClassDecl classDeclObj = newObject.getClassDeclaration();
+        //neded to allocate enough space on the heap for the object
+        TypeStruct typeNewObjClass = Translator.structsMap.get(classDeclObj);
+
         //this whole case is kinda like the class' constructor
         TemporaryVar tempClass = TemporaryVar("temp class");
-
-        TypeStruct typeNewObjClass = Translator.structsMap.get(newObject.getClassDeclaration());
-
         //allocate space on the heap for the class' struct
         Translator.curBlock.add(Alloc(tempClass, Sizeof(typeNewObjClass)));
-
         TemporaryVar bitCastClass = TemporaryVar("casted obj pointer");
         Translator.curBlock.add(Bitcast(bitCastClass,TypePointer(typeNewObjClass),VarRef(tempClass)));
-        //put onto the heap hash Map
-        Translator.classesHeap.put(newObject.getClassDeclaration(), bitCastClass);
 
-
-
-        //assign default value to fields and store it. field 0 contains v-Table, so start from 1.
+        //pass heap memory assign and assign default value to fields and store them
+        //field 0 contains v-Table, so start from 1.
         StaticMethods.initializeDefaultValueFields(typeNewObjClass, bitCastClass);
 
         return VarRef(bitCastClass);
