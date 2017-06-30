@@ -37,8 +37,13 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
+    public static HashMap<MJClassDecl, Global> globalsMap = new HashMap<>();
+
+
+
     //stores address of a class' temp var on the heap
     public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
+
 
 
 
@@ -108,6 +113,14 @@ public class Translator extends MJElement.DefaultVisitor {
     }
 
 
+    //does not  necessarily happen on the right-hand side, but there may also be "stray" methods
+    public void visit(MJMethodCall methodCall)
+    {
+        StaticMethods.handleMethodCall(methodCall);
+
+    }
+
+
     public void handleClassDeclList(MJClassDeclList classDeclList)
     {
         //first thing first: initialize the different fields, considering the parents of the class too
@@ -149,7 +162,7 @@ public class Translator extends MJElement.DefaultVisitor {
             //put all V-Tables at the end of the current struct list
             prog.getStructTypes().add(virtualMethodTable);
 
-            initializeGlobalForVTable(virtualMethodTable, dataClass);
+            initializeGlobalForVTable(virtualMethodTable, dataClass, classDecl);
 
             //now add  a pointer to the V-Table in the front of the class and add it
             //now get the TypeStruct that was stored the prog with the fields initialized
@@ -169,7 +182,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
     }
 
-    public void initializeGlobalForVTable(TypeStruct typeStructClass, ClassData classData)
+    public void initializeGlobalForVTable(TypeStruct typeStructClass, ClassData classData, MJClassDecl classDecl)
     {
         //create an instance with the references to the different procedures stored in the V-Table
 
@@ -184,9 +197,12 @@ public class Translator extends MJElement.DefaultVisitor {
          ConstStruct constStructClass = ConstStruct(typeStructClass,constProcedures );
          Global globalVTable = Global(typeStructClass, "virtual_method_table" + classData.getVirtualTable().getName(), true, constStructClass);
 
+
         //a globalRef can be used as operand too.
 
          prog.getGlobals().add(globalVTable);
+
+         Translator.globalsMap.put(classDecl, globalVTable);
 
     }
 

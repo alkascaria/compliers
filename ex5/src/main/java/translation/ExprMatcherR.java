@@ -32,24 +32,16 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
      */
     @Override
 
-    //TODO: refactor with visitor pattern?
     public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
         //given the receives class, get the address of the heap object corresponding to it
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         Operand exprClassReceived = fieldAccess.getReceiver().match(exprMatcherR);
 
-       // TemporaryVar addressObjHeap = TemporaryVar("obj heap");
-       // Translator.curBlock.add(Load(addressObjHeap, exprClassReceived));
 
         return StaticMethods.handleFieldClass(true, fieldAccess, exprClassReceived);
 
-        //access the right field in the StructField passed
 
-       // System.out.println("Class type is " + varTemp.calculateType());
-       // return ConstInt(0);
-        //firstly, get the class that's being accessed
-        //return StaticMethods.handleFieldClass(true, fieldAccess);
     }
 
     /**
@@ -113,38 +105,25 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
-        return null;
-        /*
-        MJExpr exprReceiver = methodCall.getReceiver();
-        //a.x
-        if(exprReceiver instanceof MJVarUse)
-        {
-            MJVarUse varUse = (MJVarUse) exprReceiver;
-            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
-            {
-                MJClassDecl classDecl = ((MJTypeClass) varUse.getVariableDeclaration().getType()).getClassDeclaration();
-                //struct with all the different field, right?
-                TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
-        */
-
-        /*
-            Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
-
-            TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
-            OperandList parametersToPass = OperandList();
-
-            ExprMatcherR exprMatcherR = new ExprMatcherR();
-            for(MJExpr exprParam : methodCall.getArguments())
-            {
-               Operand operandParam = exprParam.match(exprMatcherR);
-               parametersToPass.add(operandParam);
-            }
-
-            Call callProc = Call(tempCallProc, ProcedureRef(procCalled),parametersToPass);
-            Translator.curBlock.add(callProc);
+        //TODO: return an operand as well (the result)
+        return StaticMethods.handleMethodCall(methodCall);
 
 
-*/
+
+
+
+           // Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
+
+           // TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
+           // OperandList parametersToPass = OperandList();
+
+
+
+           // Call callProc = Call(tempCallProc, ProcedureRef(procCalled),parametersToPass);
+           // Translator.curBlock.add(callProc);
+
+
+
 
 
 

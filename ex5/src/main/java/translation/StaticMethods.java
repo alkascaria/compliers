@@ -16,6 +16,63 @@ public class StaticMethods
 {
 
 
+
+
+    public static Operand handleMethodCall(MJMethodCall methodCall)
+    {
+
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+        MJExpr exprReceiver = methodCall.getReceiver();
+
+        //1. pointer to the object on heap
+        Operand addressObjHeap = exprReceiver.match(exprMatcherR);
+
+        //2. evaluate arguments
+
+        OperandList parametersToPass = OperandList();
+        for(MJExpr exprParam : methodCall.getArguments())
+        {
+            Operand operandParam = exprParam.match(exprMatcherR);
+            parametersToPass.add(operandParam);
+        }
+
+        //3. check if pointer is null (currently not working)
+        //StaticMethods.checkIfClassNull();
+
+        //4. get value of V-Table from the global
+
+        if(exprReceiver instanceof MJVarUse)
+        {
+            MJVarUse varUse = (MJVarUse) exprReceiver;
+            if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
+                MJClassDecl classDecl = ((MJTypeClass) varUse.getVariableDeclaration().getType()).getClassDeclaration();
+                //struct with all the different field, right?
+                 TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
+
+                //5.    load pointer to the function
+                //get the global V-Table corresponding to the current class
+                Global globalVTable = Translator.globalsMap.get(classDecl);
+
+                //get the right procedure from the V-Table
+
+                //6. call function with the proper object
+                TemporaryVar tempProc = TemporaryVar("proc result");
+                //Call callProc = Call(tempProc, ProcedureRef(proc), parametersToPass);
+                //Translator.curBlock.add(callProc);
+
+                Translator.curBlock.add(Print(VarRef(tempProc)));
+
+
+                return VarRef(tempProc);
+
+                //find the right function being called
+            }
+
+        }
+        return null;
+    }
+
+
     public static void checkIfClassNull(TemporaryVar varClassNull)
     {
 
