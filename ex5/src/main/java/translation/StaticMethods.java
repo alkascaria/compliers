@@ -15,6 +15,7 @@ import static minillvm.ast.Ast.VarRef;
 public class StaticMethods
 {
 
+
     public static void checkIfClassNull(TemporaryVar varClassNull)
     {
 

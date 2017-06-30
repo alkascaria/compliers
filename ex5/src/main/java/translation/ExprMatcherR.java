@@ -99,21 +99,19 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
-    {/*
+    {
+        /*
         MJExpr exprReceiver = methodCall.getReceiver();
         //a.x
         if(exprReceiver instanceof MJVarUse)
         {
             MJVarUse varUse = (MJVarUse) exprReceiver;
-
             if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
             {
                 MJClassDecl classDecl = ((MJTypeClass) varUse.getVariableDeclaration().getType()).getClassDeclaration();
                 //struct with all the different field, right?
                 TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
-
-*/
-                //MAYBE STUFF ABOVE (ALL THE DAMN CHECKS) are not needed??
+        */
             Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
 
             TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
@@ -451,6 +449,8 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
         //put onto the heap hash Map
         Translator.classesHeap.put(newObject.getClassDeclaration(), bitCastClass);
 
+
+
         //assign default value to fields and store it. field 0 contains v-Table, so start from 1.
         StaticMethods.initializeDefaultValueFields(typeNewObjClass, bitCastClass);
 
@@ -462,9 +462,9 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
      * @return address of position being accessed (if valid)
      */
     @Override
-    public Operand case_ArrayLookup(MJArrayLookup arrayLookup) {
+    public Operand case_ArrayLookup(MJArrayLookup arrayLookup)
+    {
         TemporaryVar pointerElementArray = StaticMethods.accessIndexArray(arrayLookup);
-
         //convert pointer into actual integer for accessing the value
         TemporaryVar tempVar = TemporaryVar("temp");
         Translator.curBlock.add(Load(tempVar, VarRef(pointerElementArray)));
