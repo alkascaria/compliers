@@ -35,8 +35,21 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     //TODO: refactor with visitor pattern?
     public Operand case_FieldAccess(MJFieldAccess fieldAccess)
     {
+        //given the receives class, get the address of the heap object corresponding to it
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+        Operand exprClassReceived = fieldAccess.getReceiver().match(exprMatcherR);
+
+       // TemporaryVar addressObjHeap = TemporaryVar("obj heap");
+       // Translator.curBlock.add(Load(addressObjHeap, exprClassReceived));
+
+        return StaticMethods.handleFieldClass(true, fieldAccess, exprClassReceived);
+
+        //access the right field in the StructField passed
+
+       // System.out.println("Class type is " + varTemp.calculateType());
+       // return ConstInt(0);
         //firstly, get the class that's being accessed
-        return StaticMethods.handleFieldClass(true, fieldAccess);
+        //return StaticMethods.handleFieldClass(true, fieldAccess);
     }
 
     /**
@@ -100,7 +113,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
-        return ConstInt(0);
+        return null;
         /*
         MJExpr exprReceiver = methodCall.getReceiver();
         //a.x
@@ -306,7 +319,10 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
                 //TemporaryVar tempClassStored = Translator.classesHeap.get(typeClass.getClassDeclaration());
 
                 //return VarRef(tempClassStored);
-                return VarRef(Translator.varsTemp.get(tempVar));
+
+                //System.out.println("List of vars in varsTemp + " +  Translator.varsTemp.toString());
+                System.out.println("Type in varUse being accessed " + tempVar.calculateType());
+                return VarRef(tempVar);
                 //throw new InvalidParameterException("Class usage " + typeClass.toString() + " is not supported as right-hand side expression!");
             }
 

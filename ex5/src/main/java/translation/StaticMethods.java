@@ -138,8 +138,9 @@ public class StaticMethods
      * @return
      */
 
-    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess)
+    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess, Operand addressObjHeap)
     {
+        System.out.println("Handling field");
         MJExpr exprReceiver = fieldAccess.getReceiver();
 
         ExprMatcherR exprMatcherR = new ExprMatcherR();
@@ -157,7 +158,7 @@ public class StaticMethods
 
                 TemporaryVar tempVar =  TemporaryVar("temp Deref");
                 Translator.curBlock.add(Load(tempVar, VarRef(Translator.varsTemp.get(varUse.getVarName()))));
-                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference);
+                return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference, addressObjHeap);
 
             }
         }
@@ -170,7 +171,7 @@ public class StaticMethods
             //then access the value
             MJClassDecl classDecl = ((MJNewObject) exprReceiver).getClassDeclaration();
 
-            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference);
+            return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference, addressObjHeap);
         }
 
         throw new InvalidParameterException("Nothing matched on right-hand side field access?");
@@ -185,7 +186,7 @@ public class StaticMethods
      * @return
      */
 
-    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference)
+    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference, Operand addressObjHeap)
     {
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
@@ -206,7 +207,7 @@ public class StaticMethods
                     found = true;
                     TemporaryVar tempVarElement = TemporaryVar("element found");
 
-                    GetElementPtr elementPtr = GetElementPtr(tempVarElement, VarRef(Translator.classesHeap.get(classDecl)), OperandList(ConstInt(0), ConstInt(i)));
+                    GetElementPtr elementPtr = GetElementPtr(tempVarElement, addressObjHeap, OperandList(ConstInt(0), ConstInt(i)));
                     Translator.curBlock.add(elementPtr);
 
                     if (needToDereference == true)

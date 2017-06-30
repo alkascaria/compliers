@@ -24,7 +24,13 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      */
     @Override
     public Operand case_FieldAccess(MJFieldAccess fieldAccess) {
-        return StaticMethods.handleFieldClass(false, fieldAccess);
+        ExprMatcherR exprMatcherR = new ExprMatcherR();
+        Operand exprClassReceived = fieldAccess.getReceiver().match(exprMatcherR);
+
+        // TemporaryVar addressObjHeap = TemporaryVar("obj heap");
+        // Translator.curBlock.add(Load(addressObjHeap, exprClassReceived));
+
+        return StaticMethods.handleFieldClass(false, fieldAccess, exprClassReceived);
     }
 
     /**

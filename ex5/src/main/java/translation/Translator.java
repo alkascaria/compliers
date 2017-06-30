@@ -685,20 +685,20 @@ public class Translator extends MJElement.DefaultVisitor {
         //if same type or assigning null, go ahead!
         if(operLeft.calculateType().equals(operRight.calculateType()) ||
                 operLeft.calculateType().equalsType(TypeNullpointer()) ||
-                        operRight.calculateType().equalsType(TypeNullpointer()))
+                operRight.calculateType().equalsType(TypeNullpointer()))
         {
             Store storeValue = Store(operLeft, operRight);
             this.curBlock.add(storeValue);
-
         }
         else
         {
-                //convert left to value of right-hand side
-                 TemporaryVar tempCastLeft = TemporaryVar("temp cast left");
-                 Translator.curBlock.add(Bitcast(tempCastLeft,TypePointer(operRight.calculateType()),operLeft));
 
-                 Store storeValue = Store(VarRef(tempCastLeft), operRight);
-                 Translator.curBlock.add(storeValue);
+            //convert left to value of right-hand side
+            TemporaryVar tempCastLeft = TemporaryVar("temp cast left");
+            Translator.curBlock.add(Bitcast(tempCastLeft,TypePointer(operRight.calculateType()),operLeft));
+
+            Store storeValue = Store(VarRef(tempCastLeft), operRight);
+            Translator.curBlock.add(storeValue);
         }
 
 
