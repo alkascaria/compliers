@@ -4,6 +4,7 @@ import minijava.ast.*;
 import minillvm.ast.*;
 
 import java.security.InvalidParameterException;
+import java.util.HashMap;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.Nullpointer;
@@ -14,6 +15,8 @@ import static minillvm.ast.Ast.VarRef;
  */
 public class StaticMethods
 {
+
+    public static HashMap<MJClassDecl, Parameter> parametersHashMap = new HashMap<>();
 
 
 
@@ -28,70 +31,48 @@ public class StaticMethods
 
 
             //2. evaluate arguments
+       // TemporaryVar tempRefVar = TemporaryVar("var");
+        //Translator.curBlock.add(Store(VarRef(tempRefVar), addressObjHeap));
 
-            OperandList parametersToPass = OperandList();
-            for (MJExpr exprParam : methodCall.getArguments()) {
-                Operand operandParam = exprParam.match(exprMatcherR);
-                parametersToPass.add(operandParam);
-            }
+                //UNSAFE
+            MJVarUse varUse = (MJVarUse)methodCall.getReceiver();
 
-            //3. get the V-Table
+//        if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
 
-            TemporaryVar callingClass = TemporaryVar("calling_class");
-            Translator.curBlock.add(Load(callingClass, addressObjHeap));
+        MJTypeClass objClassReceived = (MJTypeClass) varUse.getVariableDeclaration().getType();
+        MJClassDecl classDecl = objClassReceived.getClassDeclaration();
 
-            TemporaryVar temporaryVarPTR = TemporaryVar("VMTPtr");
-            Translator.curBlock.add(GetElementPtr(temporaryVarPTR, addressObjHeap.copy(), OperandList(ConstInt(0), ConstInt(0))));
 
-            TemporaryVar tempVarDeref = TemporaryVar("temp var deref");
-            Translator.curBlock.add(Load(tempVarDeref, VarRef(temporaryVarPTR)));
-
-            TemporaryVar tempVarDerefAgain = TemporaryVar("temp var deref deref");
-            Translator.curBlock.add(Load (tempVarDerefAgain, VarRef(tempVarDeref)));
+        //Translator.curBlock.add(Bitcast(bitCastTemp, Translator.structsMap.get(Translator.structsMap.get(classDecl)), VarRef(tempVarDeref)));
+   // System.out.println("Type is " + bitCastTemp.calculateType());
 
 
         TemporaryVar tempReturnValue = TemporaryVar("return value");
 
         int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
 
-        System.out.println(rightProcedure + " is right");
+        Proc procedure = Translator.prog.getProcedures().get(rightProcedure);
 
-        Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(Translator.prog.getProcedures().get(rightProcedure)), parametersToPass));
-        return VarRef(tempReturnValue);
+        Variable paramRight = StaticMethods.parametersHashMap.get(classDecl);
 
+        TemporaryVar tempVar = TemporaryVar("temp");
+        Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
 
-        /*
+        OperandList parametersToPass = OperandList();
+        parametersToPass.add(VarRef(tempVar));
+        // ConstStruct construct = ConstStruct(Translator.structsMap.get(classDecl), ConstList(ConstInt(0)));
+        // parametersToPass.add(TypePointer(construct.calculateType()));
 
+        for (MJExpr exprParam : methodCall.getArguments())
+        {
+            Operand operandParam = exprParam.match(exprMatcherR);
+            parametersToPass.add(operandParam);
+        }
+            System.out.println(rightProcedure + " is right");
 
-        //iterate through the list of procedures in the global Map to find the right one
-            for(Global global : Translator.globalsMap.values())
-            {
-                //get the struct corresponding to the one in Globals
+            Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(procedure), parametersToPass));
+            return VarRef(tempReturnValue);
 
-                if (global.getType().equalsType(tempVarDerefAgain.calculateType())) {
-                    //found right V-Table with constants. now need to get the right method, i.e: just compare name and type to be the same
-                    //procedures are stored into the constants of the global
-                    Const constGlobal = global.getInitialValue();
-
-                    //"safe cast". we now we just stored contStructs into it
-                    ConstStruct constProcedures = (ConstStruct) constGlobal;
-                    //iterate through all the procedures in it
-                    for (Const constProc : constProcedures.getValues())
-                    {
-                        //another "safe" cast, as we know we just stored ConstProcRefs into it
-
-                        int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
-
-                       // ProcedureRef procConst = (ProcedureRef) constProc;
-                       // Proc procedure = procConst.getProcedure();
-
-
-                        }
-                    }
-                }
-                */
-
-               // return null;
 
         }
 

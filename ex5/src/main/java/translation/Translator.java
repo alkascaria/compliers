@@ -40,6 +40,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public static HashMap<MJClassDecl, Global> globalsMap = new HashMap<>();
 
+    public static HashMap<MJClassDecl, Parameter> parametersMap = new HashMap<>();
+
     //public static HashMap<Proc, Integer>
 
 
@@ -165,6 +167,9 @@ public class Translator extends MJElement.DefaultVisitor {
             prog.getStructTypes().set(i, typeStructClass.copy());
 
             //store the newly updated TypeStruct
+            //Translator.structsMap.keySet(classDecl, prog.getStructTypes().get(i));
+
+            //update previously stored one with the one with V-Table.
             Translator.structsMap.put(classDecl, prog.getStructTypes().get(i));
 
             i = i + 1;
@@ -245,6 +250,7 @@ public class Translator extends MJElement.DefaultVisitor {
 
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
             prog.getStructTypes().add(structClass);
+            structsMap.put(classDecl, structClass);
         }
     }
 
@@ -412,6 +418,14 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
             ParameterList parameterList = ParameterList();
+
+            Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
+            parameterList.add(paramClass);
+
+            StaticMethods.parametersHashMap.put(classDecl, paramClass.copy());
+
+            parametersMap.put(classDecl, paramClass);
+
             //for all parameters, convert their type
             for (MJVarDecl paramDecl : methodDecl.getFormalParameters())
             {
@@ -440,24 +454,14 @@ public class Translator extends MJElement.DefaultVisitor {
 
             //initialize content of the method and put it into the proc
             methodDecl.getMethodBody().accept(this);
+
             prog.getProcedures().add(methodProc);
             methodsProcs.put(methodDecl, methodProc);
-
             Translator.indexGlobal.put(methodDecl, i);
-
-
             System.out.println(indexGlobal.toString());
 
             i = i + 1;
         }
-
-        int h = 0;
-        for(Proc proc : prog.getProcedures())
-        {
-            System.out.println(h + " is "  + proc.toString());
-            h = h + 1;
-        }
-
     }
 
 
@@ -585,9 +589,7 @@ public class Translator extends MJElement.DefaultVisitor {
     public void visit(MJStmtReturn stmtReturn)
     {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
-
         Operand operReturn = stmtReturn.getResult().match(exprMatcherR);
-
         Translator.curBlock.add(ReturnExpr(operReturn));
 
     }
