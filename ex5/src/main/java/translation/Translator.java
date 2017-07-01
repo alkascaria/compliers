@@ -27,7 +27,6 @@ import java.util.List;
 
 public class Translator extends MJElement.DefaultVisitor {
 
-    private final MJProgram javaProg;
 
     //variables declarations go onto the stack (ex: int a). contains no value yet!
     public static HashMap<String, TemporaryVar> varsTemp = new HashMap<>();
@@ -35,26 +34,14 @@ public class Translator extends MJElement.DefaultVisitor {
     //teaching assistant Zeller approves this HashMap
     public static HashMap<MJMethodDecl, Proc> methodsProcs = new HashMap<>();
 
+    public static HashMap<MJMethodDecl, Integer> indexGlobal = new HashMap<>();
+
     public static HashMap<MJClassDecl, TypeStruct> structsMap = new HashMap<>();
 
     public static HashMap<MJClassDecl, Global> globalsMap = new HashMap<>();
 
+    //public static HashMap<Proc, Integer>
 
-
-    //stores address of a class' temp var on the heap
-    public static HashMap<MJClassDecl, TemporaryVar> classesHeap = new HashMap<>();
-
-
-
-
-    //where a V-Table is stored on the heap
-    public static HashMap<TypeStruct, TemporaryVar> vTablesHeap = new HashMap<>();
-
-    public static HashMap<MJClassDecl, ClassData> vTablesProcs = new HashMap<>();
-
-    public static HashMap<MJClassDecl, MJClassDecl> classAssigned = new HashMap<>();
-
-    public static HashMap<MJClassDecl, TypeStruct> vTablesMap = new HashMap<>();
 
 
     public static Proc curProc;
@@ -67,12 +54,15 @@ public class Translator extends MJElement.DefaultVisitor {
 
 
 
-    public Prog prog;
+    public static Prog prog;
+
+
+
 
 
     public Translator(MJProgram javaProg)
     {
-        this.javaProg = javaProg;
+       // this.javaProg = javaProg;
     }
 
 
@@ -116,6 +106,7 @@ public class Translator extends MJElement.DefaultVisitor {
     //does not  necessarily happen on the right-hand side, but there may also be "stray" methods
     public void visit(MJMethodCall methodCall)
     {
+
         StaticMethods.handleMethodCall(methodCall);
 
     }
@@ -190,12 +181,15 @@ public class Translator extends MJElement.DefaultVisitor {
          for(int i = 0; i < classData.getProcList().size(); i++)
           {
              Proc procCur = classData.getProcList().get(i);
-             ProcedureRef procedureRef = ProcedureRef(procCur);
+
+
+              ProcedureRef procedureRef = ProcedureRef(procCur.copy());
              constProcedures.add(procedureRef);
          }
 
          ConstStruct constStructClass = ConstStruct(typeStructClass,constProcedures );
          Global globalVTable = Global(typeStructClass, "virtual_method_table" + classData.getVirtualTable().getName(), true, constStructClass);
+
 
 
         //a globalRef can be used as operand too.
@@ -408,6 +402,7 @@ public class Translator extends MJElement.DefaultVisitor {
     public void initMethodsDeclarations(MJClassDecl classDecl)
     {
 
+        int i = 0;
         for(MJMethodDecl methodDecl : classDecl.getMethods())
         {
 
@@ -430,13 +425,11 @@ public class Translator extends MJElement.DefaultVisitor {
             //create new blocks for the procedure
             blocks = BasicBlockList();
             BasicBlock methodBlock = BasicBlock();
-            methodBlock.setName(methodDecl.getName());
             blocks.add(methodBlock);
             curBlock = methodBlock;
 
             Proc methodProc = Proc(methodName, returnType, parameterList, blocks);
 
-            prog.getProcedures().add(methodProc);
             Translator.curProc = methodProc;
 
             //initialize parameters of the method as TempVar and onto the stack
@@ -447,8 +440,24 @@ public class Translator extends MJElement.DefaultVisitor {
 
             //initialize content of the method and put it into the proc
             methodDecl.getMethodBody().accept(this);
+            prog.getProcedures().add(methodProc);
             methodsProcs.put(methodDecl, methodProc);
+
+            Translator.indexGlobal.put(methodDecl, i);
+
+
+            System.out.println(indexGlobal.toString());
+
+            i = i + 1;
         }
+
+        int h = 0;
+        for(Proc proc : prog.getProcedures())
+        {
+            System.out.println(h + " is "  + proc.toString());
+            h = h + 1;
+        }
+
     }
 
 
@@ -614,7 +623,6 @@ public class Translator extends MJElement.DefaultVisitor {
     @Override
     public void visit(MJVarDecl varDecl)
     {
-
 
         MJType typeName = varDecl.getType();
         String varName = varDecl.getName();

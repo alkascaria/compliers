@@ -17,64 +17,145 @@ public class StaticMethods
 
 
 
-
-    public static Operand handleMethodCall(MJMethodCall methodCall)
-    {
-
+    public static Operand handleMethodCall(MJMethodCall methodCall) {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         MJExpr exprReceiver = methodCall.getReceiver();
 
         //1. pointer to the object on heap
         Operand addressObjHeap = exprReceiver.match(exprMatcherR);
 
-        //2. evaluate arguments
+        TypeMatcher typeMatcher = new TypeMatcher();
 
-        OperandList parametersToPass = OperandList();
-        for(MJExpr exprParam : methodCall.getArguments())
-        {
-            Operand operandParam = exprParam.match(exprMatcherR);
-            parametersToPass.add(operandParam);
+
+            //2. evaluate arguments
+
+            OperandList parametersToPass = OperandList();
+            for (MJExpr exprParam : methodCall.getArguments()) {
+                Operand operandParam = exprParam.match(exprMatcherR);
+                parametersToPass.add(operandParam);
+            }
+
+            //3. get the V-Table
+
+            TemporaryVar callingClass = TemporaryVar("calling_class");
+            Translator.curBlock.add(Load(callingClass, addressObjHeap));
+
+            TemporaryVar temporaryVarPTR = TemporaryVar("VMTPtr");
+            Translator.curBlock.add(GetElementPtr(temporaryVarPTR, addressObjHeap.copy(), OperandList(ConstInt(0), ConstInt(0))));
+
+            TemporaryVar tempVarDeref = TemporaryVar("temp var deref");
+            Translator.curBlock.add(Load(tempVarDeref, VarRef(temporaryVarPTR)));
+
+            TemporaryVar tempVarDerefAgain = TemporaryVar("temp var deref deref");
+            Translator.curBlock.add(Load (tempVarDerefAgain, VarRef(tempVarDeref)));
+
+
+        TemporaryVar tempReturnValue = TemporaryVar("return value");
+
+        int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
+
+        System.out.println(rightProcedure + " is right");
+
+        Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(Translator.prog.getProcedures().get(rightProcedure)), parametersToPass));
+        return VarRef(tempReturnValue);
+
+
+        /*
+
+
+        //iterate through the list of procedures in the global Map to find the right one
+            for(Global global : Translator.globalsMap.values())
+            {
+                //get the struct corresponding to the one in Globals
+
+                if (global.getType().equalsType(tempVarDerefAgain.calculateType())) {
+                    //found right V-Table with constants. now need to get the right method, i.e: just compare name and type to be the same
+                    //procedures are stored into the constants of the global
+                    Const constGlobal = global.getInitialValue();
+
+                    //"safe cast". we now we just stored contStructs into it
+                    ConstStruct constProcedures = (ConstStruct) constGlobal;
+                    //iterate through all the procedures in it
+                    for (Const constProc : constProcedures.getValues())
+                    {
+                        //another "safe" cast, as we know we just stored ConstProcRefs into it
+
+                        int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
+
+                       // ProcedureRef procConst = (ProcedureRef) constProc;
+                       // Proc procedure = procConst.getProcedure();
+
+
+                        }
+                    }
+                }
+                */
+
+               // return null;
+
         }
 
-        //3. check if pointer is null (currently not working)
-        //StaticMethods.checkIfClassNull();
-
-        //4. get value of V-Table from the global
-
-        if(exprReceiver instanceof MJVarUse)
-        {
-            MJVarUse varUse = (MJVarUse) exprReceiver;
-            if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
-                MJClassDecl classDecl = ((MJTypeClass) varUse.getVariableDeclaration().getType()).getClassDeclaration();
-                //struct with all the different field, right?
-                 TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
-
-                //5.    load pointer to the function
-                //get the global V-Table corresponding to the current class
-                Global globalVTable = Translator.globalsMap.get(classDecl);
-
-                //get the right procedure from the V-Table
-
-                //6. call function with the proper object
-                TemporaryVar tempProc = TemporaryVar("proc result");
-                //Call callProc = Call(tempProc, ProcedureRef(proc), parametersToPass);
-                //Translator.curBlock.add(callProc);
-
-                Translator.curBlock.add(Print(VarRef(tempProc)));
 
 
-                return VarRef(tempProc);
 
-                //find the right function being called
+
+
+
+    public static boolean checkAllParametersEEqual(ParameterList paramList1, ParameterList paramList2)
+    {
+        int amountElementsEqualTotal1 = paramList1.size();
+        int amountElementsEqualTotal2 = paramList2.size();
+
+
+
+        int amountElementsEqualSoFar = 0;
+
+
+        int i = 0;
+
+        if(amountElementsEqualTotal1 == amountElementsEqualTotal2) {
+
+            for (Parameter param1 : paramList1) {
+                Parameter param2 = paramList2.get(i);
+                if (param1 != null && param2 != null &&
+                        param1.equals(param2)) {
+                    amountElementsEqualSoFar = amountElementsEqualSoFar + 1;
+                }
             }
 
         }
-        return null;
+
+        System.out.println("Size BB in 1:" + amountElementsEqualTotal1 + " 2: " + amountElementsEqualTotal2 + " overall " + amountElementsEqualSoFar);
+
+        System.out.println("All equal" +  ((amountElementsEqualSoFar == amountElementsEqualTotal1) && (amountElementsEqualSoFar == amountElementsEqualTotal2)));
+
+        return ((amountElementsEqualSoFar == amountElementsEqualTotal1) && (amountElementsEqualSoFar == amountElementsEqualTotal2)) ;
+    }
+
+    public static boolean checkAllBasicBlocksEqual(BasicBlockList blockList1, BasicBlockList blockList2)
+    {
+        int amountElementsEqualTotal = blockList1.size();
+
+        int amountElementsEqualSoFar = 0;
+
+
+        int i = 0;
+        for(BasicBlock param1 : blockList1)
+        {
+            BasicBlock param2 = blockList2.get(i);
+            if (param1 != null && param2 != null &&
+                    param1.equals(param2))
+            {
+                amountElementsEqualSoFar = amountElementsEqualSoFar + 1;
+            }
+        }
+
+        return amountElementsEqualSoFar == amountElementsEqualTotal;
+
     }
 
 
-    public static void checkIfClassNull(TemporaryVar varClassNull)
-    {
+    public static void checkIfClassNull(TemporaryVar varClassNull) {
 
         //checks for null array
         BasicBlock blockNull = BasicBlock();
@@ -82,8 +163,7 @@ public class StaticMethods
         TemporaryVar tempNull = TemporaryVar("null class");
 
 
-
-        BinaryOperation binCheckNull = BinaryOperation(tempNull,VarRef(varClassNull), Eq(), Ast.Nullpointer());
+        BinaryOperation binCheckNull = BinaryOperation(tempNull, VarRef(varClassNull), Eq(), Ast.Nullpointer());
         Translator.curBlock.add(binCheckNull);
 
         Branch branchIfNull = Branch(VarRef(tempNull), blockNull, blockRest);
@@ -105,15 +185,13 @@ public class StaticMethods
      * @return StructFieldList: list of structFields in the current class
      */
 
-    public static StructFieldList returnStructsFieldsInClass(MJClassDecl classDecl, boolean isBaseClass)
-    {
+    public static StructFieldList returnStructsFieldsInClass(MJClassDecl classDecl, boolean isBaseClass) {
 
         StructFieldList structFieldListReturn = StructFieldList();
 
 
-       //return all fields found in the class passed
-        for(MJVarDecl varDecl: classDecl.getFields())
-        {
+        //return all fields found in the class passed
+        for (MJVarDecl varDecl : classDecl.getFields()) {
             TypeMatcher typeMatcher = new TypeMatcher();
             //convert all fields
             String fieldName = classDecl.getName() + "_" + varDecl.getName();
@@ -122,12 +200,9 @@ public class StaticMethods
             //now create a field with these
             StructField fieldStruct = StructField(fieldType, fieldName);
 
-            if(isBaseClass == true)
-            {
+            if (isBaseClass == true) {
                 structFieldListReturn.add(fieldStruct);
-            }
-            else
-            {
+            } else {
                 structFieldListReturn.addFront(fieldStruct);
 
             }
@@ -139,10 +214,8 @@ public class StaticMethods
     }
 
     //stores default value into the different fields of a class (on heap memory)
-    public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass)
-    {
-        for(int i = 1; i < typeNewObjClass.getFields().size(); i++)
-        {
+    public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass) {
+        for (int i = 1; i < typeNewObjClass.getFields().size(); i++) {
             TemporaryVar tempPointer = TemporaryVar("struct field");
             GetElementPtr elementPointer = GetElementPtr(tempPointer, VarRef(bitCastClass), OperandList(ConstInt(0), ConstInt(i)));
             Translator.curBlock.add(elementPointer);
@@ -154,20 +227,17 @@ public class StaticMethods
             Type typeField = tempVar.calculateType();
 
             //integer --> default value = 0
-            if(typeField.equalsType(TypeInt()))
-            {
+            if (typeField.equalsType(TypeInt())) {
                 Operand defaultValue = ConstInt(0);
                 Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
             //boolean --> default value = false
-            else if(typeField.equalsType(TypeBool()))
-            {
+            else if (typeField.equalsType(TypeBool())) {
                 Operand defaultValue = ConstBool(false);
                 Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
             //array default value = null
-            else if(typeField.equalsType(TypeArray(TypeInt(), 0)))
-            {
+            else if (typeField.equalsType(TypeArray(TypeInt(), 0))) {
                 TypeArray typeArray = TypeArray(TypeInt(), 0);
                 TemporaryVar tempArrayCasted = TemporaryVar("arrayCasted");
                 Bitcast arrayConverted = Bitcast(tempArrayCasted, TypePointer(TypePointer(typeArray)), VarRef(bitCastClass));
@@ -176,8 +246,7 @@ public class StaticMethods
                 Translator.curBlock.add(Store(VarRef(tempArrayCasted), operNull));
             }
             //class = null
-            else
-            {
+            else {
                 TemporaryVar classNullCasted = TemporaryVar("arrayCasted");
                 Bitcast classConverted = Bitcast(classNullCasted, TypePointer(TypePointer(typeNewObjClass)), VarRef(bitCastClass));
                 Translator.curBlock.add(classConverted);
@@ -188,40 +257,37 @@ public class StaticMethods
         }
     }
 
-    /** Dereference: true if getting the value (right-hand side)
-     *               false if getting the element (left-hand side)
+    /**
+     * Dereference: true if getting the value (right-hand side)
+     * false if getting the element (left-hand side)
+     *
      * @param needToDereference
      * @param fieldAccess
      * @return
      */
 
-    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess, Operand addressObjHeap)
-    {
-        System.out.println("Handling field");
+    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess, Operand addressObjHeap) {
         MJExpr exprReceiver = fieldAccess.getReceiver();
 
         ExprMatcherR exprMatcherR = new ExprMatcherR();
 
         //a.x
-        if(exprReceiver instanceof MJVarUse)
-        {
-            MJVarUse varUse = (MJVarUse)exprReceiver;
+        if (exprReceiver instanceof MJVarUse) {
+            MJVarUse varUse = (MJVarUse) exprReceiver;
 
             //if trying to access a class. well, there aren't any other options, right?
-            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
-            {
-                MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
+            if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
+                MJTypeClass objClassReceived = (MJTypeClass) varUse.getVariableDeclaration().getType();
                 MJClassDecl classDecl = objClassReceived.getClassDeclaration();
 
-                TemporaryVar tempVar =  TemporaryVar("temp Deref");
+                TemporaryVar tempVar = TemporaryVar("temp Deref");
                 Translator.curBlock.add(Load(tempVar, VarRef(Translator.varsTemp.get(varUse.getVarName()))));
                 return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference, addressObjHeap);
 
             }
         }
         //new A().x
-        else if(exprReceiver instanceof MJNewObject)
-        {
+        else if (exprReceiver instanceof MJNewObject) {
             //firstly, instantiate the class
             exprReceiver.match(exprMatcherR);
 
@@ -236,57 +302,44 @@ public class StaticMethods
     }
 
     /**
-     *
      * @param classDecl
      * @param fieldAccess: true =  need to get the value (right-hand side)
      *                     false = need to get the reference (left-hand side)
      * @return
      */
 
-    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference, Operand addressObjHeap)
-    {
+    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference, Operand addressObjHeap) {
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
         boolean found = false;
 
         //loop through all fields starting from the one in position 1, looking for the correct one.
-        for(int i = 1; i < typeStructClass.getFields().size(); i++)
-        {
+        for (int i = 1; i < typeStructClass.getFields().size(); i++) {
             MJClassDecl classCurrent = classDecl;
-            while(found == false)
-            {
+            while (found == false) {
                 String fieldName = classCurrent.getName() + "_" + fieldAccess.getFieldName();
 
                 StructField structFieldAtPos = typeStructClass.getFields().get(i);
 
-                if(structFieldAtPos.getName().equals(fieldName))
-                {
+                if (structFieldAtPos.getName().equals(fieldName)) {
                     found = true;
                     TemporaryVar tempVarElement = TemporaryVar("element found");
 
                     GetElementPtr elementPtr = GetElementPtr(tempVarElement, addressObjHeap, OperandList(ConstInt(0), ConstInt(i)));
                     Translator.curBlock.add(elementPtr);
 
-                    if (needToDereference == true)
-                    {
+                    if (needToDereference == true) {
                         TemporaryVar tempVar = TemporaryVar("deref temp");
                         Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
 
                         return VarRef(tempVar);
-                    }
-                    else
-                    {
+                    } else {
                         return VarRef(tempVarElement);
                     }
-                }
-                else
-                {
-                    if (classCurrent.getDirectSuperClass() != null)
-                    {
+                } else {
+                    if (classCurrent.getDirectSuperClass() != null) {
                         classCurrent = classCurrent.getDirectSuperClass();
-                    }
-                    else
-                    {
+                    } else {
                         break;
                     }
 
@@ -295,7 +348,7 @@ public class StaticMethods
             }
         }
 
-        throw new InvalidParameterException("Field " +  fieldAccess.getFieldName() + " for class" + classDecl.getName() + "  being accessed was not found!");
+        throw new InvalidParameterException("Field " + fieldAccess.getFieldName() + " for class" + classDecl.getName() + "  being accessed was not found!");
 
     }
 
@@ -556,7 +609,6 @@ public class StaticMethods
         Translator.curBlock = restBlock;
 
     }
-
 
 
 }

@@ -105,34 +105,9 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     @Override
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
+
         //TODO: return an operand as well (the result)
         return StaticMethods.handleMethodCall(methodCall);
-
-
-
-
-
-           // Proc procCalled = Translator.methodsProcs.get(methodCall.getMethodDeclaration());
-
-           // TemporaryVar tempCallProc = TemporaryVar("procedure call " + methodCall.getMethodName());
-           // OperandList parametersToPass = OperandList();
-
-
-
-           // Call callProc = Call(tempCallProc, ProcedureRef(procCalled),parametersToPass);
-           // Translator.curBlock.add(callProc);
-
-
-
-
-
-
-           // }
-       // }
-        //else if(exprReceiver instanceof  MJNewObject)
-        //{
-       // }
-       // return VarRef(tempCallProc);
     }
 
     /**
