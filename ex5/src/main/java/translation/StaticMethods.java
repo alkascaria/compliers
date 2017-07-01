@@ -53,13 +53,11 @@ public class StaticMethods
 
         Proc procedure = Translator.prog.getProcedures().get(rightProcedure);
 
-        Variable paramRight = StaticMethods.parametersHashMap.get(classDecl);
 
-        TemporaryVar tempVar = TemporaryVar("temp");
-        Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
 
         OperandList parametersToPass = OperandList();
-        parametersToPass.add(VarRef(tempVar));
+
+
         // ConstStruct construct = ConstStruct(Translator.structsMap.get(classDecl), ConstList(ConstInt(0)));
         // parametersToPass.add(TypePointer(construct.calculateType()));
 
@@ -68,7 +66,20 @@ public class StaticMethods
             Operand operandParam = exprParam.match(exprMatcherR);
             parametersToPass.add(operandParam);
         }
-            System.out.println(rightProcedure + " is right");
+
+
+        //WTF HERE???
+
+        Variable paramRight = Parameter(Translator.structsMap.get(classDecl), classDecl.getName());
+
+        TemporaryVar tempVar = TemporaryVar("temp");
+        Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
+        Operand operParam = VarRef(paramRight);
+        parametersToPass.addFront(operParam);
+
+
+
+        System.out.println(rightProcedure + " is right");
 
             Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(procedure), parametersToPass));
             return VarRef(tempReturnValue);
