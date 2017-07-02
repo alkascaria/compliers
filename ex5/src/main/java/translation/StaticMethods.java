@@ -16,138 +16,64 @@ import static minillvm.ast.Ast.VarRef;
 public class StaticMethods
 {
 
-    public static HashMap<MJClassDecl, Parameter> parametersHashMap = new HashMap<>();
 
+    /**
+     *
+     * @param methodCall
+     * @return
+     */
 
-
-    public static Operand handleMethodCall(MJMethodCall methodCall) {
+    public static Operand handleMethodCall(MJMethodCall methodCall)
+    {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         MJExpr exprReceiver = methodCall.getReceiver();
 
-        //1. pointer to the object on heap
-        Operand addressObjHeap = exprReceiver.match(exprMatcherR);
-
-        TypeMatcher typeMatcher = new TypeMatcher();
+        Operand exprMatched = exprReceiver.match(exprMatcherR);
 
 
-            //2. evaluate arguments
-       // TemporaryVar tempRefVar = TemporaryVar("var");
-        //Translator.curBlock.add(Store(VarRef(tempRefVar), addressObjHeap));
-
-                //UNSAFE
-            MJVarUse varUse = (MJVarUse)methodCall.getReceiver();
-
-//        if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
-
-        MJTypeClass objClassReceived = (MJTypeClass) varUse.getVariableDeclaration().getType();
-        MJClassDecl classDecl = objClassReceived.getClassDeclaration();
-
-
-        //Translator.curBlock.add(Bitcast(bitCastTemp, Translator.structsMap.get(Translator.structsMap.get(classDecl)), VarRef(tempVarDeref)));
-   // System.out.println("Type is " + bitCastTemp.calculateType());
-
-
-        TemporaryVar tempReturnValue = TemporaryVar("return value");
-
-        int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
-
-        Proc procedure = Translator.prog.getProcedures().get(rightProcedure);
-
-
-
-        OperandList parametersToPass = OperandList();
-
-
-        // ConstStruct construct = ConstStruct(Translator.structsMap.get(classDecl), ConstList(ConstInt(0)));
-        // parametersToPass.add(TypePointer(construct.calculateType()));
-
-        for (MJExpr exprParam : methodCall.getArguments())
+        if(methodCall.getReceiver() instanceof MJVarUse)
         {
-            Operand operandParam = exprParam.match(exprMatcherR);
-            parametersToPass.add(operandParam);
-        }
+            MJVarUse varUse = (MJVarUse) methodCall.getReceiver();
 
 
-        //WTF HERE???
-
-        Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
-        //Variable paramRight = Parameter(Translator.structsMap.get(classDecl), classDecl.getName());
-
-        TemporaryVar tempVar = TemporaryVar("temp");
-        Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
-        Operand operParam = VarRef(paramRight);
-        parametersToPass.addFront(operParam);
-
-
-
-        System.out.println(rightProcedure + " is right");
-
-            Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(procedure), parametersToPass));
-            return VarRef(tempReturnValue);
-
-
-        }
-
-
-
-
-
-
-
-    public static boolean checkAllParametersEEqual(ParameterList paramList1, ParameterList paramList2)
-    {
-        int amountElementsEqualTotal1 = paramList1.size();
-        int amountElementsEqualTotal2 = paramList2.size();
-
-
-
-        int amountElementsEqualSoFar = 0;
-
-
-        int i = 0;
-
-        if(amountElementsEqualTotal1 == amountElementsEqualTotal2) {
-
-            for (Parameter param1 : paramList1) {
-                Parameter param2 = paramList2.get(i);
-                if (param1 != null && param2 != null &&
-                        param1.equals(param2)) {
-                    amountElementsEqualSoFar = amountElementsEqualSoFar + 1;
-                }
-            }
-
-        }
-
-        System.out.println("Size BB in 1:" + amountElementsEqualTotal1 + " 2: " + amountElementsEqualTotal2 + " overall " + amountElementsEqualSoFar);
-
-        System.out.println("All equal" +  ((amountElementsEqualSoFar == amountElementsEqualTotal1) && (amountElementsEqualSoFar == amountElementsEqualTotal2)));
-
-        return ((amountElementsEqualSoFar == amountElementsEqualTotal1) && (amountElementsEqualSoFar == amountElementsEqualTotal2)) ;
-    }
-
-    public static boolean checkAllBasicBlocksEqual(BasicBlockList blockList1, BasicBlockList blockList2)
-    {
-        int amountElementsEqualTotal = blockList1.size();
-
-        int amountElementsEqualSoFar = 0;
-
-
-        int i = 0;
-        for(BasicBlock param1 : blockList1)
-        {
-            BasicBlock param2 = blockList2.get(i);
-            if (param1 != null && param2 != null &&
-                    param1.equals(param2))
+            if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
             {
-                amountElementsEqualSoFar = amountElementsEqualSoFar + 1;
+
+                MJTypeClass objClassReceived = (MJTypeClass) varUse.getVariableDeclaration().getType();
+
+                TemporaryVar tempReturnValue = TemporaryVar("return value");
+                int rightProcedure = Translator.indexGlobal.get(methodCall.getMethodDeclaration());
+                Proc procedure = Translator.prog.getProcedures().get(rightProcedure);
+                OperandList parametersToPass = OperandList();
+
+                for (MJExpr exprParam : methodCall.getArguments())
+                {
+                    Operand operandParam = exprParam.match(exprMatcherR);
+                    parametersToPass.add(operandParam);
+                }
+
+                Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
+
+                TemporaryVar tempVar = TemporaryVar("temp");
+                Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
+                Operand operParam = VarRef(paramRight);
+                parametersToPass.addFront(operParam);
+
+
+                Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(procedure), parametersToPass));
+                return VarRef(tempReturnValue);
             }
+
         }
 
-        return amountElementsEqualSoFar == amountElementsEqualTotal;
-
+        throw new InvalidParameterException("Method " + methodCall.toString() + " not found");
     }
 
 
+    /**
+     *
+     * @param varClassNull
+     */
     public static void checkIfClassNull(TemporaryVar varClassNull) {
 
         //checks for null array
@@ -207,6 +133,12 @@ public class StaticMethods
     }
 
     //stores default value into the different fields of a class (on heap memory)
+
+    /**
+     *
+     * @param typeNewObjClass
+     * @param bitCastClass
+     */
     public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass) {
         for (int i = 1; i < typeNewObjClass.getFields().size(); i++) {
             TemporaryVar tempPointer = TemporaryVar("struct field");

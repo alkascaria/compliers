@@ -116,23 +116,14 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public void handleClassDeclList(MJClassDeclList classDeclList)
     {
-
-        initializeClassHashMap(classDeclList);
-
-        //initialize methods in hashMap
-        initializeMethodsInHashMap(classDeclList);
-
-        initializeHashVirtualMethodTable(classDeclList);
-
         //first thing first: initialize the different fields, considering the parents of the class too
         initializeClassesFields(classDeclList);
 
-        //put the V-Table into the class Struct and store it into the list of structs
-        initializeVirtualMethodTable(classDeclList);
-
+        //initialize methods (i.e: store them into LLVM) and into the list of procedures of the prog.
         initializeClassesMethods(classDeclList);
 
-
+        //put the V-Table into the class Struct and store it into the list of structs
+        initializeVirtualMethodTable(classDeclList);
 
     }
 
@@ -143,75 +134,13 @@ public class Translator extends MJElement.DefaultVisitor {
         for(MJClassDecl classDecl : classDeclList)
         {
             initMethodsDeclarations(classDecl);
-
-
-            for(StructField structField : Translator.structsMap.get(classDecl).getFields())
-            {
-                System.out.println("REaL Field of TypeStruct cadded " +structField.getName());
-                System.out.println("REAL Type of TypeStruct cadded " +structField.getType());
-            }
         }
     }
 
-    public void initializeMethodsInHashMap(MJClassDeclList classDeclList)
-    {
-        //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
-        for(MJClassDecl classDecl : classDeclList)
-        {
-            initMethodsHashMap(classDecl);
-        }
-    }
-
-
-    public void initializeHashVirtualMethodTable(MJClassDeclList classDeclList)
-    {
-        //now create virutal Method Table
-
-        int i = 0;
-        for (MJClassDecl classDecl : classDeclList)
-        {
-            //for every class, get its fields and the ones of their parents, adding them to it ( replication)
-
-            ClassData dataClass = createVirtualMethodTable(classDecl);
-
-            //get all the elements obtained from the class instantiation
-            TypeStruct virtualMethodTable = dataClass.getVirtualTable();
-
-            //put all V-Tables at the end of the current struct list
-            //prog.getStructTypes().add(virtualMethodTable);
-
-          //  initializeGlobalForVTable(virtualMethodTable, dataClass, classDecl);
-
-            //now add  a pointer to the V-Table in the front of the class and add it
-            //now get the TypeStruct that was stored the prog with the fields initialized
-
-            //replaced here
-            TypeStruct typeStructClass = structsMap.get(classDecl);
-
-            //add the V-Table as the first field, i.e: replace current TypeStruct for class with the one update with V-Table
-            TypePointer pointerVTable = TypePointer(virtualMethodTable);
-            typeStructClass.getFields().addFront(StructField(pointerVTable, virtualMethodTable.getName()));
-           // prog.getStructTypes().set(i, typeStructClass.copy());
-
-            //store the newly updated TypeStruct
-            //Translator.structsMap.keySet(classDecl, prog.getStructTypes().get(i));
-
-            //update previously stored one with the one with V-Table.
-            Translator.structsMap.put(classDecl, typeStructClass);
-
-            for(StructField structField : typeStructClass.getFields())
-            {
-                System.out.println("Field of TypeStruct cadded " +structField.getName());
-                System.out.println("Type of TypeStruct cadded " +structField.getType());
-            }
-
-
-            i = i + 1;
-
-        }
-
-    }
-
+    /**
+     *
+     * @param classDeclList
+     */
 
     public void initializeVirtualMethodTable(MJClassDeclList classDeclList)
     {
@@ -246,13 +175,20 @@ public class Translator extends MJElement.DefaultVisitor {
             //Translator.structsMap.keySet(classDecl, prog.getStructTypes().get(i));
 
             //update previously stored one with the one with V-Table.
-            Translator.structsMap.replace(classDecl, prog.getStructTypes().get(i));
+            Translator.structsMap.put(classDecl, prog.getStructTypes().get(i));
 
             i = i + 1;
 
         }
 
     }
+
+    /**
+     *
+     * @param typeStructClass
+     * @param classData
+     * @param classDecl
+     */
 
     public void initializeGlobalForVTable(TypeStruct typeStructClass, ClassData classData, MJClassDecl classDecl)
     {
@@ -270,6 +206,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
          ConstStruct constStructClass = ConstStruct(typeStructClass,constProcedures );
          Global globalVTable = Global(typeStructClass, "virtual_method_table" + classData.getVirtualTable().getName(), true, constStructClass);
+
+
 
         //a globalRef can be used as operand too.
 
@@ -324,56 +262,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
             prog.getStructTypes().add(structClass);
-            //structsMap.put(classDecl, structClass);
-            structsMap.replace(classDecl, structClass);
-        }
-    }
-
-    /**
-     * Given a list of class declarations, creates all the StructFields for a TypeStruct of a class
-     * and stores the initialized TypeStruct into the list of StructTypes of the class, checking its parents too.
-     * @param classDeclList
-     */
-
-    public void initializeClassHashMap(MJClassDeclList classDeclList)
-    {
-        //generate a struct for every class and save this into a hashMap
-        for(MJClassDecl classDecl : classDeclList)
-        {
-            //final struct field list with all the fields in correct order
-            StructFieldList structFieldListReturn = StructFieldList();
-
-            StructFieldList structFieldListParents = StructFieldList();
-            MJClassDecl parentClass = classDecl.getDirectSuperClass();
-
-            while(parentClass != null)
-            {
-                //get the current parent's struct fieldList
-                StructFieldList structFieldListCurParent = StaticMethods.returnStructsFieldsInClass(parentClass, false);
-                //add all the current ones in front
-                parentClass = parentClass.getDirectSuperClass();
-                //put them back into the list of parents in inverted order
-                for(StructField structField : structFieldListCurParent)
-                {
-                    structFieldListParents.addFront(structField.copy());
-                }
-            }
-
-            //add all the ones in parents first with the adjusted order
-            for(StructField structFieldParent : structFieldListParents)
-            {
-                structFieldListReturn.add(structFieldParent.copy());
-            }
-            StructFieldList structFieldListBaseClass = StaticMethods.returnStructsFieldsInClass(classDecl, true);
-
-            //and then the ones in the base class
-            for(StructField structFieldBase : structFieldListBaseClass)
-            {
-                structFieldListReturn.add(structFieldBase.copy());
-            }
-
-            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
-           // prog.getStructTypes().add(structClass);
             structsMap.put(classDecl, structClass);
         }
     }
@@ -531,7 +419,6 @@ public class Translator extends MJElement.DefaultVisitor {
      */
     public void initMethodsDeclarations(MJClassDecl classDecl)
     {
-
         int i = 0;
         for(MJMethodDecl methodDecl : classDecl.getMethods())
         {
@@ -545,8 +432,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
             Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
             parameterList.add(paramClass);
-
-            StaticMethods.parametersHashMap.put(classDecl, paramClass.copy());
 
             parametersMap.put(classDecl, paramClass);
 
@@ -580,73 +465,9 @@ public class Translator extends MJElement.DefaultVisitor {
             methodDecl.getMethodBody().accept(this);
 
             prog.getProcedures().add(methodProc);
-            methodsProcs.replace(methodDecl, methodProc);
+            methodsProcs.put(methodDecl, methodProc);
             Translator.indexGlobal.put(methodDecl, i);
             System.out.println(indexGlobal.toString());
-
-
-            i = i + 1;
-        }
-    }
-
-    /**
-     * Stores procedures into the list of prog procedures and hashMap
-     * Transforms methods into procedures
-     */
-    public void initMethodsHashMap(MJClassDecl classDecl)
-    {
-
-        int i = 0;
-        for(MJMethodDecl methodDecl : classDecl.getMethods())
-        {
-
-            TypeMatcher typeMatcher = new TypeMatcher();
-            String methodName = methodDecl.getName();
-            Type returnType = methodDecl.getReturnType().match(typeMatcher);
-
-
-            ParameterList parameterList = ParameterList();
-
-           // Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
-          //  parameterList.add(paramClass);
-
-           // StaticMethods.parametersHashMap.put(classDecl, paramClass.copy());
-
-          //  parametersMap.put(classDecl, paramClass);
-
-            //for all parameters, convert their type
-            for (MJVarDecl paramDecl : methodDecl.getFormalParameters())
-            {
-                String paramName = paramDecl.getName();
-                Type paramType = paramDecl.getType().match(typeMatcher);
-
-                Parameter parameter = Parameter(paramType, paramName);
-                parameterList.add(parameter);
-            }
-
-            //create new blocks for the procedure
-            blocks = BasicBlockList();
-            BasicBlock methodBlock = BasicBlock();
-            blocks.add(methodBlock);
-            curBlock = methodBlock;
-
-            Proc methodProc = Proc(methodName, returnType, parameterList, blocks);
-
-            Translator.curProc = methodProc;
-
-            //initialize parameters of the method as TempVar and onto the stack
-            for(MJVarDecl varDecl: methodDecl.getFormalParameters())
-            {
-                varDecl.accept(this);
-            }
-
-            //initialize content of the method and put it into the proc
-            methodDecl.getMethodBody().accept(this);
-
-            //prog.getProcedures().add(methodProc);
-            methodsProcs.put(methodDecl, methodProc);
-            //Translator.indexGlobal.put(methodDecl, i);
-            //System.out.println(indexGlobal.toString());
 
             i = i + 1;
         }
@@ -778,12 +599,7 @@ public class Translator extends MJElement.DefaultVisitor {
     {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         Operand operReturn = stmtReturn.getResult().match(exprMatcherR);
-
-        System.out.println("Returning" + stmtReturn.toString());
-
-
-            Translator.curBlock.add(ReturnExpr(operReturn));
-
+        Translator.curBlock.add(ReturnExpr(operReturn));
 
     }
 
