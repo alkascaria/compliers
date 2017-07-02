@@ -120,19 +120,18 @@ public class Translator extends MJElement.DefaultVisitor {
         initializeClassHashMap(classDeclList);
 
         //initialize methods in hashMap
-        initializeInHashMap(classDeclList);
+        initializeMethodsInHashMap(classDeclList);
 
         initializeHashVirtualMethodTable(classDeclList);
 
         //first thing first: initialize the different fields, considering the parents of the class too
         initializeClassesFields(classDeclList);
 
-        //initialize methods (i.e: store them into LLVM) and into the list of procedures of the prog.
-
         //put the V-Table into the class Struct and store it into the list of structs
         initializeVirtualMethodTable(classDeclList);
 
         initializeClassesMethods(classDeclList);
+
 
 
     }
@@ -144,10 +143,17 @@ public class Translator extends MJElement.DefaultVisitor {
         for(MJClassDecl classDecl : classDeclList)
         {
             initMethodsDeclarations(classDecl);
+
+
+            for(StructField structField : Translator.structsMap.get(classDecl).getFields())
+            {
+                System.out.println("REaL Field of TypeStruct cadded " +structField.getName());
+                System.out.println("REAL Type of TypeStruct cadded " +structField.getType());
+            }
         }
     }
 
-    public void initializeInHashMap(MJClassDeclList classDeclList)
+    public void initializeMethodsInHashMap(MJClassDeclList classDeclList)
     {
         //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
         for(MJClassDecl classDecl : classDeclList)
@@ -193,6 +199,13 @@ public class Translator extends MJElement.DefaultVisitor {
             //update previously stored one with the one with V-Table.
             Translator.structsMap.put(classDecl, typeStructClass);
 
+            for(StructField structField : typeStructClass.getFields())
+            {
+                System.out.println("Field of TypeStruct cadded " +structField.getName());
+                System.out.println("Type of TypeStruct cadded " +structField.getType());
+            }
+
+
             i = i + 1;
 
         }
@@ -233,7 +246,7 @@ public class Translator extends MJElement.DefaultVisitor {
             //Translator.structsMap.keySet(classDecl, prog.getStructTypes().get(i));
 
             //update previously stored one with the one with V-Table.
-            Translator.structsMap.put(classDecl, prog.getStructTypes().get(i));
+            Translator.structsMap.replace(classDecl, prog.getStructTypes().get(i));
 
             i = i + 1;
 
@@ -311,7 +324,8 @@ public class Translator extends MJElement.DefaultVisitor {
 
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
             prog.getStructTypes().add(structClass);
-            structsMap.put(classDecl, structClass);
+            //structsMap.put(classDecl, structClass);
+            structsMap.replace(classDecl, structClass);
         }
     }
 
@@ -566,9 +580,10 @@ public class Translator extends MJElement.DefaultVisitor {
             methodDecl.getMethodBody().accept(this);
 
             prog.getProcedures().add(methodProc);
-            methodsProcs.put(methodDecl, methodProc);
+            methodsProcs.replace(methodDecl, methodProc);
             Translator.indexGlobal.put(methodDecl, i);
             System.out.println(indexGlobal.toString());
+
 
             i = i + 1;
         }
@@ -766,17 +781,9 @@ public class Translator extends MJElement.DefaultVisitor {
 
         System.out.println("Returning" + stmtReturn.toString());
 
-        if(stmtReturn.getResult() instanceof MJNewObject)
-        {
-            System.out.println("Is new Obj");
-            TemporaryVar tempDeref = TemporaryVar("deref");
-            Translator.curBlock.add(Load(tempDeref, operReturn));
-            Translator.curBlock.add(ReturnExpr(VarRef(tempDeref)));
-        }
-        else
-        {
-            Translator.curBlock.add(ReturnExpr(operReturn.copy()));
-        }
+
+            Translator.curBlock.add(ReturnExpr(operReturn));
+
 
     }
 
