@@ -3,31 +3,38 @@ class VarTest {
 		
 	
 	B b;
+	b = null;
 	
 	b = new B();
 	
-	int hallo;
+	b.x = 10;
 	
-	
-	System.out.println(b.h(10, 10));
+	System.out.println(b.x);	
 	
 		
 		
 	}
 }
 
-class B
+class B extends C
 {	
 
 	int x;
 	
-	int h(int a, int b)
+	int a;
+
+	int b(int a, int b, int c)
 	{
-		int c;
-		c = a + b;
-		System.out.println(c);
-		return a;
+		int d;
+		d = a + b;
+		
+		return d;
 	}
 	
 }
 
+class C
+{
+	int x;
+	
+}

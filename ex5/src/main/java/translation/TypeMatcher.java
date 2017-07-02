@@ -15,7 +15,6 @@ import static minillvm.ast.Ast.TypeInt;
 public class TypeMatcher implements MJType.Matcher<Type>
 {
 
-    //TODO: usage of classes goes here
     @Override
     public Type case_TypeClass(MJTypeClass typeClass)
     {

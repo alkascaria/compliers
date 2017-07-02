@@ -106,10 +106,7 @@ public class ExprMatcherR implements MJExpr.Matcher<Operand> {
     public Operand case_MethodCall(MJMethodCall methodCall)
     {
 
-        Operand operandReturn =  StaticMethods.handleMethodCall(methodCall);
-        //TemporaryVar tempVarReturn = TemporaryVar("return");
-        //Translator.curBlock.add(Load(tempVarReturn, operandReturn));
-        return operandReturn.copy();
+        return StaticMethods.handleMethodCall(methodCall);
     }
 
     /**

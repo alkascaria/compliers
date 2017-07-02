@@ -4,7 +4,6 @@ import minijava.ast.*;
 import minillvm.ast.*;
 
 import java.security.InvalidParameterException;
-import java.util.HashMap;
 
 import static minillvm.ast.Ast.*;
 import static minillvm.ast.Ast.Nullpointer;
@@ -18,11 +17,42 @@ public class StaticMethods
 
 
     /**
-     *
+     * Given a certain class, checks if it's null
+     * @param varClassNull
+     */
+
+    public static void checkIfClassNull(TemporaryVar varClassNull)
+    {
+
+        //checks for null array
+        BasicBlock blockNull = BasicBlock();
+        BasicBlock blockRest = BasicBlock();
+        TemporaryVar tempNull = TemporaryVar("null class");
+
+
+
+        BinaryOperation binCheckNull = BinaryOperation(tempNull,VarRef(varClassNull), Eq(), Ast.Nullpointer());
+        Translator.curBlock.add(binCheckNull);
+
+        Branch branchIfNull = Branch(VarRef(tempNull), blockNull, blockRest);
+        Translator.curBlock.add(branchIfNull);
+
+        //if null...
+        Translator.curBlock = blockNull;
+        Translator.blocks.add(blockNull);
+        Translator.curBlock.add(HaltWithError("Cannot perform a field access on a null class."));
+
+        //no problem, all good!
+        Translator.curBlock = blockRest;
+        Translator.blocks.add(blockRest);
+    }
+
+
+    /**
+     * Handles a method call when one is invoked
      * @param methodCall
      * @return
      */
-
     public static Operand handleMethodCall(MJMethodCall methodCall)
     {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
@@ -52,6 +82,7 @@ public class StaticMethods
                     parametersToPass.add(operandParam);
                 }
 
+                //pass the obj reference too
                 Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
 
                 TemporaryVar tempVar = TemporaryVar("temp");
@@ -69,37 +100,8 @@ public class StaticMethods
         throw new InvalidParameterException("Method " + methodCall.toString() + " not found");
     }
 
-
-    /**
-     *
-     * @param varClassNull
-     */
-    public static void checkIfClassNull(TemporaryVar varClassNull) {
-
-        //checks for null array
-        BasicBlock blockNull = BasicBlock();
-        BasicBlock blockRest = BasicBlock();
-        TemporaryVar tempNull = TemporaryVar("null class");
-
-
-        BinaryOperation binCheckNull = BinaryOperation(tempNull, VarRef(varClassNull), Eq(), Ast.Nullpointer());
-        Translator.curBlock.add(binCheckNull);
-
-        Branch branchIfNull = Branch(VarRef(tempNull), blockNull, blockRest);
-        Translator.curBlock.add(branchIfNull);
-
-        //if null...
-        Translator.curBlock = blockNull;
-        Translator.blocks.add(blockNull);
-        Translator.curBlock.add(HaltWithError("Cannot perform a field access on a null class."));
-
-        //no problem, all good!
-        Translator.curBlock = blockRest;
-        Translator.blocks.add(blockRest);
-    }
-
-
-    /**
+ /**
+     * Returns all structs as a StructFieldList for a certain class
      * @param classDecl
      * @return StructFieldList: list of structFields in the current class
      */
@@ -131,16 +133,11 @@ public class StaticMethods
 
 
     }
-
     //stores default value into the different fields of a class (on heap memory)
-
-    /**
-     *
-     * @param typeNewObjClass
-     * @param bitCastClass
-     */
-    public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass) {
-        for (int i = 1; i < typeNewObjClass.getFields().size(); i++) {
+    public static void initializeDefaultValueFields(TypeStruct typeNewObjClass, TemporaryVar bitCastClass)
+    {
+        for(int i = 1; i < typeNewObjClass.getFields().size(); i++)
+        {
             TemporaryVar tempPointer = TemporaryVar("struct field");
             GetElementPtr elementPointer = GetElementPtr(tempPointer, VarRef(bitCastClass), OperandList(ConstInt(0), ConstInt(i)));
             Translator.curBlock.add(elementPointer);
@@ -152,17 +149,20 @@ public class StaticMethods
             Type typeField = tempVar.calculateType();
 
             //integer --> default value = 0
-            if (typeField.equalsType(TypeInt())) {
+            if(typeField.equalsType(TypeInt()))
+            {
                 Operand defaultValue = ConstInt(0);
                 Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
             //boolean --> default value = false
-            else if (typeField.equalsType(TypeBool())) {
+            else if(typeField.equalsType(TypeBool()))
+            {
                 Operand defaultValue = ConstBool(false);
                 Translator.curBlock.add(Store(VarRef(tempPointer), defaultValue));
             }
             //array default value = null
-            else if (typeField.equalsType(TypeArray(TypeInt(), 0))) {
+            else if(typeField.equalsType(TypeArray(TypeInt(), 0)))
+            {
                 TypeArray typeArray = TypeArray(TypeInt(), 0);
                 TemporaryVar tempArrayCasted = TemporaryVar("arrayCasted");
                 Bitcast arrayConverted = Bitcast(tempArrayCasted, TypePointer(TypePointer(typeArray)), VarRef(bitCastClass));
@@ -171,7 +171,8 @@ public class StaticMethods
                 Translator.curBlock.add(Store(VarRef(tempArrayCasted), operNull));
             }
             //class = null
-            else {
+            else
+            {
                 TemporaryVar classNullCasted = TemporaryVar("arrayCasted");
                 Bitcast classConverted = Bitcast(classNullCasted, TypePointer(TypePointer(typeNewObjClass)), VarRef(bitCastClass));
                 Translator.curBlock.add(classConverted);
@@ -182,37 +183,40 @@ public class StaticMethods
         }
     }
 
-    /**
-     * Dereference: true if getting the value (right-hand side)
-     * false if getting the element (left-hand side)
-     *
+    /** Dereference: true if getting the value (right-hand side)
+     *               false if getting the element (left-hand side)
      * @param needToDereference
      * @param fieldAccess
      * @return
      */
 
-    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess, Operand addressObjHeap) {
+    public static Operand handleFieldClass(boolean needToDereference, MJFieldAccess fieldAccess, Operand addressObjHeap)
+    {
+        System.out.println("Handling field");
         MJExpr exprReceiver = fieldAccess.getReceiver();
 
         ExprMatcherR exprMatcherR = new ExprMatcherR();
 
         //a.x
-        if (exprReceiver instanceof MJVarUse) {
-            MJVarUse varUse = (MJVarUse) exprReceiver;
+        if(exprReceiver instanceof MJVarUse)
+        {
+            MJVarUse varUse = (MJVarUse)exprReceiver;
 
             //if trying to access a class. well, there aren't any other options, right?
-            if (varUse.getVariableDeclaration().getType() instanceof MJTypeClass) {
-                MJTypeClass objClassReceived = (MJTypeClass) varUse.getVariableDeclaration().getType();
+            if(varUse.getVariableDeclaration().getType() instanceof MJTypeClass)
+            {
+                MJTypeClass objClassReceived = (MJTypeClass)varUse.getVariableDeclaration().getType();
                 MJClassDecl classDecl = objClassReceived.getClassDeclaration();
 
-                TemporaryVar tempVar = TemporaryVar("temp Deref");
+                TemporaryVar tempVar =  TemporaryVar("temp Deref");
                 Translator.curBlock.add(Load(tempVar, VarRef(Translator.varsTemp.get(varUse.getVarName()))));
                 return StaticMethods.accessFieldInClass(classDecl, fieldAccess, needToDereference, addressObjHeap);
 
             }
         }
         //new A().x
-        else if (exprReceiver instanceof MJNewObject) {
+        else if(exprReceiver instanceof MJNewObject)
+        {
             //firstly, instantiate the class
             exprReceiver.match(exprMatcherR);
 
@@ -227,44 +231,57 @@ public class StaticMethods
     }
 
     /**
+     *
      * @param classDecl
      * @param fieldAccess: true =  need to get the value (right-hand side)
      *                     false = need to get the reference (left-hand side)
      * @return
      */
 
-    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference, Operand addressObjHeap) {
+    public static Operand accessFieldInClass(MJClassDecl classDecl, MJFieldAccess fieldAccess, boolean needToDereference, Operand addressObjHeap)
+    {
         TypeStruct typeStructClass = Translator.structsMap.get(classDecl);
 
         boolean found = false;
 
         //loop through all fields starting from the one in position 1, looking for the correct one.
-        for (int i = 1; i < typeStructClass.getFields().size(); i++) {
+        for(int i = 1; i < typeStructClass.getFields().size(); i++)
+        {
             MJClassDecl classCurrent = classDecl;
-            while (found == false) {
+            while(found == false)
+            {
                 String fieldName = classCurrent.getName() + "_" + fieldAccess.getFieldName();
 
                 StructField structFieldAtPos = typeStructClass.getFields().get(i);
 
-                if (structFieldAtPos.getName().equals(fieldName)) {
+                if(structFieldAtPos.getName().equals(fieldName))
+                {
                     found = true;
                     TemporaryVar tempVarElement = TemporaryVar("element found");
 
                     GetElementPtr elementPtr = GetElementPtr(tempVarElement, addressObjHeap, OperandList(ConstInt(0), ConstInt(i)));
                     Translator.curBlock.add(elementPtr);
 
-                    if (needToDereference == true) {
+                    if (needToDereference == true)
+                    {
                         TemporaryVar tempVar = TemporaryVar("deref temp");
                         Translator.curBlock.add(Load(tempVar, VarRef(tempVarElement)));
 
                         return VarRef(tempVar);
-                    } else {
+                    }
+                    else
+                    {
                         return VarRef(tempVarElement);
                     }
-                } else {
-                    if (classCurrent.getDirectSuperClass() != null) {
+                }
+                else
+                {
+                    if (classCurrent.getDirectSuperClass() != null)
+                    {
                         classCurrent = classCurrent.getDirectSuperClass();
-                    } else {
+                    }
+                    else
+                    {
                         break;
                     }
 
@@ -273,7 +290,7 @@ public class StaticMethods
             }
         }
 
-        throw new InvalidParameterException("Field " + fieldAccess.getFieldName() + " for class" + classDecl.getName() + "  being accessed was not found!");
+        throw new InvalidParameterException("Field " +  fieldAccess.getFieldName() + " for class" + classDecl.getName() + "  being accessed was not found!");
 
     }
 
@@ -534,6 +551,7 @@ public class StaticMethods
         Translator.curBlock = restBlock;
 
     }
+
 
 
 }

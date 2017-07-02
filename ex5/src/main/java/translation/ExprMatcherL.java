@@ -23,12 +23,10 @@ public class ExprMatcherL implements MJExpr.Matcher<Operand> {
      * @return the exception {@code Operand) returns an InvalidParameterException
      */
     @Override
-    public Operand case_FieldAccess(MJFieldAccess fieldAccess) {
+    public Operand case_FieldAccess(MJFieldAccess fieldAccess)
+    {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         Operand exprClassReceived = fieldAccess.getReceiver().match(exprMatcherR);
-
-        // TemporaryVar addressObjHeap = TemporaryVar("obj heap");
-        // Translator.curBlock.add(Load(addressObjHeap, exprClassReceived));
 
         return StaticMethods.handleFieldClass(false, fieldAccess, exprClassReceived);
     }

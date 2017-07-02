@@ -93,7 +93,7 @@ Compilers and Language Processing Tools - SS17
 \maketitle
 
 \section*{Overview}
-In this report, we describe our group's translator for Object-Oriented constructs from Minijava to $mu$-LLVM. The resulting Translator successfully converts classes into \textit{TypeStructs}, storing fields of base classes and parents' classes through the usage of replication for supporting inheritance. Furthermore, methods are supported through the creation of a Virtual Method Table per class, where methods of the base class, along with the ones inherited from parent classes, are stored. Inheritance and overriding of methods in classes is hence supported through this virtual method table, which is stored as first field of the \textit{TypeStruct} of the corresponding class. New Objects' instantiation, along with fields' access on the left and right-hand side of an assignment operation is also supported. Methods are translated as global procedures. 
+In this report, we describe our group's translator for Object-Oriented constructs from Minijava to $\mu$-LLVM. The resulting Translator successfully converts classes into \textit{TypeStructs}, storing fields of base classes and parents' classes through the usage of replication for supporting inheritance. Furthermore, methods are supported through the creation of a Virtual Method Table per class, where methods of the base class, along with the ones inherited from parent classes, are stored. Inheritance and overriding of methods in classes is hence supported through this virtual method table, which is stored as first field of the \textit{TypeStruct} of the corresponding class. New Objects' instantiation, along with fields' access on the left and right-hand side of an assignment operation is also supported. Methods are translated into global procedures and output in $\mu$-LLVM code, however, the team did not manage to make procedure calls function in $\mu$-LLVM because of problems with referencing the calling object in procedures. 
 
 
 \section*{Functionalities}
@@ -124,6 +124,8 @@ In this report, we describe our group's translator for Object-Oriented construct
 	\begin{center}
 Field\_Name = ClassName + "\_" + FieldName
 \end{center}	
+
+\item \textbf{Procedures and Procedures Calls}: Methods are correctly translated into procedures, along with their body, arguments and return type. When calling a procedure, a reference to the "this" object where the method gets called onto, also needs to be stored into the procedure itself. For this reason, a class reference to that the method is called is stored into the procedure as first argument. Afterwards, a procedure call will need to pass the proper object reference in order for the procedure to access the right class-level fields. Although this may sound good in theory, despite our efforts, all our attempts at implementing procedure calls failed. This is the reason why most test cases are not passing either. 
 	
 
 	
