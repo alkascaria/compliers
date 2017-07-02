@@ -70,7 +70,8 @@ public class StaticMethods
 
         //WTF HERE???
 
-        Variable paramRight = Parameter(Translator.structsMap.get(classDecl), classDecl.getName());
+        Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
+        //Variable paramRight = Parameter(Translator.structsMap.get(classDecl), classDecl.getName());
 
         TemporaryVar tempVar = TemporaryVar("temp");
         Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
