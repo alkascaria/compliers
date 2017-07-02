@@ -1,33 +1,9 @@
-class VarTest {
+class addition {
 	public static void main(String[] args) {
 		
-	
-	B b;
-	
-	b = new B();
-	
-	int hallo;
-	
-	
-	System.out.println(b.h(10, 10));
-	
+		System.out.println(new int[-10].length);
+		
 		
 		
 	}
 }
-
-class B
-{	
-
-	int x;
-	
-	int h(int a, int b)
-	{
-		int c;
-		c = a + b;
-		System.out.println(c);
-		return a;
-	}
-	
-}
-

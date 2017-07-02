@@ -119,14 +119,6 @@ In this report, we describe our group's translator for Object-Oriented construct
 	\end{figure}
 	
 		\item \textbf{Object instantiation}:  Upon initialization of an object, all fields of the object are initialized to their default value( int --> 0, boolean --> false, int[] and Class --> null): the class' type of the variable the class is being assigned to is checked as well. (For example: A a = new B(), where B extends class A). Should classes on the right-hand and the left-hand side not have the same type, then a Bitcast operation takes place and the left-hand side's type is converted to the right-hand side's type. 
-
-	\item \textbf{Field Access}: Should a Field Access take place on the left or right-hand side of an expression, then respectively a value or a reference to the value store inside the field being accessed is returned. Field accessing is done by retrieving the Object's address on the heap and shifting the pointer's offset by an amount equal to the index of the field (starting from index 1, as the Virtual Method Table is stored at index 0). Since fields are stored together with their class name in the class' TypeStruct, then their name is unique (EX: class A has field x --> Field has name A\_x \ref{classes_fields}). Consequently, lookup of the correct field is performed by matching through the following string for an occurrence in the class' TypeStruct.
-	\begin{center}
-Field\_Name = ClassName + "\_" + FieldName
-\end{center}	
-	
-
-	
 \end{itemize}
 
 
