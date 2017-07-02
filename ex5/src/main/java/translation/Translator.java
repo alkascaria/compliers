@@ -119,8 +119,10 @@ public class Translator extends MJElement.DefaultVisitor {
 
         initializeClassHashMap(classDeclList);
 
+        //initialize methods in hashMap
         initializeInHashMap(classDeclList);
 
+        initializeHashVirtualMethodTable(classDeclList);
 
         //first thing first: initialize the different fields, considering the parents of the class too
         initializeClassesFields(classDeclList);
@@ -152,6 +154,49 @@ public class Translator extends MJElement.DefaultVisitor {
         {
             initMethodsHashMap(classDecl);
         }
+    }
+
+
+    public void initializeHashVirtualMethodTable(MJClassDeclList classDeclList)
+    {
+        //now create virutal Method Table
+
+        int i = 0;
+        for (MJClassDecl classDecl : classDeclList)
+        {
+            //for every class, get its fields and the ones of their parents, adding them to it ( replication)
+
+            ClassData dataClass = createVirtualMethodTable(classDecl);
+
+            //get all the elements obtained from the class instantiation
+            TypeStruct virtualMethodTable = dataClass.getVirtualTable();
+
+            //put all V-Tables at the end of the current struct list
+            //prog.getStructTypes().add(virtualMethodTable);
+
+          //  initializeGlobalForVTable(virtualMethodTable, dataClass, classDecl);
+
+            //now add  a pointer to the V-Table in the front of the class and add it
+            //now get the TypeStruct that was stored the prog with the fields initialized
+
+            //replaced here
+            TypeStruct typeStructClass = structsMap.get(classDecl);
+
+            //add the V-Table as the first field, i.e: replace current TypeStruct for class with the one update with V-Table
+            TypePointer pointerVTable = TypePointer(virtualMethodTable);
+            typeStructClass.getFields().addFront(StructField(pointerVTable, virtualMethodTable.getName()));
+           // prog.getStructTypes().set(i, typeStructClass.copy());
+
+            //store the newly updated TypeStruct
+            //Translator.structsMap.keySet(classDecl, prog.getStructTypes().get(i));
+
+            //update previously stored one with the one with V-Table.
+            Translator.structsMap.put(classDecl, typeStructClass);
+
+            i = i + 1;
+
+        }
+
     }
 
 
@@ -212,8 +257,6 @@ public class Translator extends MJElement.DefaultVisitor {
 
          ConstStruct constStructClass = ConstStruct(typeStructClass,constProcedures );
          Global globalVTable = Global(typeStructClass, "virtual_method_table" + classData.getVirtualTable().getName(), true, constStructClass);
-
-
 
         //a globalRef can be used as operand too.
 
@@ -588,7 +631,7 @@ public class Translator extends MJElement.DefaultVisitor {
             //prog.getProcedures().add(methodProc);
             methodsProcs.put(methodDecl, methodProc);
             //Translator.indexGlobal.put(methodDecl, i);
-            System.out.println(indexGlobal.toString());
+            //System.out.println(indexGlobal.toString());
 
             i = i + 1;
         }
@@ -720,7 +763,20 @@ public class Translator extends MJElement.DefaultVisitor {
     {
         ExprMatcherR exprMatcherR = new ExprMatcherR();
         Operand operReturn = stmtReturn.getResult().match(exprMatcherR);
-        Translator.curBlock.add(ReturnExpr(operReturn));
+
+        System.out.println("Returning" + stmtReturn.toString());
+
+        if(stmtReturn.getResult() instanceof MJNewObject)
+        {
+            System.out.println("Is new Obj");
+            TemporaryVar tempDeref = TemporaryVar("deref");
+            Translator.curBlock.add(Load(tempDeref, operReturn));
+            Translator.curBlock.add(ReturnExpr(VarRef(tempDeref)));
+        }
+        else
+        {
+            Translator.curBlock.add(ReturnExpr(operReturn.copy()));
+        }
 
     }
 
