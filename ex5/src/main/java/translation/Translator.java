@@ -117,6 +117,8 @@ public class Translator extends MJElement.DefaultVisitor {
     public void handleClassDeclList(MJClassDeclList classDeclList)
     {
 
+        initializeClassHashMap(classDeclList);
+
         initializeInHashMap(classDeclList);
 
 
@@ -151,6 +153,7 @@ public class Translator extends MJElement.DefaultVisitor {
             initMethodsHashMap(classDecl);
         }
     }
+
 
     public void initializeVirtualMethodTable(MJClassDeclList classDeclList)
     {
@@ -265,6 +268,55 @@ public class Translator extends MJElement.DefaultVisitor {
 
             TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
             prog.getStructTypes().add(structClass);
+            structsMap.put(classDecl, structClass);
+        }
+    }
+
+    /**
+     * Given a list of class declarations, creates all the StructFields for a TypeStruct of a class
+     * and stores the initialized TypeStruct into the list of StructTypes of the class, checking its parents too.
+     * @param classDeclList
+     */
+
+    public void initializeClassHashMap(MJClassDeclList classDeclList)
+    {
+        //generate a struct for every class and save this into a hashMap
+        for(MJClassDecl classDecl : classDeclList)
+        {
+            //final struct field list with all the fields in correct order
+            StructFieldList structFieldListReturn = StructFieldList();
+
+            StructFieldList structFieldListParents = StructFieldList();
+            MJClassDecl parentClass = classDecl.getDirectSuperClass();
+
+            while(parentClass != null)
+            {
+                //get the current parent's struct fieldList
+                StructFieldList structFieldListCurParent = StaticMethods.returnStructsFieldsInClass(parentClass, false);
+                //add all the current ones in front
+                parentClass = parentClass.getDirectSuperClass();
+                //put them back into the list of parents in inverted order
+                for(StructField structField : structFieldListCurParent)
+                {
+                    structFieldListParents.addFront(structField.copy());
+                }
+            }
+
+            //add all the ones in parents first with the adjusted order
+            for(StructField structFieldParent : structFieldListParents)
+            {
+                structFieldListReturn.add(structFieldParent.copy());
+            }
+            StructFieldList structFieldListBaseClass = StaticMethods.returnStructsFieldsInClass(classDecl, true);
+
+            //and then the ones in the base class
+            for(StructField structFieldBase : structFieldListBaseClass)
+            {
+                structFieldListReturn.add(structFieldBase.copy());
+            }
+
+            TypeStruct structClass = TypeStruct(classDecl.getName(), structFieldListReturn);
+           // prog.getStructTypes().add(structClass);
             structsMap.put(classDecl, structClass);
         }
     }
