@@ -116,14 +116,20 @@ public class Translator extends MJElement.DefaultVisitor {
 
     public void handleClassDeclList(MJClassDeclList classDeclList)
     {
+
+        initializeInHashMap(classDeclList);
+
+
         //first thing first: initialize the different fields, considering the parents of the class too
         initializeClassesFields(classDeclList);
 
         //initialize methods (i.e: store them into LLVM) and into the list of procedures of the prog.
-        initializeClassesMethods(classDeclList);
 
         //put the V-Table into the class Struct and store it into the list of structs
         initializeVirtualMethodTable(classDeclList);
+
+        initializeClassesMethods(classDeclList);
+
 
     }
 
@@ -134,6 +140,15 @@ public class Translator extends MJElement.DefaultVisitor {
         for(MJClassDecl classDecl : classDeclList)
         {
             initMethodsDeclarations(classDecl);
+        }
+    }
+
+    public void initializeInHashMap(MJClassDeclList classDeclList)
+    {
+        //firstly, need to initialize all methods and put them into a hashMap (method --> Proc)
+        for(MJClassDecl classDecl : classDeclList)
+        {
+            initMethodsHashMap(classDecl);
         }
     }
 
@@ -458,6 +473,69 @@ public class Translator extends MJElement.DefaultVisitor {
             prog.getProcedures().add(methodProc);
             methodsProcs.put(methodDecl, methodProc);
             Translator.indexGlobal.put(methodDecl, i);
+            System.out.println(indexGlobal.toString());
+
+            i = i + 1;
+        }
+    }
+
+    /**
+     * Stores procedures into the list of prog procedures and hashMap
+     * Transforms methods into procedures
+     */
+    public void initMethodsHashMap(MJClassDecl classDecl)
+    {
+
+        int i = 0;
+        for(MJMethodDecl methodDecl : classDecl.getMethods())
+        {
+
+            TypeMatcher typeMatcher = new TypeMatcher();
+            String methodName = methodDecl.getName();
+            Type returnType = methodDecl.getReturnType().match(typeMatcher);
+
+
+            ParameterList parameterList = ParameterList();
+
+           // Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
+          //  parameterList.add(paramClass);
+
+           // StaticMethods.parametersHashMap.put(classDecl, paramClass.copy());
+
+          //  parametersMap.put(classDecl, paramClass);
+
+            //for all parameters, convert their type
+            for (MJVarDecl paramDecl : methodDecl.getFormalParameters())
+            {
+                String paramName = paramDecl.getName();
+                Type paramType = paramDecl.getType().match(typeMatcher);
+
+                Parameter parameter = Parameter(paramType, paramName);
+                parameterList.add(parameter);
+            }
+
+            //create new blocks for the procedure
+            blocks = BasicBlockList();
+            BasicBlock methodBlock = BasicBlock();
+            blocks.add(methodBlock);
+            curBlock = methodBlock;
+
+            Proc methodProc = Proc(methodName, returnType, parameterList, blocks);
+
+            Translator.curProc = methodProc;
+
+            //initialize parameters of the method as TempVar and onto the stack
+            for(MJVarDecl varDecl: methodDecl.getFormalParameters())
+            {
+                varDecl.accept(this);
+            }
+
+            //initialize content of the method and put it into the proc
+            methodDecl.getMethodBody().accept(this);
+
+            //prog.getProcedures().add(methodProc);
+            methodsProcs.put(methodDecl, methodProc);
+            //Translator.indexGlobal.put(methodDecl, i);
             System.out.println(indexGlobal.toString());
 
             i = i + 1;
