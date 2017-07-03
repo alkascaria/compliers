@@ -397,8 +397,8 @@ public class Translator extends MJElement.DefaultVisitor {
             ParameterList parameterList = ParameterList();
 
             //store class reference as parameter as well
-            Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
-            parameterList.add(paramClass);
+            //Parameter paramClass = Parameter(structsMap.get(classDecl), classDecl.getName());
+            //parameterList.add(paramClass);
 
             //for all parameters, convert their type
             for (MJVarDecl paramDecl : methodDecl.getFormalParameters())

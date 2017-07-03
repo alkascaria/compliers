@@ -83,12 +83,12 @@ public class StaticMethods
                 }
 
                 //pass the obj reference too
-                Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
+              //  Variable paramRight = Translator.varsTemp.get(varUse.getVarName());
 
-                TemporaryVar tempVar = TemporaryVar("temp");
-                Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
-                Operand operParam = VarRef(paramRight);
-                parametersToPass.addFront(operParam);
+               // TemporaryVar tempVar = TemporaryVar("temp");
+               // Translator.curBlock.add(Load(tempVar, VarRef(paramRight)));
+               // Operand operParam = VarRef(paramRight);
+               // parametersToPass.addFront(operParam);
 
 
                 Translator.curBlock.add(Call(tempReturnValue, ProcedureRef(procedure), parametersToPass));
